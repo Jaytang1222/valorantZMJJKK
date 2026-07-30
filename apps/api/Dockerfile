@@ -24,6 +24,7 @@ COPY --from=dependencies /app/packages/contracts/node_modules ./packages/contrac
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
 COPY --from=build /app/packages/contracts/dist ./packages/contracts/dist
+COPY data ./data
 COPY apps/api/package.json apps/api/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 WORKDIR /app/apps/api

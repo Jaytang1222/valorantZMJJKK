@@ -13,5 +13,6 @@ VALORANT 职业选手身份猜测游戏。代码以 pnpm workspace 管理：Next
 ## Railway 与 Vercel
 
 - Railway API Service 的 Root Directory 保持仓库根目录，使用 `railway.toml` 指向 `apps/api/Dockerfile`；在同一环境引用 PostgreSQL 的 `DATABASE_URL` 与 Redis 的 `REDIS_URL`。
+- 首次导入仓库内开发资料时，临时设 Railway API 的 `SEED_INITIAL_DATA=true` 并部署一次；导入成功后立即删除该变量。生产内容后续通过后台录入，不依赖部署种子。
 - Vercel Root Directory 为 `apps/web`；设置 `NEXT_PUBLIC_API_BASE_URL`、`NEXT_PUBLIC_WS_URL`、`API_BASE_URL` 为 Railway API 的公共地址。
 - 不要提交任何 Railway/Vercel token、数据库 URL 或 secret。
