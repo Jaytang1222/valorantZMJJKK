@@ -5,6 +5,6 @@ dockerfilePath = "apps/api/Dockerfile"
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 100
-preDeployCommand = "node dist/scripts/migrate.js && if [ \"$SEED_INITIAL_DATA\" = \"true\" ]; then node dist/scripts/seed.js; fi"
+preDeployCommand = "node dist/scripts/migrate.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
