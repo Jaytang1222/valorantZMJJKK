@@ -8,7 +8,13 @@ import {
   isValidAdminSession,
   verifyAdminCredentials,
 } from "../../lib/admin-session";
-import { updateReview } from "../../lib/admin-api";
+import {
+  addAlias,
+  createPlayer,
+  removeAlias,
+  updatePlayerStatus,
+  updateReview,
+} from "../../lib/admin-api";
 
 export async function login(formData: FormData): Promise<void> {
   const username = String(formData.get("username") ?? "");
@@ -45,4 +51,68 @@ export async function review(formData: FormData): Promise<void> {
     throw new Error("Invalid review request");
   await updateReview(snapshotId, reviewStatus);
   redirect("/admin");
+}
+
+function list(value: FormDataEntryValue | null): string[] {
+  return String(value ?? "")
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export async function createPlayerAction(formData: FormData): Promise<void> {
+  const store = await cookies();
+  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
+    redirect("/admin");
+  const heroes = list(formData.get("heroTop3"));
+  if (heroes.length !== 3)
+    throw new Error("Hero Top 3 must contain exactly three heroes");
+  await createPlayer({
+    canonicalName: String(formData.get("canonicalName") ?? ""),
+    aliases: list(formData.get("aliases")),
+    countryCode: String(formData.get("countryCode") ?? "").toUpperCase(),
+    countryGroup: String(formData.get("countryGroup") ?? ""),
+    region: String(formData.get("region")) as
+      "americas" | "emea" | "pacific" | "china",
+    primaryRole: String(formData.get("primaryRole")) as
+      "duelist" | "initiator" | "controller" | "sentinel" | "flex",
+    currentOrLastTeam: String(formData.get("team") ?? ""),
+    championsTitles: Number(formData.get("championsTitles")),
+    mastersTitles: Number(formData.get("mastersTitles")),
+    heroTop3: heroes as [string, string, string],
+    dataAsOf: String(formData.get("dataAsOf") ?? ""),
+    sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    sourceCheckedAt: new Date().toISOString(),
+    reviewStatus: "approved",
+  });
+  redirect("/admin?created=1");
+}
+
+export async function setPlayerStatus(formData: FormData): Promise<void> {
+  const store = await cookies();
+  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
+    redirect("/admin");
+  await updatePlayerStatus(
+    String(formData.get("playerId") ?? ""),
+    String(formData.get("status")) as "active" | "disabled",
+  );
+  redirect("/admin");
+}
+
+export async function addAliasAction(formData: FormData): Promise<void> {
+  const store = await cookies();
+  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
+    redirect("/admin");
+  const playerId = String(formData.get("playerId") ?? "");
+  await addAlias(playerId, String(formData.get("alias") ?? ""));
+  redirect(`/admin/players/${playerId}`);
+}
+
+export async function removeAliasAction(formData: FormData): Promise<void> {
+  const store = await cookies();
+  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
+    redirect("/admin");
+  const playerId = String(formData.get("playerId") ?? "");
+  await removeAlias(playerId, String(formData.get("aliasId") ?? ""));
+  redirect(`/admin/players/${playerId}`);
 }

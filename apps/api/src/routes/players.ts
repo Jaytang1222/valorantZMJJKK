@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { and, asc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { playerAliases, players, playerSnapshots } from "../db/schema.js";
 import { db } from "../db/client.js";
@@ -24,6 +24,17 @@ export async function registerPlayerRoutes(
 ): Promise<void> {
   app.get("/v1/players", async (request) => {
     const query = playerSearchSchema.parse(request.query);
+    const latestApprovedSnapshots = db
+      .select({
+        playerId: playerSnapshots.playerId,
+        dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+          "latest_data_version",
+        ),
+      })
+      .from(playerSnapshots)
+      .where(eq(playerSnapshots.reviewStatus, "approved"))
+      .groupBy(playerSnapshots.playerId)
+      .as("latest_approved_snapshots");
     const conditions = [
       eq(players.status, "active"),
       eq(playerSnapshots.reviewStatus, "approved"),
@@ -48,7 +59,7 @@ export async function registerPlayerRoutes(
     }
 
     return db
-      .select({
+      .selectDistinct({
         id: players.id,
         canonicalName: players.canonicalName,
         countryCode: playerSnapshots.countryCode,
@@ -59,6 +70,13 @@ export async function registerPlayerRoutes(
       })
       .from(players)
       .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
+      .innerJoin(
+        latestApprovedSnapshots,
+        and(
+          eq(latestApprovedSnapshots.playerId, playerSnapshots.playerId),
+          eq(latestApprovedSnapshots.dataVersion, playerSnapshots.dataVersion),
+        ),
+      )
       .leftJoin(playerAliases, eq(playerAliases.playerId, players.id))
       .where(and(...conditions))
       .orderBy(asc(players.canonicalName))
@@ -69,6 +87,17 @@ export async function registerPlayerRoutes(
     const { playerId } = z
       .object({ playerId: z.string().uuid() })
       .parse(request.params);
+    const latestApprovedSnapshots = db
+      .select({
+        playerId: playerSnapshots.playerId,
+        dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+          "latest_data_version",
+        ),
+      })
+      .from(playerSnapshots)
+      .where(eq(playerSnapshots.reviewStatus, "approved"))
+      .groupBy(playerSnapshots.playerId)
+      .as("latest_approved_snapshots");
     const result = await db
       .select({
         id: players.id,
@@ -87,6 +116,13 @@ export async function registerPlayerRoutes(
       })
       .from(players)
       .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
+      .innerJoin(
+        latestApprovedSnapshots,
+        and(
+          eq(latestApprovedSnapshots.playerId, playerSnapshots.playerId),
+          eq(latestApprovedSnapshots.dataVersion, playerSnapshots.dataVersion),
+        ),
+      )
       .where(
         and(
           eq(players.id, playerId),

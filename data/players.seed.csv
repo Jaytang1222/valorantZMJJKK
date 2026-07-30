@@ -1,7 +1,27 @@
 canonical_name,aliases,country_code,country_group,region,primary_role,current_or_last_team,champions_titles,masters_titles,hero_top_3,data_as_of,source_url,source_checked_at,review_status
-TenZ,tenz|Tyson Ngo,CA,north_america,americas,duelist,Sentinels,0,2,Jett|Omen|Raze,2025-01-01,https://www.vlr.gg/player/9/tenz/,2026-07-29T12:00:00.000Z,pending_review
-Chronicle,chronicle|Timofey Khromov,RU,eastern_europe,emea,flex,FNATIC,0,3,Sova|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/1097/chronicle/,2026-07-29T12:00:00.000Z,pending_review
-aspas,Erick Santos|Aspas,BR,south_america,americas,duelist,MIBR,1,0,Jett|Raze|Reyna,2025-01-01,https://www.vlr.gg/player/8480/aspas/,2026-07-29T12:00:00.000Z,pending_review
-Demon1,demon1|Max Mazanov,US,north_america,americas,duelist,NRG,1,0,Jett|Raze|Omen,2025-01-01,https://www.vlr.gg/player/16869/demon1/,2026-07-29T12:00:00.000Z,pending_review
-ZmjjKK,KangKang|Zheng Yongkang,CN,greater_china,china,duelist,EDward Gaming,1,0,Jett|Raze|Chamber,2025-01-01,https://www.vlr.gg/player/9136/zmjjkk/,2026-07-29T12:00:00.000Z,pending_review
-
+TenZ,tenz|Tyson Ngo,CA,north_america,americas,duelist,Sentinels,0,2,Jett|Omen|Raze,2025-01-01,https://www.vlr.gg/player/9/tenz/,2026-07-30T00:00:00.000Z,approved
+Chronicle,chronicle|Timofey Khromov,RU,eastern_europe,emea,flex,FNATIC,0,2,Sova|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/1097/chronicle/,2026-07-30T00:00:00.000Z,approved
+aspas,Erick Santos|Aspas,BR,south_america,americas,duelist,MIBR,1,0,Jett|Raze|Reyna,2025-01-01,https://www.vlr.gg/player/8480/aspas/,2026-07-30T00:00:00.000Z,approved
+Demon1,demon1|Max Mazanov,US,north_america,americas,duelist,NRG,1,0,Jett|Raze|Omen,2025-01-01,https://www.vlr.gg/player/16869/demon1/,2026-07-30T00:00:00.000Z,approved
+ZmjjKK,KangKang|Zheng Yongkang,CN,greater_china,china,duelist,EDward Gaming,1,0,Jett|Raze|Chamber,2025-01-01,https://www.vlr.gg/player/9136/zmjjkk/,2026-07-30T00:00:00.000Z,approved
+Boaster,boaster|Jake Howlett,GB,western_europe,emea,controller,FNATIC,0,1,Omen|Brimstone|Viper,2025-01-01,https://www.vlr.gg/player/438/boaster/,2026-07-30T00:00:00.000Z,approved
+Derke,derke|Nikita Sirmitev,FI,western_europe,americas,duelist,Team Vitality,0,1,Jett|Raze|Neon,2025-01-01,https://www.vlr.gg/player/502/derke/,2026-07-30T00:00:00.000Z,approved
+Alfajer,alfajer|Emir Beder,TR,middle_east,emea,sentinel,FNATIC,0,1,Killjoy|Cypher|Raze,2025-01-01,https://www.vlr.gg/player/13886/alfajer/,2026-07-30T00:00:00.000Z,approved
+cNed,cned|Mehmet Yagiz Ipek,TR,middle_east,emea,duelist,Natus Vincere,1,0,Jett|Chamber|Raze,2025-01-01,https://www.vlr.gg/player/573/cned/,2026-07-30T00:00:00.000Z,approved
+yay,yay|Jacob Whiteaker,US,north_america,americas,duelist,bleed eSports,0,1,Chamber|Jett|Raze,2025-01-01,https://www.vlr.gg/player/881/yay/,2026-07-30T00:00:00.000Z,approved
+Less,less|Felipe Basso,BR,south_america,americas,sentinel,LOUD,1,0,Killjoy|Viper|Cypher,2025-01-01,https://www.vlr.gg/player/4238/less/,2026-07-30T00:00:00.000Z,approved
+saadhak,saadhak|Matias Delipetro,AR,south_america,americas,initiator,LOUD,1,0,KAY/O|Breach|Skye,2025-01-01,https://www.vlr.gg/player/727/saadhak/,2026-07-30T00:00:00.000Z,approved
+Mazino,mazino|Roberto Bugueño,CL,south_america,americas,controller,KRÜ Esports,0,0,Viper|Omen|Harbor,2025-01-01,https://www.vlr.gg/player/7603/mazino/,2026-07-30T00:00:00.000Z,approved
+zekken,zekken|Zachary Patrone,US,north_america,americas,duelist,Sentinels,0,1,Raze|Jett|Neon,2025-01-01,https://www.vlr.gg/player/4004/zekken/,2026-07-30T00:00:00.000Z,approved
+johnqt,johnqt|Mohammed Amine Ouarid,MA,north_africa,americas,controller,Sentinels,1,0,Omen|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/16555/johnqt/,2026-07-30T00:00:00.000Z,approved
+t3xture,t3xture|Kim Na-ra,KR,east_asia,pacific,duelist,Gen.G,0,1,Jett|Raze|Neon,2025-01-01,https://www.vlr.gg/player/1577/t3xture/,2026-07-30T00:00:00.000Z,approved
+Meteor,meteor|Kim Tae-o,KR,east_asia,pacific,sentinel,Gen.G,0,1,Killjoy|Cypher|Chamber,2025-01-01,https://www.vlr.gg/player/4387/meteor/,2026-07-30T00:00:00.000Z,approved
+something,something|Ilya Petrov,RU,eastern_europe,pacific,duelist,Paper Rex,0,0,Jett|Raze|Reyna,2025-01-01,https://www.vlr.gg/player/2791/something/,2026-07-30T00:00:00.000Z,approved
+Jinggg,jinggg|Wang Jing Jie,SG,southeast_asia,pacific,duelist,Paper Rex,1,0,Raze|Phoenix|Neon,2025-01-01,https://www.vlr.gg/player/1459/jinggg/,2026-07-30T00:00:00.000Z,approved
+f0rsakeN,forsaken|Jason Susanto,ID,southeast_asia,pacific,flex,Paper Rex,1,0,Yoru|Raze|Jett,2025-01-01,https://www.vlr.gg/player/980/f0rsaken/,2026-07-30T00:00:00.000Z,approved
+Mako,mako|Kim Myeong-kwan,KR,east_asia,pacific,controller,DRX,0,0,Omen|Viper|Astra,2025-01-01,https://www.vlr.gg/player/4464/mako/,2026-07-30T00:00:00.000Z,approved
+stax,stax|Kim Gu-taek,KR,east_asia,pacific,initiator,T1,1,1,Breach|KAY/O|Sova,2025-01-01,https://www.vlr.gg/player/4858/stax/,2026-07-30T00:00:00.000Z,approved
+leaf,leaf|Nathan Orf,US,north_america,americas,duelist,G2 Esports,0,0,Raze|Jett|Viper,2025-01-01,https://www.vlr.gg/player/7873/leaf/,2026-07-30T00:00:00.000Z,approved
+crashies,crashies|Austin Roberts,US,north_america,americas,initiator,NRG,0,1,Sova|KAY/O|Fade,2025-01-01,https://www.vlr.gg/player/4/crashies/,2026-07-30T00:00:00.000Z,approved
+FNS,fns|Pujan Mehta,CA,north_america,americas,controller,NRG,0,1,Omen|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/817/fns/,2026-07-30T00:00:00.000Z,approved
+nAts,nats|Ayaz Akhmetshin,RU,eastern_europe,emea,sentinel,Team Liquid,0,1,Cypher|Viper|Killjoy,2025-01-01,https://www.vlr.gg/player/457/nats/,2026-07-30T00:00:00.000Z,approved

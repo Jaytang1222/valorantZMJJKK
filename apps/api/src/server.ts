@@ -1,6 +1,7 @@
 import { apiPort } from "./config.js";
 import { closeDatabase } from "./db/client.js";
 import { createRealtimeServer } from "./realtime.js";
+import "./observability.js";
 import { closeRedis } from "./redis.js";
 import { seedInitialPlayerData } from "./services/initial-seed.js";
 import { buildApp } from "./app.js";

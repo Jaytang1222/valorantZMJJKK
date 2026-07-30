@@ -6,7 +6,7 @@ import { normalizeAlias } from "../lib/normalization.js";
 
 export async function upsertPlayerSnapshot(
   data: PlayerImport,
-): Promise<{ playerId: string }> {
+): Promise<{ playerId: string; snapshotId: string }> {
   return db.transaction(async (tx) => {
     const [player] = await tx
       .insert(players)
@@ -35,23 +35,26 @@ export async function upsertPlayerSnapshot(
       .orderBy(desc(playerSnapshots.dataVersion))
       .limit(1);
 
-    await tx.insert(playerSnapshots).values({
-      playerId: player.id,
-      dataVersion: (latestSnapshot?.dataVersion ?? 0) + 1,
-      countryCode: data.countryCode,
-      countryGroupCode: data.countryGroup,
-      region: data.region,
-      primaryRole: data.primaryRole,
-      currentOrLastTeam: data.currentOrLastTeam,
-      championsTitles: data.championsTitles,
-      mastersTitles: data.mastersTitles,
-      heroTop3: data.heroTop3,
-      dataAsOf: new Date(`${data.dataAsOf}T00:00:00.000Z`),
-      sourceUrl: data.sourceUrl,
-      sourceCheckedAt: new Date(data.sourceCheckedAt),
-      reviewStatus: data.reviewStatus,
-    });
+    const [snapshot] = await tx
+      .insert(playerSnapshots)
+      .values({
+        playerId: player.id,
+        dataVersion: (latestSnapshot?.dataVersion ?? 0) + 1,
+        countryCode: data.countryCode,
+        countryGroupCode: data.countryGroup,
+        region: data.region,
+        primaryRole: data.primaryRole,
+        currentOrLastTeam: data.currentOrLastTeam,
+        championsTitles: data.championsTitles,
+        mastersTitles: data.mastersTitles,
+        heroTop3: data.heroTop3,
+        dataAsOf: new Date(`${data.dataAsOf}T00:00:00.000Z`),
+        sourceUrl: data.sourceUrl,
+        sourceCheckedAt: new Date(data.sourceCheckedAt),
+        reviewStatus: data.reviewStatus,
+      })
+      .returning({ id: playerSnapshots.id });
 
-    return { playerId: player.id };
+    return { playerId: player.id, snapshotId: snapshot.id };
   });
 }

@@ -19,6 +19,7 @@
   "dependencies": {
     "@fastify/cors": "^11.0.1",
     "@fastify/sensible": "^6.0.2",
+    "@sentry/node": "^10.69.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "@valo-yiba/contracts": "workspace:*",
     "csv-parse": "^5.6.0",

@@ -12,7 +12,12 @@ try {
 
   const publicPlayers = await app.inject({ method: "GET", url: "/v1/players" });
   assert.equal(publicPlayers.statusCode, 200);
-  assert.deepEqual(publicPlayers.json(), []);
+  const players = publicPlayers.json() as { id: string }[];
+  assert.ok(Array.isArray(players));
+  assert.equal(
+    new Set(players.map((player) => player.id)).size,
+    players.length,
+  );
   console.info(
     "Smoke test passed: database, Redis, and public visibility checks are healthy.",
   );

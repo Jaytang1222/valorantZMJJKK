@@ -184,10 +184,72 @@ button {
 .empty-state {
   color: #b8c0d9;
 }
+.admin-create {
+  border: 1px solid #27304d;
+  background: #121a31;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.admin-create summary {
+  cursor: pointer;
+  color: #f4f7ff;
+  font-weight: 700;
+}
+.player-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.player-form label {
+  display: grid;
+  gap: 6px;
+  color: #b8c0d9;
+  font-size: 0.9rem;
+}
+.player-form input,
+.player-form select,
+.inline-form input {
+  min-width: 0;
+  border: 1px solid #3a476c;
+  border-radius: 6px;
+  background: #0b1020;
+  color: #f4f7ff;
+  padding: 10px;
+}
+.player-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.alias-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.alias-list form,
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.alias-list span {
+  flex: 1;
+  color: #d2daf1;
+}
+.inline-form input {
+  flex: 1;
+}
+.success-message {
+  color: #77e8b6;
+}
 @media (max-width: 720px) {
   .admin-header,
   .snapshot {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .player-form {
+    grid-template-columns: 1fr;
   }
 }

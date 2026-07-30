@@ -2,10 +2,28 @@ import { readFile } from "node:fs/promises";
 import { parse } from "csv-parse/sync";
 import { playerImportSchema } from "@valo-yiba/contracts";
 import { db } from "../db/client.js";
-import { playerAliases, players, playerSnapshots } from "../db/schema.js";
+import {
+  countryGroups,
+  playerAliases,
+  players,
+  playerSnapshots,
+} from "../db/schema.js";
 import { normalizeAlias } from "../lib/normalization.js";
 
 type CsvRow = Record<string, string>;
+
+const initialCountryGroups = [
+  ["north_america", "North America"],
+  ["south_america", "South America"],
+  ["western_europe", "Western Europe"],
+  ["eastern_europe", "Eastern Europe"],
+  ["east_asia", "East Asia"],
+  ["southeast_asia", "Southeast Asia"],
+  ["greater_china", "Greater China"],
+  ["oceania", "Oceania"],
+  ["middle_east", "Middle East"],
+  ["north_africa", "North Africa"],
+] as const;
 
 function parseRow(row: CsvRow) {
   return playerImportSchema.parse({
@@ -35,6 +53,13 @@ export async function seedInitialPlayerData(
     skip_empty_lines: true,
     trim: true,
   }) as CsvRow[];
+
+  for (const [code, displayName] of initialCountryGroups) {
+    await db
+      .insert(countryGroups)
+      .values({ code, displayName, version: 1 })
+      .onConflictDoNothing();
+  }
 
   for (const row of rows) {
     const data = parseRow(row);
