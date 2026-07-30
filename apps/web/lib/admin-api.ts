@@ -1,9 +1,17 @@
-const apiBaseUrl = process.env.API_BASE_URL;
+const apiBaseUrl =
+  process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
 const internalApiSecret = process.env.INTERNAL_API_SECRET;
 
 function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
-  if (!apiBaseUrl || !internalApiSecret)
-    throw new Error("Admin API environment variables are not configured");
+  if (!apiBaseUrl || !internalApiSecret) {
+    const missing = [
+      !apiBaseUrl && "API_BASE_URL or NEXT_PUBLIC_API_BASE_URL",
+      !internalApiSecret && "INTERNAL_API_SECRET",
+    ].filter(Boolean);
+    throw new Error(
+      `Admin API environment variables are missing: ${missing.join(", ")}`,
+    );
+  }
   return { apiBaseUrl, internalApiSecret };
 }
 
