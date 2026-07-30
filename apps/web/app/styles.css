@@ -84,3 +84,110 @@ button {
     min-height: 0;
   }
 }
+
+.admin-shell {
+  width: min(960px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+.admin-login {
+  display: grid;
+  gap: 16px;
+  max-width: 380px;
+  border: 1px solid #27304d;
+  background: #121a31;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.admin-login h1,
+.admin-header h1 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.admin-login label {
+  display: grid;
+  gap: 6px;
+  color: #b8c0d9;
+}
+
+.admin-login input {
+  border: 1px solid #3a476c;
+  border-radius: 6px;
+  background: #0b1020;
+  color: #f4f7ff;
+  padding: 10px;
+}
+
+.admin-login button,
+.review-actions button {
+  border: 0;
+  border-radius: 6px;
+  background: #e74d6d;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+.form-error {
+  color: #ff8a9f;
+  margin: 0;
+}
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.admin-summary {
+  color: #b8c0d9;
+}
+.snapshot-list {
+  display: grid;
+  gap: 12px;
+}
+.snapshot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid #27304d;
+  background: #121a31;
+  border-radius: 8px;
+  padding: 20px;
+}
+.snapshot h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+.snapshot p {
+  color: #b8c0d9;
+  margin: 6px 0;
+}
+.snapshot a,
+.back-link {
+  color: #80a7ff;
+}
+.review-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.review-actions .danger,
+.secondary {
+  background: transparent;
+  border: 1px solid #566482;
+  color: #d2daf1;
+}
+.empty-state {
+  color: #b8c0d9;
+}
+@media (max-width: 720px) {
+  .admin-header,
+  .snapshot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
