@@ -8,12 +8,12 @@
 
 ### 目标与非目标
 
-| 目标 | 非目标（MVP） |
-| --- | --- |
-| 让了解 VCT 的用户在 1 分钟内完成一局 | 竞猜、押注或任何可交易奖励 |
-| 以难度、对战和总排行带来回访 | 直播、观战和语音聊天 |
-| 以房间对战支持好友娱乐与竞技 | 自动抓取未经授权的第三方受限数据 |
-| 题库可审核、可修正、可追溯 | 覆盖全部历史半职业选手 |
+| 目标                                 | 非目标（MVP）                    |
+| ------------------------------------ | -------------------------------- |
+| 让了解 VCT 的用户在 1 分钟内完成一局 | 竞猜、押注或任何可交易奖励       |
+| 以难度、对战和总排行带来回访         | 直播、观战和语音聊天             |
+| 以房间对战支持好友娱乐与竞技         | 自动抓取未经授权的第三方受限数据 |
+| 题库可审核、可修正、可追溯           | 覆盖全部历史半职业选手           |
 
 ### 核心用户
 
@@ -28,15 +28,15 @@
 
 一题对应一名已发布的职业选手快照。玩家从可搜索的选手别名中选择答案；每次错误猜测会返回属性比较结果。
 
-| 属性 | 展示方式 | 判定示例 |
-| --- | --- | --- |
-| 赛区 | 精确/不符 | Pacific |
-| 国籍 | 精确/相近/不符 | Korea；同一地理分区为相近 |
-| 主位置 | 精确/部分匹配/不符 | Duelist；同定位池为部分匹配 |
-| 当前或最近效力队 | 精确/不符 | Sentinels |
-| 冠军赛冠军次数 | 高/低/相等 | 1，显示方向 |
-| 大师赛冠军次数 | 高/低/相等 | 2，显示方向 |
-| 英雄 Top 3 | 精确/部分匹配/不符 | Jett / Sova / Omen；命中任一英雄为部分匹配 |
+| 属性             | 展示方式           | 判定示例                                   |
+| ---------------- | ------------------ | ------------------------------------------ |
+| 赛区             | 精确/不符          | Pacific                                    |
+| 国籍             | 精确/相近/不符     | Korea；同一地理分区为相近                  |
+| 主位置           | 精确/部分匹配/不符 | Duelist；同定位池为部分匹配                |
+| 当前或最近效力队 | 精确/不符          | Sentinels                                  |
+| 冠军赛冠军次数   | 高/低/相等         | 1，显示方向                                |
+| 大师赛冠军次数   | 高/低/相等         | 2，显示方向                                |
+| 英雄 Top 3       | 精确/部分匹配/不符 | Jett / Sova / Omen；命中任一英雄为部分匹配 |
 
 “当前”统一指题目数据版本中的日期，避免转会造成历史题目答案变化。玩家可选择难度：
 
@@ -110,17 +110,17 @@ API 服务（认证、题目、成绩、排行榜） ─── PostgreSQL
 
 ### 4.2 领域模型
 
-| 实体 | 关键字段 | 说明 |
-| --- | --- | --- |
-| `User` | id, displayName, authProvider, createdAt | 登录用户 |
-| `Player` | id, canonicalName, aliases, status | 标准选手实体 |
-| `PlayerSnapshot` | id, playerId, dataVersion, region, role, team, debutYear, bestPlacement | 可冻结的题目数据 |
-| `Puzzle` | id, snapshotId, mode, publishAt, seed, status | 已审核题目 |
-| `SoloAttempt` | userId, puzzleId, guesses, startedAt, finishedAt, score | 单人权威记录 |
-| `Room` | id, code, hostId, settings, state, roundIndex | 对战房间 |
-| `RoomParticipant` | roomId, userId, score, connectionState | 房间成员 |
-| `Guess` | attempt/roundId, userId, playerId, createdAt, result | 审计与回放 |
-| `LeaderboardEntry` | scope, period, userId, score, rank | 可缓存的聚合结果 |
+| 实体               | 关键字段                                                                | 说明             |
+| ------------------ | ----------------------------------------------------------------------- | ---------------- |
+| `User`             | id, displayName, authProvider, createdAt                                | 登录用户         |
+| `Player`           | id, canonicalName, aliases, status                                      | 标准选手实体     |
+| `PlayerSnapshot`   | id, playerId, dataVersion, region, role, team, debutYear, bestPlacement | 可冻结的题目数据 |
+| `Puzzle`           | id, snapshotId, mode, publishAt, seed, status                           | 已审核题目       |
+| `SoloAttempt`      | userId, puzzleId, guesses, startedAt, finishedAt, score                 | 单人权威记录     |
+| `Room`             | id, code, hostId, settings, state, roundIndex                           | 对战房间         |
+| `RoomParticipant`  | roomId, userId, score, connectionState                                  | 房间成员         |
+| `Guess`            | attempt/roundId, userId, playerId, createdAt, result                    | 审计与回放       |
+| `LeaderboardEntry` | scope, period, userId, score, rank                                      | 可缓存的聚合结果 |
 
 `Puzzle` 永远引用 `PlayerSnapshot` 而非可变的 `Player` 属性。编辑数据会建立新 `dataVersion`，不会重写已发布题或已结算记录。
 
@@ -150,8 +150,8 @@ API 服务（认证、题目、成绩、排行榜） ─── PostgreSQL
 
 ## 7. 发布阶段与成功指标
 
-| 阶段 | 能力 | 通过标准 |
-| --- | --- | --- |
-| Alpha | 查选手、后台题库、三难度单人对战 | 50 名测试者能无人工协助完成一局 |
-| Beta | 登录、单人榜、私密多人房 | 95% 对局可正常结算，P95 事件延迟 < 300ms |
-| V1 | 在线匹配、总排行榜、举报和运营工具 | D7 留存 ≥ 20%，多人房完成率 ≥ 80% |
+| 阶段  | 能力                               | 通过标准                                 |
+| ----- | ---------------------------------- | ---------------------------------------- |
+| Alpha | 查选手、后台题库、三难度单人对战   | 50 名测试者能无人工协助完成一局          |
+| Beta  | 登录、单人榜、私密多人房           | 95% 对局可正常结算，P95 事件延迟 < 300ms |
+| V1    | 在线匹配、总排行榜、举报和运营工具 | D7 留存 ≥ 20%，多人房完成率 ≥ 80%        |

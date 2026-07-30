@@ -1,0 +1,26 @@
+{
+  "name": "valo-yiba",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n web,api -c cyan,magenta \"pnpm --filter @valo-yiba/web dev\" \"pnpm --filter @valo-yiba/api dev\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @valo-yiba/api db:generate",
+    "db:migrate": "pnpm --filter @valo-yiba/api db:migrate",
+    "db:seed": "pnpm --filter @valo-yiba/api db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3"
+  }
+}
