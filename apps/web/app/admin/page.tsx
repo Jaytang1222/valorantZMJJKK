@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { adminCookie, isValidAdminSession } from "../../lib/admin-session";
-import { getSnapshots } from "../../lib/admin-api";
+import { getAdminConfigurationStatus, getSnapshots } from "../../lib/admin-api";
 import { login, logout, review } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +37,37 @@ export default async function AdminPage({ searchParams }: PageProps) {
           {params.error && <p className="form-error">账号或密码不正确。</p>}
           <button type="submit">登录</button>
         </form>
+      </main>
+    );
+  }
+
+  const configuration = getAdminConfigurationStatus();
+  if (
+    !configuration.apiBaseUrlConfigured ||
+    !configuration.internalApiSecretConfigured
+  ) {
+    return (
+      <main className="admin-shell">
+        <header className="admin-header">
+          <div>
+            <p className="eyebrow">CONTENT OPERATIONS</p>
+            <h1>后台配置未完成</h1>
+          </div>
+          <form action={logout}>
+            <button type="submit" className="secondary">
+              退出
+            </button>
+          </form>
+        </header>
+        <p className="form-error">
+          Vercel 服务端未读到以下变量：
+          {!configuration.apiBaseUrlConfigured && " API_BASE_URL"}
+          {!configuration.internalApiSecretConfigured && " INTERNAL_API_SECRET"}
+        </p>
+        <p className="admin-summary">
+          请在 Vercel 的 Production 环境确认变量后，从 Deployments
+          页面重新部署当前提交。
+        </p>
       </main>
     );
   }

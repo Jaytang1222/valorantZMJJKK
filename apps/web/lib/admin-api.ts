@@ -1,8 +1,7 @@
-const apiBaseUrl =
-  process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-const internalApiSecret = process.env.INTERNAL_API_SECRET;
-
 function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
+  const apiBaseUrl =
+    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
+  const internalApiSecret = process.env.INTERNAL_API_SECRET;
   if (!apiBaseUrl || !internalApiSecret) {
     const missing = [
       !apiBaseUrl && "API_BASE_URL or NEXT_PUBLIC_API_BASE_URL",
@@ -13,6 +12,18 @@ function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
     );
   }
   return { apiBaseUrl, internalApiSecret };
+}
+
+export function getAdminConfigurationStatus(): {
+  apiBaseUrlConfigured: boolean;
+  internalApiSecretConfigured: boolean;
+} {
+  return {
+    apiBaseUrlConfigured: Boolean(
+      process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL,
+    ),
+    internalApiSecretConfigured: Boolean(process.env.INTERNAL_API_SECRET),
+  };
 }
 
 export type AdminSnapshot = {
