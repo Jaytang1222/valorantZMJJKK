@@ -73,6 +73,42 @@ button {
   background: #283453;
   color: #94a0c2;
 }
+.entry-button, .difficulty-grid button, .submit-guess, .result-panel button, .auth-form button {
+  display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 11px 14px; border: 0; border-radius: 6px; background: #e74d6d; color: #fff; cursor: pointer; font: inherit; text-decoration: none;
+}
+.game-shell, .auth-page { width: min(920px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 72px; }
+.game-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+.game-header a { color: #f4f7ff; text-decoration: none; }
+.game-intro { margin: 56px 0 28px; }
+.game-intro h1 { font-size: 2.6rem; letter-spacing: 0; }
+.game-intro p { color: #b8c0d9; }
+.difficulty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.difficulty-grid button { min-height: 116px; flex-direction: column; gap: 8px; text-align: left; align-items: flex-start; background: #172342; }
+.difficulty-grid button strong { font-size: 1.25rem; }
+.difficulty-grid button span { color: #c6cee6; font-size: .9rem; }
+.game-board { max-width: 800px; }
+.game-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; color: #b8c0d9; }
+.game-meta strong { color: #f4f7ff; }
+.text-button { width: auto; padding: 0; color: #80a7ff; background: transparent; cursor: pointer; }
+.guess-box, .result-panel, .auth-panel { border: 1px solid #27304d; background: #121a31; border-radius: 8px; padding: 20px; }
+.guess-box label, .auth-form label { display: grid; gap: 7px; color: #d2daf1; }
+.guess-box input, .auth-form input { width: 100%; border: 1px solid #3a476c; border-radius: 6px; background: #0b1020; color: #f4f7ff; padding: 11px; font: inherit; }
+.candidate-list { display: grid; margin-top: 8px; border: 1px solid #3a476c; border-radius: 6px; overflow: hidden; }
+.candidate-list button { width: 100%; border-radius: 0; text-align: left; padding: 10px; background: #16203b; color: #f4f7ff; cursor: pointer; }
+.candidate-list button + button { border-top: 1px solid #3a476c; }
+.candidate-list small { display: block; color: #b8c0d9; margin-top: 3px; }
+.submit-guess { margin-top: 12px; }
+.guess-history { display: grid; gap: 10px; margin-top: 18px; }
+.guess-history article { padding: 16px; border-radius: 8px; }
+.guess-history h2 { font-size: 1rem; margin: 0 0 10px; }
+.comparison-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.comparison-grid span { padding: 7px; border-radius: 4px; background: #4d1d29; font-size: .78rem; }
+.comparison-grid span[data-match="exact"], .comparison-grid span[data-match="equal"] { background: #164d3b; }
+.comparison-grid span[data-match="nearby"], .comparison-grid span[data-match="partial"] { background: #6b5415; }
+.result-panel { margin-top: 18px; text-align: center; }
+.result-panel p { color: #77e8b6; margin: 0; }.result-panel h2 { margin: 8px 0; }.result-panel strong { display: block; font-size: 1.5rem; margin: 14px; }
+.auth-page { display: grid; place-items: center; min-height: 75vh; }.auth-panel { width: min(100%, 420px); }.auth-panel h1 { font-size: 2rem; letter-spacing: 0; }.auth-panel > p { color: #b8c0d9; }.auth-form { display: grid; gap: 15px; margin: 22px 0; }
+.player-directory label { display: grid; gap: 7px; color: #d2daf1; }.player-directory input { margin: 6px 0 20px; width: 100%; padding: 11px; border: 1px solid #3a476c; border-radius: 6px; background: #0b1020; color: #f4f7ff; font: inherit; }.player-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }.player-results article { padding: 18px; }.player-results h2 { margin: 0; font-size: 1.1rem; }.player-results p { margin: 8px 0; color: #b8c0d9; }.player-results dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 0; }.player-results dt { font-size: .72rem; color: #94a0c2; }.player-results dd { margin: 3px 0 0; font-size: .85rem; }
 @media (max-width: 720px) {
   main {
     padding: 56px 0;
@@ -83,6 +119,7 @@ button {
   article p {
     min-height: 0;
   }
+  .difficulty-grid, .player-results { grid-template-columns: 1fr; }.comparison-grid { grid-template-columns: repeat(2, 1fr); }.game-meta { align-items: flex-start; flex-wrap: wrap; }
 }
 
 .admin-shell {

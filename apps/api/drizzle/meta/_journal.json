@@ -15,6 +15,13 @@
       "when": 1785330983823,
       "tag": "0001_supreme_the_santerians",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785409602040,
+      "tag": "0002_rapid_black_bolt",
+      "breakpoints": true
     }
   ]
 }

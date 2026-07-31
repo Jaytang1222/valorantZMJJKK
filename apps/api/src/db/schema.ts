@@ -68,6 +68,10 @@ export const users = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     displayName: varchar("display_name", { length: 20 }).notNull(),
+    normalizedDisplayName: varchar("normalized_display_name", { length: 20 }).notNull(),
+    email: varchar("email", { length: 320 }),
+    normalizedEmail: varchar("normalized_email", { length: 320 }),
+    passwordHash: text("password_hash"),
     role: userRoleEnum("role").notNull().default("user"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -76,7 +80,10 @@ export const users = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [uniqueIndex("users_display_name_unique").on(table.displayName)],
+  (table) => [
+    uniqueIndex("users_display_name_unique").on(table.normalizedDisplayName),
+    uniqueIndex("users_normalized_email_unique").on(table.normalizedEmail),
+  ],
 );
 
 export const countryGroups = pgTable(
@@ -201,6 +208,7 @@ export const soloAttempts = pgTable(
     userId: uuid("user_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    guestId: uuid("guest_id"),
     puzzleId: uuid("puzzle_id")
       .notNull()
       .references(() => puzzles.id, { onDelete: "restrict" }),

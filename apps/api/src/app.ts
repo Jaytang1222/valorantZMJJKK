@@ -1,11 +1,14 @@
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import sensible from "@fastify/sensible";
 import Fastify from "fastify";
 import { env } from "./config.js";
 import { Sentry } from "./observability.js";
 import { registerAdminRoutes } from "./routes/admin.js";
+import { registerAuthRoutes } from "./routes/auth.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerPlayerRoutes } from "./routes/players.js";
+import { registerSoloRoutes } from "./routes/solo.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -40,8 +43,11 @@ export async function buildApp() {
     origin: env.CORS_ORIGIN ?? false,
     credentials: true,
   });
+  await app.register(rateLimit, { global: false });
   await registerHealthRoutes(app);
   await registerPlayerRoutes(app);
+  await registerAuthRoutes(app);
+  await registerSoloRoutes(app);
   await app.register(registerAdminRoutes, { prefix: "/internal" });
   return app;
 }

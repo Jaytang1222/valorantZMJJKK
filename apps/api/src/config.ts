@@ -14,6 +14,7 @@ const environmentSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
   SESSION_SECRET: z.string().min(32),
+  PASSWORD_PEPPER: z.string().min(32).optional(),
   INTERNAL_API_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().url().optional(),
 });
