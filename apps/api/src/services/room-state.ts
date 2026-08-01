@@ -1,5 +1,15 @@
-export type RoomPhase = "lobby" | "countdown" | "playing" | "round_result" | "finished";
+export type RoomPhase = "lobby" | "countdown" | "playing" | "round_result" | "finished" | "cancelled";
 export type MemberStatus = "connected" | "disconnected" | "forfeited" | "left";
+export type RoundFinishReason = "correct" | "time_expired" | "guesses_exhausted" | "disconnect" | "surrender";
+
+export const FORFEIT_WIN_POINTS = 1_000;
+
+export type PrivateGuess = {
+  canonicalName: string;
+  comparison: Record<string, string>;
+  isCorrect: boolean;
+  points: number;
+};
 
 export type RoomMember = {
   userId: string;
@@ -12,6 +22,7 @@ export type RoomMember = {
   disconnectedAt?: number;
   rematchReady: boolean;
   feedback: string[][];
+  guesses: PrivateGuess[];
 };
 
 export type LiveRoom = {
@@ -28,8 +39,10 @@ export type LiveRoom = {
   createdAt: number;
   roundEndsAt?: number;
   targetPlayerId?: string;
+  answerName?: string;
   correctUserId?: string;
   winnerId?: string;
+  finishReason?: RoundFinishReason;
 };
 
 export function createInviteCode(random = Math.random): string {
@@ -37,26 +50,49 @@ export function createInviteCode(random = Math.random): string {
   return Array.from({ length: 6 }, () => alphabet[Math.floor(random() * alphabet.length)]).join("");
 }
 
-type NewRoomMember = Omit<RoomMember, "rematchReady" | "feedback">;
+type NewRoomMember = Omit<RoomMember, "rematchReady" | "feedback" | "guesses">;
 
-export function createLiveRoom(input: Omit<LiveRoom, "phase" | "roundNumber" | "members" | "createdAt" | "winnerId"> & { host: NewRoomMember }): LiveRoom {
+export function createLiveRoom(input: Omit<LiveRoom, "phase" | "roundNumber" | "members" | "createdAt" | "winnerId" | "finishReason" | "answerName"> & { host: NewRoomMember }): LiveRoom {
   if (input.maxPlayers < 2 || input.maxPlayers > 8) throw new Error("Room capacity must be between 2 and 8");
   if (![1, 3, 5].includes(input.roundCount)) throw new Error("Round count must be 1, 3, or 5");
   if (![30, 60, 90].includes(input.roundDurationSeconds)) throw new Error("Round duration must be 30, 60, or 90 seconds");
-  return { id: input.id, code: input.code, hostId: input.hostId, isPublic: input.isPublic, maxPlayers: input.maxPlayers, roundCount: 1, roundDurationSeconds: input.roundDurationSeconds, phase: "lobby", roundNumber: 0, members: [{ ...input.host, ready: false, status: "connected", score: 0, guessCount: 0, rematchReady: false, feedback: [] }], createdAt: Date.now(), targetPlayerId: input.targetPlayerId, correctUserId: input.correctUserId };
+  return {
+    id: input.id,
+    code: input.code,
+    hostId: input.hostId,
+    isPublic: input.isPublic,
+    maxPlayers: input.maxPlayers,
+    roundCount: 1,
+    roundDurationSeconds: input.roundDurationSeconds,
+    phase: "lobby",
+    roundNumber: 0,
+    members: [{ ...input.host, ready: false, status: "connected", score: 0, guessCount: 0, rematchReady: false, feedback: [], guesses: [] }],
+    createdAt: Date.now(),
+    targetPlayerId: input.targetPlayerId,
+    correctUserId: input.correctUserId,
+  };
 }
 
-export function activeMembers(room: LiveRoom) { return room.members.filter((member) => member.status === "connected"); }
+export function activeMembers(room: LiveRoom) {
+  return room.members.filter((member) => member.status === "connected");
+}
 
 export function joinRoom(room: LiveRoom, member: NewRoomMember): LiveRoom {
   const existing = room.members.find((item) => item.userId === member.userId);
   if (existing) {
-    if (existing.status === "forfeited" || (existing.disconnectedAt !== undefined && Date.now() - existing.disconnectedAt >= 20_000)) throw new Error("Reconnect window expired");
-    existing.status = "connected"; existing.disconnectedAt = undefined; return room;
+    if (existing.status === "left") throw new Error("You left this room");
+    if (existing.status === "forfeited") {
+      if (room.phase === "finished") return room;
+      throw new Error("Reconnect window expired");
+    }
+    if (existing.disconnectedAt !== undefined && Date.now() - existing.disconnectedAt >= 20_000) throw new Error("Reconnect window expired");
+    existing.status = "connected";
+    existing.disconnectedAt = undefined;
+    return room;
   }
   if (room.phase !== "lobby") throw new Error("Room has already started");
-  if (room.members.filter((item) => item.status !== "left").length >= room.maxPlayers) throw new Error("Room is full");
-  room.members.push({ ...member, status: "connected", ready: false, score: 0, guessCount: 0, rematchReady: false, feedback: [] });
+  if (room.members.filter((item) => item.status === "connected" || item.status === "disconnected").length >= room.maxPlayers) throw new Error("Room is full");
+  room.members.push({ ...member, status: "connected", ready: false, score: 0, guessCount: 0, rematchReady: false, feedback: [], guesses: [] });
   return room;
 }
 
@@ -78,41 +114,113 @@ export function beginCountdown(room: LiveRoom, userId: string): LiveRoom {
 
 export function beginRound(room: LiveRoom, now = Date.now()): LiveRoom {
   if (room.phase !== "countdown" && room.phase !== "round_result") throw new Error("Room cannot begin a round now");
-  room.phase = "playing"; room.roundNumber += 1; room.roundEndsAt = now + room.roundDurationSeconds * 1000; room.correctUserId = undefined; room.winnerId = undefined;
-  for (const member of room.members) { member.guessCount = 0; member.feedback = []; member.rematchReady = false; }
+  room.phase = "playing";
+  room.roundNumber += 1;
+  room.roundEndsAt = now + room.roundDurationSeconds * 1000;
+  room.correctUserId = undefined;
+  room.winnerId = undefined;
+  room.finishReason = undefined;
+  room.answerName = undefined;
+  for (const member of room.members) {
+    member.guessCount = 0;
+    member.feedback = [];
+    member.guesses = [];
+    member.rematchReady = false;
+  }
   return room;
 }
 
-export function finishRound(room: LiveRoom): LiveRoom {
+export function finishRound(room: LiveRoom, reason: RoundFinishReason = "time_expired"): LiveRoom {
   room.phase = "finished";
   room.roundEndsAt = undefined;
+  room.finishReason = reason;
   return room;
 }
 
-export function recordGuess(room: LiveRoom, userId: string, correct: boolean, feedback: string[] = [], now = Date.now()): { room: LiveRoom; points: number } {
+export function recordGuess(room: LiveRoom, userId: string, guess: PrivateGuess, now = Date.now()): { room: LiveRoom; points: number } {
   if (room.phase !== "playing" || !room.roundEndsAt || now >= room.roundEndsAt) throw new Error("Round is not accepting guesses");
   const member = room.members.find((item) => item.userId === userId && item.status === "connected");
   if (!member) throw new Error("Member is not connected");
   if (member.guessCount >= 8) throw new Error("Guess limit reached");
   member.guessCount += 1;
-  member.feedback.push(feedback);
-  const points = correct ? Math.max(100, 1000 - (member.guessCount - 1) * 100 - Math.floor((now - (room.roundEndsAt - room.roundDurationSeconds * 1000)) / 1000) * 5) : 0;
-  if (correct) { member.score += points; room.correctUserId = userId; room.winnerId = userId; finishRound(room); }
+  member.feedback.push(Object.values(guess.comparison));
+  const points = guess.isCorrect
+    ? Math.max(100, 1_000 - (member.guessCount - 1) * 100 - Math.floor((now - (room.roundEndsAt - room.roundDurationSeconds * 1000)) / 1000) * 5)
+    : 0;
+  member.guesses.push({ ...guess, points });
+  if (guess.isCorrect) {
+    member.score += points;
+    room.correctUserId = userId;
+    room.winnerId = userId;
+    finishRound(room, "correct");
+  } else if (activeMembers(room).length > 0 && activeMembers(room).every((item) => item.guessCount >= 8)) {
+    finishRound(room, "guesses_exhausted");
+  }
   return { room, points };
 }
 
 export function disconnectMember(room: LiveRoom, userId: string, now = Date.now()): LiveRoom {
   const member = room.members.find((item) => item.userId === userId && item.status === "connected");
   if (!member) return room;
-  member.status = "disconnected"; member.disconnectedAt = now;
+  member.status = "disconnected";
+  member.disconnectedAt = now;
   if (room.hostId === userId) room.hostId = activeMembers(room)[0]?.userId ?? userId;
   return room;
 }
 
-export function forfeitExpiredMembers(room: LiveRoom, now = Date.now()): LiveRoom {
-  for (const member of room.members) if (member.status === "disconnected" && member.disconnectedAt !== undefined && now - member.disconnectedAt >= 20_000) member.status = "forfeited";
+export function awardForfeitWin(room: LiveRoom, winnerId: string, reason: "disconnect" | "surrender"): LiveRoom {
+  if (room.phase !== "playing") return room;
+  const winner = room.members.find((member) => member.userId === winnerId && member.status === "connected");
+  if (!winner) throw new Error("Winner is not connected");
+  winner.score += FORFEIT_WIN_POINTS;
+  room.winnerId = winnerId;
+  finishRound(room, reason);
+  return room;
+}
+
+export function surrenderMember(room: LiveRoom, userId: string): LiveRoom {
+  if (room.phase !== "playing") throw new Error("Match is not in progress");
+  const member = room.members.find((item) => item.userId === userId && item.status === "connected");
+  if (!member) throw new Error("Member is not connected");
+  member.status = "forfeited";
+  member.disconnectedAt = undefined;
   const connected = activeMembers(room);
-  if (room.phase === "playing" && connected.length === 1 && room.members.some((member) => member.status === "forfeited")) { room.winnerId = connected[0].userId; finishRound(room); }
+  if (connected.length === 1) awardForfeitWin(room, connected[0].userId, "surrender");
+  return room;
+}
+
+export function forfeitExpiredMembers(room: LiveRoom, now = Date.now()): LiveRoom {
+  for (const member of room.members) {
+    if (member.status === "disconnected" && member.disconnectedAt !== undefined && now - member.disconnectedAt >= 20_000) {
+      member.status = "forfeited";
+    }
+  }
+  const connected = activeMembers(room);
+  if (room.phase === "playing" && connected.length === 1 && room.members.some((member) => member.status === "forfeited")) {
+    awardForfeitWin(room, connected[0].userId, "disconnect");
+  }
+  return room;
+}
+
+export function leaveRoom(room: LiveRoom, userId: string): LiveRoom {
+  const member = room.members.find((item) => item.userId === userId);
+  if (!member) throw new Error("Member was not found");
+  if (room.phase === "playing" && member.status === "connected") return surrenderMember(room, userId);
+  member.status = "left";
+  member.ready = false;
+  member.rematchReady = false;
+  member.disconnectedAt = undefined;
+  if (room.hostId === userId) room.hostId = activeMembers(room)[0]?.userId ?? room.hostId;
+  return room;
+}
+
+export function hasActiveMembership(room: LiveRoom): boolean {
+  return room.members.some((member) => member.status === "connected" || member.status === "disconnected");
+}
+
+export function cancelRoom(room: LiveRoom): LiveRoom {
+  room.phase = "cancelled";
+  room.roundEndsAt = undefined;
   return room;
 }
 

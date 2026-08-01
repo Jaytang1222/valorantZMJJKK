@@ -28,7 +28,7 @@ main {
 h1 {
   font-size: clamp(3rem, 9vw, 6rem);
   margin: 0;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
 }
 .lead {
   color: #b8c0d9;
@@ -281,6 +281,159 @@ button {
 .success-message {
   color: #77e8b6;
 }
+.header-link {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.secondary-action {
+  border: 1px solid #566482 !important;
+  background: transparent !important;
+  color: #d2daf1 !important;
+}
+.recover-room-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.recover-room-actions button:first-child {
+  width: auto;
+}
+.match-shell {
+  width: min(1320px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 28px 0 56px;
+}
+.match-header,
+.match-meta,
+.match-player-heading,
+.result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.match-header {
+  min-height: 32px;
+  color: #b8c0d9;
+}
+.match-meta {
+  margin: 28px 0 16px;
+  color: #b8c0d9;
+}
+.match-meta strong {
+  color: #f4f7ff;
+}
+.match-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.match-player-panel {
+  min-height: 540px;
+  border: 1px solid #27304d;
+  border-radius: 8px;
+  padding: 20px;
+}
+.own-panel {
+  background: #121a31;
+}
+.opponent-panel {
+  background: #10182b;
+}
+.match-player-heading {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #27304d;
+}
+.match-player-heading p,
+.opponent-progress-label {
+  margin: 0 0 4px;
+  color: #94a0c2;
+  font-size: .8rem;
+}
+.match-player-heading h1 {
+  font-size: 1.5rem;
+  letter-spacing: 0;
+}
+.match-player-heading > strong {
+  color: #77e8b6;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+.match-guess-control {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 10px;
+}
+.match-guess-control > span {
+  color: #b8c0d9;
+}
+.match-guess-control input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #3a476c;
+  border-radius: 6px;
+  background: #0b1020;
+  color: #f4f7ff;
+  padding: 10px 12px;
+  font: inherit;
+}
+.surrender-button {
+  width: auto;
+  min-width: 92px;
+  border: 1px solid #b74a5b;
+  border-radius: 6px;
+  background: transparent;
+  color: #ff9aad;
+  cursor: pointer;
+}
+.private-guess-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.private-guess-list article {
+  border: 0;
+  border-top: 1px solid #27304d;
+  border-radius: 0;
+  background: transparent;
+  padding: 12px 0 0;
+}
+.private-guess-list article > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.private-guess-list article > header span {
+  color: #77e8b6;
+  font-size: .85rem;
+}
+.opponent-progress-label {
+  margin-top: 20px;
+}
+.opponent-feedback {
+  display: grid;
+  gap: 6px;
+}
+.opponent-feedback .feedback-row {
+  margin-top: 0;
+}
+.opponent-feedback .feedback-row span {
+  min-height: 42px;
+}
+.match-result {
+  max-width: 640px;
+  margin: 20px auto 0;
+}
+.result-actions {
+  justify-content: center;
+  margin-top: 16px;
+}
+.result-actions button {
+  width: auto;
+  min-width: 154px;
+}
 @media (max-width: 720px) {
   .admin-header,
   .snapshot {
@@ -289,5 +442,26 @@ button {
   }
   .player-form {
     grid-template-columns: 1fr;
+  }
+  .match-shell {
+    width: min(100% - 24px, 640px);
+    padding-top: 18px;
+  }
+  .match-columns {
+    grid-template-columns: 1fr;
+  }
+  .match-player-panel {
+    min-height: 0;
+  }
+  .match-header,
+  .match-meta,
+  .match-player-heading,
+  .result-actions,
+  .recover-room-actions {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .result-actions button {
+    width: 100%;
   }
 }
