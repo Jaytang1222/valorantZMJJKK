@@ -7,11 +7,13 @@ const SESSION_COOKIE = "valo_user_session";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
-  if (!["register", "login", "logout"].includes(action)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!["register", "login", "logout", "realtime-ticket"].includes(action)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (action === "logout") { const response = NextResponse.json({ ok: true }); response.cookies.set(SESSION_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0, sameSite: "lax", secure: process.env.NODE_ENV === "production" }); return response; }
-  const upstream = await fetch(`${API_BASE_URL}/v1/auth/${action}`, { method: "POST", headers: { "content-type": "application/json" }, body: await request.text(), cache: "no-store" });
+  const token = unsealUserSession((await cookies()).get(SESSION_COOKIE)?.value);
+  const upstream = await fetch(`${API_BASE_URL}/v1/auth/${action}`, { method: "POST", headers: { "content-type": "application/json", ...(action === "realtime-ticket" && token ? { authorization: `Bearer ${token}` } : {}) }, body: action === "realtime-ticket" ? undefined : await request.text(), cache: "no-store" });
   const data = await upstream.json();
   if (!upstream.ok) return NextResponse.json(data, { status: upstream.status });
+  if (action === "realtime-ticket") return NextResponse.json(data);
   const response = NextResponse.json({ user: data.user });
   response.cookies.set(SESSION_COOKIE, sealUserSession(data.session.token), { httpOnly: true, path: "/", expires: new Date(data.session.expiresAt), sameSite: "lax", secure: process.env.NODE_ENV === "production" });
   return response;

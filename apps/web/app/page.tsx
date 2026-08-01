@@ -39,7 +39,7 @@ export default async function HomePage() {
         <article>
           <h2>联机对战</h2>
           <p>在线匹配，或通过固定 6 位邀请码与好友开房。</p>
-          <button type="button" disabled>即将开放</button>
+          <a className="entry-button" href="/versus">进入联机对战</a>
         </article>
         <article>
           <h2>查选手</h2>
