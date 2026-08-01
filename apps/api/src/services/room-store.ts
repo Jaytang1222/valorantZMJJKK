@@ -1,4 +1,6 @@
 import { redis } from "../redis.js";
+import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import { db } from "../db/client.js";
 import { roomParticipants, rooms } from "../db/schema.js";
 import type { LiveRoom } from "./room-state.js";
@@ -9,7 +11,8 @@ async function auditRoom(room: LiveRoom) {
   await Promise.all(room.members.map((member) => db.insert(roomParticipants).values({ roomId: room.id, userId: member.userId, state: member.status, score: member.score, joinedAt: new Date(member.joinedAt), disconnectedAt: member.disconnectedAt ? new Date(member.disconnectedAt) : null, forfeitedAt: member.status === "forfeited" ? new Date() : null }).onConflictDoUpdate({ target: [roomParticipants.roomId, roomParticipants.userId], set: { state: member.status, score: member.score, disconnectedAt: member.disconnectedAt ? new Date(member.disconnectedAt) : null, forfeitedAt: member.status === "forfeited" ? new Date() : null } })));
 }
 export async function saveRoom(room: LiveRoom) { await redis.set(roomKey(room.code), JSON.stringify(room), "EX", 60 * 60 * 6); await auditRoom(room); return room; }
-export async function loadRoom(code: string) { const value = await redis.get(roomKey(code)); return value ? (JSON.parse(value) as LiveRoom) : null; }
+export async function loadRoom(code: string) { const value = await redis.get(roomKey(code)); if (!value) return null; const room = JSON.parse(value) as LiveRoom; room.roundCount = 1; if ((room.phase as string) === "round_result") room.phase = "finished"; room.members = room.members.map((member) => ({ ...member, feedback: member.feedback ?? [], rematchReady: member.rematchReady ?? false })); return room; }
+export async function acquireRoomLock(code: string) { const key = `valo:room-lock:${code}`; const token = randomUUID(); for (let attempt = 0; attempt < 20; attempt += 1) { if (await redis.set(key, token, "PX", 5_000, "NX")) return async () => { await redis.eval("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end", 1, key, token); }; await delay(25); } throw new Error("Room is busy; please retry"); }
 export async function listPublicRooms() { const keys = await redis.keys("valo:room:*"); const rooms = await Promise.all(keys.map(async (key) => { const value = await redis.get(key); return value ? (JSON.parse(value) as LiveRoom) : null; })); return rooms.filter((room): room is LiveRoom => Boolean(room && room.isPublic && room.phase === "lobby")); }
 
 type QueueEntry = { userId: string; displayName: string; socketId: string; joinedAt: number };
