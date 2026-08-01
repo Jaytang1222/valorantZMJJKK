@@ -11,11 +11,6 @@ const credentialsSchema = z.object({
   email: z.string().trim().email().max(320),
   password: z.string().min(8).max(128),
 });
-const displayNameSchema = z.object({
-  displayName: z.string().trim().min(3).max(20),
-});
-const blockedDisplayNameTerms = ["admin", "administrator", "官方", "客服", "系统", "moderator"];
-
 function normalize(value: string) {
   return value.trim().normalize("NFKC").toLocaleLowerCase("en-US");
 }
@@ -100,15 +95,4 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     return { ticket: signedToken(userId, 5 * 60 * 1000, "realtime") };
   });
 
-  app.put("/v1/auth/me/display-name", async (request, reply) => {
-    const userId = verifySession(request.headers.authorization?.replace(/^Bearer\s+/i, ""));
-    if (!userId) return reply.unauthorized("Authentication is required");
-    const { displayName } = displayNameSchema.parse(request.body);
-    const normalizedDisplayName = normalize(displayName);
-    if (blockedDisplayNameTerms.some((term) => normalizedDisplayName.includes(term))) return reply.badRequest("This display name is unavailable");
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.normalizedDisplayName, normalizedDisplayName)).limit(1);
-    if (existing && existing.id !== userId) return reply.conflict("This display name is unavailable");
-    const [user] = await db.update(users).set({ displayName, normalizedDisplayName, updatedAt: new Date() }).where(eq(users.id, userId)).returning({ id: users.id, displayName: users.displayName });
-    return { user };
-  });
 }

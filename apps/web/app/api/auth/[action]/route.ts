@@ -26,10 +26,3 @@ export async function GET() {
   if (!upstream.ok) return NextResponse.json({ user: null });
   return NextResponse.json(await upstream.json());
 }
-
-export async function PUT(request: NextRequest) {
-  const token = unsealUserSession((await cookies()).get(SESSION_COOKIE)?.value);
-  if (!token) return NextResponse.json({ error: "Authentication is required" }, { status: 401 });
-  const upstream = await fetch(`${API_BASE_URL}/v1/auth/me/display-name`, { method: "PUT", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: await request.text(), cache: "no-store" });
-  return NextResponse.json(await upstream.json(), { status: upstream.status });
-}

@@ -2,7 +2,7 @@ export type RoomPhase = "lobby" | "countdown" | "playing" | "round_result" | "fi
 export type MemberStatus = "connected" | "disconnected" | "forfeited" | "left";
 export type RoundFinishReason = "correct" | "time_expired" | "guesses_exhausted" | "disconnect" | "surrender";
 
-export const FORFEIT_WIN_POINTS = 1_000;
+export const ROUND_WIN_POINTS = 1;
 
 export type PrivateGuess = {
   canonicalName: string;
@@ -144,9 +144,7 @@ export function recordGuess(room: LiveRoom, userId: string, guess: PrivateGuess,
   if (member.guessCount >= 8) throw new Error("Guess limit reached");
   member.guessCount += 1;
   member.feedback.push(Object.values(guess.comparison));
-  const points = guess.isCorrect
-    ? Math.max(100, 1_000 - (member.guessCount - 1) * 100 - Math.floor((now - (room.roundEndsAt - room.roundDurationSeconds * 1000)) / 1000) * 5)
-    : 0;
+  const points = guess.isCorrect ? ROUND_WIN_POINTS : 0;
   member.guesses.push({ ...guess, points });
   if (guess.isCorrect) {
     member.score += points;
@@ -172,7 +170,7 @@ export function awardForfeitWin(room: LiveRoom, winnerId: string, reason: "disco
   if (room.phase !== "playing") return room;
   const winner = room.members.find((member) => member.userId === winnerId && member.status === "connected");
   if (!winner) throw new Error("Winner is not connected");
-  winner.score += FORFEIT_WIN_POINTS;
+  winner.score += ROUND_WIN_POINTS;
   room.winnerId = winnerId;
   finishRound(room, reason);
   return room;

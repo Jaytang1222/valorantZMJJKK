@@ -24,7 +24,6 @@ export default function VersusPage() {
   const [error, setError] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [waiting, setWaiting] = useState(false);
-  const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [now, setNow] = useState(Date.now());
   const [recoverCode, setRecoverCode] = useState("");
 
@@ -58,7 +57,6 @@ export default function VersusPage() {
         client.on("connect", () => {
           setConnected(true);
           setError("");
-          client.emit("room:list-public", {}, (reply: { rooms?: Room[] }) => setPublicRooms(reply.rooms ?? []));
         });
         client.on("disconnect", () => setConnected(false));
         client.on("connect_error", async (event) => {
@@ -126,7 +124,7 @@ export default function VersusPage() {
     return reply;
   };
 
-  const create = (isPublic: boolean) => run("room:create", { isPublic, maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60 });
+  const create = () => run("room:create", { maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60 });
   const join = () => run("room:join", { code: joinCode.trim().toUpperCase() });
   const match = async () => {
     const reply = await run("match:join", { maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60 });
@@ -163,13 +161,11 @@ export default function VersusPage() {
     {!room && <section className="versus-entry">
       {recoverCode && <div className="recover-room-actions"><button className="secondary-action" onClick={() => router.push(`/versus/match?code=${encodeURIComponent(recoverCode)}`)}>恢复对局</button><button className="text-button" onClick={() => { localStorage.removeItem("valo_versus_room"); setRecoverCode(""); }}>放弃恢复</button></div>}
       {waiting ? <button onClick={cancelMatch}>取消匹配</button> : <button className="entry-button" disabled={!connected} onClick={match}>在线匹配</button>}
-      <button className="entry-button" disabled={!connected} onClick={() => create(false)}>创建私密房间</button>
-      <button className="entry-button" disabled={!connected} onClick={() => create(true)}>创建公开房间</button>
+      <button className="entry-button" disabled={!connected} onClick={create}>创建私密房间</button>
       <div className="join-room-row">
         <input aria-label="房间邀请码" value={joinCode} maxLength={6} onChange={(event) => setJoinCode(event.target.value.toUpperCase())} placeholder="输入 6 位邀请码" />
         <button disabled={!connected || joinCode.length !== 6} onClick={join}>加入房间</button>
       </div>
-      {publicRooms.map((item) => <button key={item.code} onClick={() => run("room:join", { code: item.code })}>公开房 {item.code} · {item.members.filter((member) => member.status === "connected" || member.status === "disconnected").length} 人</button>)}
     </section>}
 
     {room?.phase === "lobby" && <section className="game-board">

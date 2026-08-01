@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FORFEIT_WIN_POINTS, beginCountdown, beginRound, createLiveRoom, disconnectMember, forfeitExpiredMembers, joinRoom, leaveRoom, recordGuess, setReady, surrenderMember, voteRematch } from "./room-state.js";
+import { ROUND_WIN_POINTS, beginCountdown, beginRound, createLiveRoom, disconnectMember, forfeitExpiredMembers, joinRoom, leaveRoom, recordGuess, setReady, surrenderMember, voteRematch } from "./room-state.js";
 
 const host = { userId: "host", displayName: "Host", status: "connected" as const, ready: false, score: 0, guessCount: 0, joinedAt: 0 };
 const wrongGuess = { canonicalName: "Wrong", comparison: { country: "mismatch" }, isCorrect: false, points: 0 };
@@ -24,6 +24,17 @@ describe("room state", () => {
     expect(room.members[0].guesses).toHaveLength(8);
   });
 
+  it("awards one point for a correct guess", () => {
+    const room = createRoom();
+    addGuest(room);
+    room.phase = "playing";
+    room.roundEndsAt = 60_000;
+    const result = recordGuess(room, "host", { canonicalName: "Target", comparison: { country: "exact" }, isCorrect: true, points: 0 }, 1);
+    expect(result.points).toBe(ROUND_WIN_POINTS);
+    expect(room.members[0].score).toBe(ROUND_WIN_POINTS);
+    expect(room.winnerId).toBe("host");
+  });
+
   it("allows a 20-second reconnect window before forfeit", () => {
     const room = createRoom();
     disconnectMember(room, "host", 0);
@@ -41,7 +52,7 @@ describe("room state", () => {
     forfeitExpiredMembers(room, 20_000);
     expect(room.phase).toBe("finished");
     expect(room.winnerId).toBe("guest");
-    expect(room.members[1].score).toBe(FORFEIT_WIN_POINTS);
+    expect(room.members[1].score).toBe(ROUND_WIN_POINTS);
     expect(room.finishReason).toBe("disconnect");
   });
 
@@ -53,7 +64,7 @@ describe("room state", () => {
     expect(room.members[0].status).toBe("forfeited");
     expect(room.phase).toBe("finished");
     expect(room.winnerId).toBe("guest");
-    expect(room.members[1].score).toBe(FORFEIT_WIN_POINTS);
+    expect(room.members[1].score).toBe(ROUND_WIN_POINTS);
     expect(room.finishReason).toBe("surrender");
   });
 

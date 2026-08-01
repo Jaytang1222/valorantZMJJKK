@@ -8,7 +8,7 @@ import { db } from "./db/client.js";
 import { playerSnapshots, players, users } from "./db/schema.js";
 import { and, eq, sql } from "drizzle-orm";
 import { beginCountdown, beginRound, cancelRoom, createInviteCode, createLiveRoom, disconnectMember, finishRound, forfeitExpiredMembers, hasActiveMembership, joinRoom, leaveRoom, recordGuess, setReady, surrenderMember, voteRematch, type LiveRoom } from "./services/room-state.js";
-import { acquireRoomLock, cancelMatch, deleteRoom, enqueueMatch, listPublicRooms, loadRoom, saveRoom, takeMatchOpponent } from "./services/room-store.js";
+import { acquireRoomLock, cancelMatch, deleteRoom, enqueueMatch, loadRoom, saveRoom, takeMatchOpponent } from "./services/room-store.js";
 import { compareSoloGuess } from "./lib/solo-comparison.js";
 
 const FINISHED_ROOM_TTL_MS = 120_000;
@@ -151,17 +151,13 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         const user = await getUser();
         let code = createInviteCode();
         while (await loadRoom(code)) code = createInviteCode();
-        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: userId, isPublic: Boolean(input?.isPublic), maxPlayers: Number(input?.maxPlayers ?? 2), roundCount: Number(input?.roundCount ?? 1), roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60), host: { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() } });
+        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: userId, isPublic: false, maxPlayers: Number(input?.maxPlayers ?? 2), roundCount: Number(input?.roundCount ?? 1), roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60), host: { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() } });
         await saveRoom(room);
         await socket.join(`room:${code}`);
         acknowledge?.({ room: publicRoom(room), ownGuesses: ownGuesses(room, userId) });
       } catch (error) {
         acknowledge?.({ error: error instanceof Error ? error.message : "Unable to create room" });
       }
-    });
-
-    socket.on("room:list-public", async (_, acknowledge) => {
-      acknowledge?.({ rooms: await listPublicRooms().then((rooms) => rooms.map(publicRoom)) });
     });
 
     socket.on("match:join", async (input, acknowledge) => {
@@ -179,7 +175,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         }
         let code = createInviteCode();
         while (await loadRoom(code)) code = createInviteCode();
-        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: opponent.userId, isPublic: true, maxPlayers, roundCount, roundDurationSeconds, host: { userId: opponent.userId, displayName: opponent.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: opponent.joinedAt } });
+        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: opponent.userId, isPublic: false, maxPlayers, roundCount, roundDurationSeconds, host: { userId: opponent.userId, displayName: opponent.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: opponent.joinedAt } });
         joinRoom(room, { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() });
         await saveRoom(room);
         await io.in([socket.id, opponent.socketId]).socketsJoin(`room:${code}`);
