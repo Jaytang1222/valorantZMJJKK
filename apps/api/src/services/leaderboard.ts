@@ -254,7 +254,6 @@ async function getVersusStats(userId: string) {
     .where(
       and(
         eq(roomParticipants.userId, userId),
-        eq(rooms.state, "finished"),
         isNotNull(rooms.finishedAt),
         isNotNull(rooms.winnerUserId),
       ),
@@ -366,8 +365,8 @@ export async function getAccountSummary(userId: string) {
       .where(
         and(
           eq(roomParticipants.userId, userId),
-          eq(rooms.state, "finished"),
           isNotNull(rooms.finishedAt),
+          isNotNull(rooms.winnerUserId),
         ),
       )
       .groupBy(

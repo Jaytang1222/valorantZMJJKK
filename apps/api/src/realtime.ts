@@ -105,6 +105,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
 
   const disposeIfEmpty = async (room: LiveRoom) => {
     if (hasActiveMembership(room)) return false;
+    if (room.phase === "finished") {
+      emitClosed(room);
+      await deleteRoom(room.code);
+      return true;
+    }
     cancelRoom(room);
     await saveRoom(room);
     emitClosed(room);
@@ -119,8 +124,6 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         release = await acquireRoomLock(code);
         const room = await loadRoom(code);
         if (!room || room.phase !== "finished") return;
-        cancelRoom(room);
-        await saveRoom(room);
         emitClosed(room);
         await deleteRoom(code);
       } finally {
