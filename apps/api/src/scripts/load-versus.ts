@@ -10,12 +10,16 @@ const password = required("LOAD_PASSWORD");
 const roomCount = positiveInteger("LOAD_ROOM_COUNT", 2, 100);
 const workers = positiveInteger("LOAD_WORKERS", roomCount, roomCount);
 const holdSeconds = positiveInteger("LOAD_HOLD_SECONDS", 15, 600);
+const roundDurationSeconds = positiveInteger("LOAD_ROUND_DURATION_SECONDS", 90, 90);
+const rampSeconds = nonNegativeInteger("LOAD_RAMP_SECONDS", 0, 300);
 const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const metrics: MetricSamples = {};
 const failures: string[] = [];
 
 if (confirmation !== "RUN_STAGING_LOAD") throw new Error("Set LOAD_CONFIRM=RUN_STAGING_LOAD to run the load test");
 if (!apiUrl.startsWith("https://") && process.env.ALLOW_INSECURE_LOAD !== "true") throw new Error("LOAD_API_URL must use HTTPS unless ALLOW_INSECURE_LOAD=true");
+if (![30, 60, 90].includes(roundDurationSeconds)) throw new Error("LOAD_ROUND_DURATION_SECONDS must be 30, 60, or 90");
+if (holdSeconds > roundDurationSeconds - 5) throw new Error("LOAD_HOLD_SECONDS must leave at least 5 seconds before the round timeout");
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -26,6 +30,12 @@ function required(name: string) {
 function positiveInteger(name: string, fallback: number, maximum: number) {
   const value = Number(process.env[name] ?? fallback);
   if (!Number.isInteger(value) || value < 1 || value > maximum) throw new Error(`${name} must be an integer from 1 to ${maximum}`);
+  return value;
+}
+
+function nonNegativeInteger(name: string, fallback: number, maximum: number) {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isInteger(value) || value < 0 || value > maximum) throw new Error(`${name} must be an integer from 0 to ${maximum}`);
   return value;
 }
 
@@ -98,9 +108,11 @@ async function runRoom(index: number) {
   let host: Socket | undefined;
   let guest: Socket | undefined;
   try {
+    const startDelayMs = Math.floor((index * rampSeconds * 1_000) / roomCount);
+    if (startDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, startDelayMs));
     const [hostTicket, guestTicket] = await timed("auth_and_ticket", async () => Promise.all([createTicket(index * 2), createTicket(index * 2 + 1)]));
     [host, guest] = await timed("socket_connect", async () => Promise.all([connect(hostTicket), connect(guestTicket)]));
-    const created = await timed("room_create", () => emit(host!, "room:create", { maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60 }));
+    const created = await timed("room_create", () => emit(host!, "room:create", { maxPlayers: 2, roundCount: 1, roundDurationSeconds }));
     if (!created.room) throw new Error("Room creation returned no room");
     const code = created.room.code;
     await timed("room_join", () => emit(guest!, "room:join", { code }));
@@ -141,5 +153,5 @@ const report = Object.fromEntries(Object.entries(metrics).map(([metric, values])
   p95Ms: percentile(values, 0.95),
   maxMs: percentile(values, 1),
 }]));
-console.log(JSON.stringify({ runId, roomCount, workers, holdSeconds, failures, metrics: report }, null, 2));
+console.log(JSON.stringify({ runId, roomCount, workers, holdSeconds, roundDurationSeconds, rampSeconds, failures, metrics: report }, null, 2));
 if (failures.length > 0) process.exitCode = 1;

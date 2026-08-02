@@ -20,6 +20,8 @@ $env:LOAD_CONFIRM = "RUN_STAGING_LOAD"
 $env:LOAD_ROOM_COUNT = "2"
 $env:LOAD_WORKERS = "2"
 $env:LOAD_HOLD_SECONDS = "15"
+$env:LOAD_ROUND_DURATION_SECONDS = "90"
+$env:LOAD_RAMP_SECONDS = "0"
 pnpm --filter @valo-yiba/api load:versus
 ```
 
@@ -33,6 +35,8 @@ pnpm --filter @valo-yiba/api load:versus
 $env:LOAD_ROOM_COUNT = "100"
 $env:LOAD_WORKERS = "100"
 $env:LOAD_HOLD_SECONDS = "60"
+$env:LOAD_ROUND_DURATION_SECONDS = "90"
+$env:LOAD_RAMP_SECONDS = "30"
 pnpm --filter @valo-yiba/api load:versus
 ```
 
