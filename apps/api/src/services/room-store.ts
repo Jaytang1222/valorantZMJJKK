@@ -3,16 +3,27 @@ import { setTimeout as delay } from "node:timers/promises";
 import { db } from "../db/client.js";
 import { guesses, roomParticipants, roomRounds, rooms } from "../db/schema.js";
 import { redis } from "../redis.js";
+import { invalidateLeaderboard } from "./leaderboard.js";
 import type { LiveRoom } from "./room-state.js";
 
 const roomKey = (code: string) => `valo:room:${code}`;
 const queueKey = (settings: string) => `valo:match:${settings}`;
+
+function isRankedEligible(room: LiveRoom) {
+  return (
+    room.isMatchmade &&
+    room.phase === "finished" &&
+    room.members.length === 2 &&
+    Boolean(room.winnerId)
+  );
+}
 
 function asDate(timestamp: number | undefined) {
   return timestamp === undefined ? null : new Date(timestamp);
 }
 
 async function auditRoom(room: LiveRoom) {
+  const rankedEligible = isRankedEligible(room);
   await db.transaction(async (tx) => {
     await tx
       .insert(rooms)
@@ -23,6 +34,7 @@ async function auditRoom(room: LiveRoom) {
         state: room.phase,
         isPublic: false,
         isMatchmade: room.isMatchmade,
+        rankedEligible,
         roundCount: room.roundCount,
         roundDurationSeconds: room.roundDurationSeconds,
         currentRound: room.roundNumber,
@@ -37,6 +49,7 @@ async function auditRoom(room: LiveRoom) {
           hostId: room.hostId,
           state: room.phase,
           isMatchmade: room.isMatchmade,
+          rankedEligible,
           currentRound: room.roundNumber,
           startedAt: asDate(room.roundStartedAt),
           finishedAt: asDate(room.roundFinishedAt),
@@ -115,6 +128,7 @@ async function auditRoom(room: LiveRoom) {
 export async function saveRoom(room: LiveRoom) {
   await auditRoom(room);
   await redis.set(roomKey(room.code), JSON.stringify(room), "EX", 60 * 60 * 6);
+  if (isRankedEligible(room)) await invalidateLeaderboard("versus");
   return room;
 }
 

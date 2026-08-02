@@ -164,6 +164,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
         id: users.id,
         displayName: users.displayName,
         email: users.email,
+        role: users.role,
       })
       .from(users)
       .where(eq(users.id, userId))

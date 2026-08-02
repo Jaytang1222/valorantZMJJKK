@@ -1,16 +1,22 @@
 import type { FastifyInstance } from "fastify";
 import { playerImportSchema } from "@valo-yiba/contracts";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { parse } from "csv-parse/sync";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "../config.js";
 import {
+  adminAuditLogs,
+  contentReports,
+  moderationActions,
   countryGroups,
   playerAliases,
   playerSnapshots,
   players,
+  users,
 } from "../db/schema.js";
 import { db } from "../db/client.js";
 import { normalizeAlias } from "../lib/normalization.js";
+import { invalidateLeaderboard } from "../services/leaderboard.js";
 import { upsertPlayerSnapshot } from "../services/player-import.js";
 
 const reviewSchema = z.object({
@@ -33,6 +39,63 @@ const countryGroupSchema = z.object({
   displayName: z.string().trim().min(1).max(64),
   version: z.coerce.number().int().positive().default(1),
 });
+const userRoleSchema = z.object({
+  role: z.enum(["user", "editor", "moderator", "admin"]),
+});
+const reportResolutionSchema = z.object({
+  status: z.enum(["resolved", "dismissed"]),
+  resolution: z.string().trim().min(1).max(4_000),
+});
+const moderationActionSchema = z.object({
+  targetUserId: z.string().uuid(),
+  action: z.enum(["hide_leaderboard", "void_scores", "restrict_account"]),
+  reason: z.string().trim().min(1).max(4_000),
+  actorUserId: z.string().uuid().optional(),
+});
+const csvImportSchema = z.object({
+  csv: z.string().min(1).max(2_000_000),
+  apply: z.boolean().default(false),
+});
+
+function parseCsvPlayers(csv: string) {
+  const rows = parse(csv, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  }) as Record<string, string>[];
+  return rows.map((row, index) => ({
+    rowNumber: index + 2,
+    data: playerImportSchema.safeParse({
+      canonicalName: row.canonical_name,
+      aliases: row.aliases?.split("|").filter(Boolean),
+      countryCode: row.country_code,
+      countryGroup: row.country_group,
+      region: row.region,
+      primaryRole: row.primary_role,
+      currentOrLastTeam: row.current_or_last_team,
+      championsTitles: Number(row.champions_titles),
+      mastersTitles: Number(row.masters_titles),
+      heroTop3: row.hero_top_3?.split("|"),
+      dataAsOf: row.data_as_of,
+      sourceUrl: row.source_url,
+      sourceCheckedAt: row.source_checked_at,
+      reviewStatus: row.review_status,
+    }),
+  }));
+}
+
+async function audit(input: {
+  actorUserId?: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  metadata?: Record<string, unknown>;
+}) {
+  await db.insert(adminAuditLogs).values({
+    ...input,
+    metadata: input.metadata ?? {},
+  });
+}
 
 export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
   app.addHook("onRequest", async (request, reply) => {
@@ -45,6 +108,48 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     const player = playerImportSchema.parse(request.body);
     const result = await upsertPlayerSnapshot(player);
     return reply.code(201).send(result);
+  });
+
+  app.post("/v1/admin/players/import", async (request, reply) => {
+    const input = csvImportSchema.parse(request.body);
+    const parsed = parseCsvPlayers(input.csv);
+    const errors = parsed.flatMap((row) =>
+      row.data.success
+        ? []
+        : [
+            {
+              row: row.rowNumber,
+              errors: row.data.error.issues.map((issue) => issue.message),
+            },
+          ],
+    );
+    const valid = parsed.flatMap((row) =>
+      row.data.success ? [row.data.data] : [],
+    );
+    const names = valid.map((row) => row.canonicalName);
+    const existing = names.length
+      ? await db
+          .select({ canonicalName: players.canonicalName })
+          .from(players)
+          .where(inArray(players.canonicalName, names))
+      : [];
+    const conflicts = existing.map((row) => ({
+      canonicalName: row.canonicalName,
+      resolution: "将创建新的资料快照",
+    }));
+    if (!input.apply || errors.length > 0) {
+      return { preview: true, validRows: valid.length, errors, conflicts };
+    }
+    const imported = [];
+    for (const player of valid)
+      imported.push(await upsertPlayerSnapshot(player));
+    await audit({
+      action: "players_csv_imported",
+      entityType: "player_import",
+      entityId: new Date().toISOString(),
+      metadata: { imported: imported.length, conflicts: conflicts.length },
+    });
+    return reply.code(201).send({ preview: false, imported, conflicts });
   });
 
   app.get("/v1/admin/country-groups", async () => {
@@ -212,6 +317,168 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         .returning({ id: playerAliases.id });
       if (!deleted) return reply.notFound("Alias not found");
       return reply.code(204).send();
+    },
+  );
+
+  app.get("/v1/admin/users", async () => {
+    return db
+      .select({
+        id: users.id,
+        displayName: users.displayName,
+        email: users.email,
+        role: users.role,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(asc(users.createdAt))
+      .limit(100);
+  });
+
+  app.patch("/v1/admin/users/:userId/role", async (request, reply) => {
+    const { userId } = z
+      .object({ userId: z.string().uuid() })
+      .parse(request.params);
+    const { role } = userRoleSchema.parse(request.body);
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({ id: users.id, role: users.role });
+    if (!user) return reply.notFound("User not found");
+    await audit({
+      action: "user_role_changed",
+      entityType: "user",
+      entityId: user.id,
+      metadata: { role },
+    });
+    return user;
+  });
+
+  app.get("/v1/admin/reports", async (request) => {
+    const status = z
+      .object({
+        status: z
+          .enum(["open", "resolved", "dismissed", "all"])
+          .default("open"),
+      })
+      .parse(request.query).status;
+    const query = db
+      .select({
+        id: contentReports.id,
+        category: contentReports.category,
+        subject: contentReports.subject,
+        details: contentReports.details,
+        status: contentReports.status,
+        reporterUserId: contentReports.reporterUserId,
+        reviewerUserId: contentReports.reviewerUserId,
+        resolution: contentReports.resolution,
+        createdAt: contentReports.createdAt,
+        resolvedAt: contentReports.resolvedAt,
+      })
+      .from(contentReports)
+      .orderBy(desc(contentReports.createdAt))
+      .limit(100);
+    return status === "all"
+      ? query
+      : query.where(eq(contentReports.status, status));
+  });
+
+  app.patch("/v1/admin/reports/:reportId", async (request, reply) => {
+    const { reportId } = z
+      .object({ reportId: z.string().uuid() })
+      .parse(request.params);
+    const input = reportResolutionSchema.parse(request.body);
+    const [report] = await db
+      .update(contentReports)
+      .set({
+        status: input.status,
+        resolution: input.resolution,
+        resolvedAt: new Date(),
+      })
+      .where(eq(contentReports.id, reportId))
+      .returning({ id: contentReports.id, status: contentReports.status });
+    if (!report) return reply.notFound("Report not found");
+    await audit({
+      action: "report_resolved",
+      entityType: "report",
+      entityId: report.id,
+      metadata: input,
+    });
+    return report;
+  });
+
+  app.get("/v1/admin/moderation-actions", async () => {
+    return db
+      .select({
+        id: moderationActions.id,
+        targetUserId: moderationActions.targetUserId,
+        action: moderationActions.action,
+        reason: moderationActions.reason,
+        active: moderationActions.active,
+        actorUserId: moderationActions.actorUserId,
+        createdAt: moderationActions.createdAt,
+        revokedAt: moderationActions.revokedAt,
+      })
+      .from(moderationActions)
+      .orderBy(desc(moderationActions.createdAt))
+      .limit(100);
+  });
+
+  app.post("/v1/admin/moderation-actions", async (request, reply) => {
+    const input = moderationActionSchema.parse(request.body);
+    const [action] = await db
+      .insert(moderationActions)
+      .values(input)
+      .returning({
+        id: moderationActions.id,
+        action: moderationActions.action,
+      });
+    await audit({
+      actorUserId: input.actorUserId,
+      action: "moderation_action_created",
+      entityType: "moderation_action",
+      entityId: action.id,
+      metadata: { targetUserId: input.targetUserId, action: input.action },
+    });
+    if (input.action === "hide_leaderboard" || input.action === "void_scores") {
+      await Promise.all([
+        invalidateLeaderboard("solo"),
+        invalidateLeaderboard("versus"),
+      ]);
+    }
+    return reply.code(201).send(action);
+  });
+
+  app.patch(
+    "/v1/admin/moderation-actions/:actionId/revoke",
+    async (request, reply) => {
+      const { actionId } = z
+        .object({ actionId: z.string().uuid() })
+        .parse(request.params);
+      const [action] = await db
+        .update(moderationActions)
+        .set({ active: false, revokedAt: new Date() })
+        .where(eq(moderationActions.id, actionId))
+        .returning({
+          id: moderationActions.id,
+          action: moderationActions.action,
+        });
+      if (!action) return reply.notFound("Moderation action not found");
+      await audit({
+        action: "moderation_action_revoked",
+        entityType: "moderation_action",
+        entityId: action.id,
+      });
+      if (
+        action.action === "hide_leaderboard" ||
+        action.action === "void_scores"
+      ) {
+        await Promise.all([
+          invalidateLeaderboard("solo"),
+          invalidateLeaderboard("versus"),
+        ]);
+      }
+      return action;
     },
   );
 }

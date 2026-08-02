@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import {
   adminCookie,
   createAdminSession,
-  isValidAdminSession,
   verifyAdminCredentials,
 } from "../../lib/admin-session";
+import { requireAdminCapability } from "../../lib/admin-operator";
 import {
   addAlias,
   createPlayer,
@@ -38,9 +38,7 @@ export async function logout(): Promise<void> {
 }
 
 export async function review(formData: FormData): Promise<void> {
-  const store = await cookies();
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
-    redirect("/admin");
+  await requireAdminCapability("content");
 
   const snapshotId = String(formData.get("snapshotId") ?? "");
   const reviewStatus = String(formData.get("reviewStatus") ?? "");
@@ -61,9 +59,7 @@ function list(value: FormDataEntryValue | null): string[] {
 }
 
 export async function createPlayerAction(formData: FormData): Promise<void> {
-  const store = await cookies();
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
-    redirect("/admin");
+  await requireAdminCapability("content");
   const heroes = list(formData.get("heroTop3"));
   if (heroes.length !== 3)
     throw new Error("Hero Top 3 must contain exactly three heroes");
@@ -89,9 +85,7 @@ export async function createPlayerAction(formData: FormData): Promise<void> {
 }
 
 export async function setPlayerStatus(formData: FormData): Promise<void> {
-  const store = await cookies();
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
-    redirect("/admin");
+  await requireAdminCapability("content");
   await updatePlayerStatus(
     String(formData.get("playerId") ?? ""),
     String(formData.get("status")) as "active" | "disabled",
@@ -100,18 +94,14 @@ export async function setPlayerStatus(formData: FormData): Promise<void> {
 }
 
 export async function addAliasAction(formData: FormData): Promise<void> {
-  const store = await cookies();
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
-    redirect("/admin");
+  await requireAdminCapability("content");
   const playerId = String(formData.get("playerId") ?? "");
   await addAlias(playerId, String(formData.get("alias") ?? ""));
   redirect(`/admin/players/${playerId}`);
 }
 
 export async function removeAliasAction(formData: FormData): Promise<void> {
-  const store = await cookies();
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
-    redirect("/admin");
+  await requireAdminCapability("content");
   const playerId = String(formData.get("playerId") ?? "");
   await removeAlias(playerId, String(formData.get("aliasId") ?? ""));
   redirect(`/admin/players/${playerId}`);

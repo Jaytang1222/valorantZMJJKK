@@ -7,6 +7,7 @@ import { Sentry } from "./observability.js";
 import { registerAdminRoutes } from "./routes/admin.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerHealthRoutes } from "./routes/health.js";
+import { registerLeaderboardRoutes } from "./routes/leaderboards.js";
 import { registerPlayerRoutes } from "./routes/players.js";
 import { registerSoloRoutes } from "./routes/solo.js";
 
@@ -47,6 +48,7 @@ export async function buildApp() {
   await registerHealthRoutes(app);
   await registerPlayerRoutes(app);
   await registerAuthRoutes(app);
+  await registerLeaderboardRoutes(app);
   await registerSoloRoutes(app);
   await app.register(registerAdminRoutes, { prefix: "/internal" });
   return app;

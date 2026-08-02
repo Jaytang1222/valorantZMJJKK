@@ -12,6 +12,7 @@ import {
 } from "../db/schema.js";
 import { verifySession } from "./auth.js";
 import { compareSoloGuess } from "../lib/solo-comparison.js";
+import { invalidateLeaderboard } from "../services/leaderboard.js";
 
 const difficulty = z.enum(["beginner", "easy", "full"]);
 const createSchema = z.object({
@@ -194,6 +195,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
       });
       if (!settled)
         return reply.conflict("Attempt changed; refresh before guessing again");
+      if (status !== "active" && userId) await invalidateLeaderboard("solo");
       return {
         guess: {
           playerId: guessed.playerId,

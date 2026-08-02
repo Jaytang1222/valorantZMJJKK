@@ -11,6 +11,19 @@
 body {
   margin: 0;
 }
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 20px 36px;
+  color: #94a0c2;
+  font-size: 0.85rem;
+}
+.site-footer a,
+.legal-page a {
+  color: #80a7ff;
+}
 main {
   width: min(1080px, calc(100% - 40px));
   margin: 0 auto;
@@ -159,7 +172,8 @@ button {
 }
 .guess-box,
 .result-panel,
-.auth-panel {
+.auth-panel,
+.account-panel {
   border: 1px solid #27304d;
   background: #121a31;
   border-radius: 8px;
@@ -270,6 +284,162 @@ button {
 }
 .auth-panel > p {
   color: #b8c0d9;
+}
+.account-panel {
+  width: min(100%, 760px);
+}
+.text-link {
+  color: #80a7ff;
+  text-decoration: none;
+}
+.account-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+.account-stats section,
+.recent-games {
+  border: 1px solid #27304d;
+  border-radius: 6px;
+  padding: 16px;
+}
+.account-stats h2,
+.recent-games h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+.account-stats dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+.account-stats dt {
+  color: #94a0c2;
+  font-size: 0.75rem;
+}
+.account-stats dd {
+  margin: 3px 0 0;
+}
+.recent-games {
+  margin: 24px 0;
+}
+.recent-game {
+  display: grid;
+  grid-template-columns: 60px 60px 1fr 90px 150px;
+  gap: 10px;
+  padding: 10px 0;
+  color: #c6cee6;
+  font-size: 0.9rem;
+}
+.recent-game + .recent-game {
+  border-top: 1px solid #27304d;
+}
+.leaderboard-page {
+  width: min(920px, calc(100% - 40px));
+}
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin: 24px 0;
+}
+.leaderboard-header h1 {
+  font-size: 2.6rem;
+}
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+}
+.mode-tabs button,
+.load-more {
+  width: auto;
+  padding: 9px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.mode-tabs button[aria-selected="true"] {
+  background: #e74d6d;
+  color: #fff;
+}
+.rank-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid #27304d;
+}
+.rank-summary strong {
+  font-size: 1.3rem;
+}
+.leaderboard-table {
+  margin-top: 14px;
+}
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 90px 70px 70px;
+  gap: 12px;
+  align-items: center;
+  min-height: 50px;
+  border-bottom: 1px solid #27304d;
+}
+.leaderboard-labels {
+  color: #94a0c2;
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+.load-more {
+  display: block;
+  margin: 20px auto;
+}
+.legal-page {
+  width: min(760px, calc(100% - 40px));
+  padding-top: 48px;
+}
+.legal-page h1 {
+  font-size: 2.6rem;
+  margin: 12px 0 28px;
+}
+.legal-page h2 {
+  font-size: 1.2rem;
+  margin-top: 32px;
+}
+.legal-page p {
+  color: #c6cee6;
+  line-height: 1.8;
+}
+.report-form {
+  display: grid;
+  gap: 14px;
+  margin: 28px 0;
+}
+.report-form label {
+  display: grid;
+  gap: 7px;
+  color: #d2daf1;
+}
+.report-form input,
+.report-form select,
+.report-form textarea {
+  width: 100%;
+  border: 1px solid #3a476c;
+  border-radius: 6px;
+  background: #0b1020;
+  color: #f4f7ff;
+  padding: 11px;
+  font: inherit;
+}
+.report-form textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+.report-form button {
+  width: auto;
+  justify-self: start;
+  padding: 10px 16px;
+  cursor: pointer;
 }
 .auth-form {
   display: grid;

@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { getAdminConfigurationStatus, getSnapshots } from "../../lib/admin-api";
-import { adminCookie, isValidAdminSession } from "../../lib/admin-session";
+import { getAdminOperator } from "../../lib/admin-operator";
 import {
   createPlayerAction,
   login,
@@ -9,6 +8,7 @@ import {
   review,
   setPlayerStatus,
 } from "./actions";
+import { CsvImport } from "./csv-import";
 
 export const dynamic = "force-dynamic";
 type PageProps = {
@@ -98,9 +98,9 @@ function NewPlayerForm() {
 }
 
 export default async function AdminPage({ searchParams }: PageProps) {
-  const store = await cookies();
   const params = await searchParams;
-  if (!isValidAdminSession(store.get(adminCookie.name)?.value))
+  const operator = await getAdminOperator();
+  if (!operator)
     return (
       <main className="admin-shell">
         <form action={login} className="admin-login">
@@ -136,6 +136,9 @@ export default async function AdminPage({ searchParams }: PageProps) {
         <div>
           <p className="eyebrow">CONTENT OPERATIONS</p>
           <h1>选手资料管理</h1>
+          <p className="admin-summary">
+            当前身份：{operator.displayName}（{operator.role}）
+          </p>
         </div>
         <form action={logout}>
           <button className="secondary">退出</button>
@@ -149,6 +152,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
         <p className="success-message">选手快照已创建并公开。</p>
       )}
       <NewPlayerForm />
+      <CsvImport />
       <section className="snapshot-list">
         {snapshots.map((snapshot) => (
           <article className="snapshot" key={snapshot.snapshotId}>
