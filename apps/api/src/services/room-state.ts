@@ -5,6 +5,8 @@ export type RoundFinishReason = "correct" | "time_expired" | "guesses_exhausted"
 export const ROUND_WIN_POINTS = 1;
 
 export type PrivateGuess = {
+  id: string;
+  playerId: string;
   canonicalName: string;
   comparison: Record<string, string>;
   isCorrect: boolean;
@@ -30,6 +32,7 @@ export type LiveRoom = {
   code: string;
   hostId: string;
   isPublic: boolean;
+  isMatchmade: boolean;
   maxPlayers: number;
   roundCount: number;
   roundDurationSeconds: number;
@@ -38,7 +41,10 @@ export type LiveRoom = {
   members: RoomMember[];
   createdAt: number;
   roundEndsAt?: number;
+  roundStartedAt?: number;
+  roundFinishedAt?: number;
   targetPlayerId?: string;
+  targetPuzzleId?: string;
   answerName?: string;
   correctUserId?: string;
   winnerId?: string;
@@ -53,14 +59,15 @@ export function createInviteCode(random = Math.random): string {
 type NewRoomMember = Omit<RoomMember, "rematchReady" | "feedback" | "guesses">;
 
 export function createLiveRoom(input: Omit<LiveRoom, "phase" | "roundNumber" | "members" | "createdAt" | "winnerId" | "finishReason" | "answerName"> & { host: NewRoomMember }): LiveRoom {
-  if (input.maxPlayers < 2 || input.maxPlayers > 8) throw new Error("Room capacity must be between 2 and 8");
-  if (![1, 3, 5].includes(input.roundCount)) throw new Error("Round count must be 1, 3, or 5");
+  if (input.maxPlayers !== 2) throw new Error("Rooms support exactly two players");
+  if (input.roundCount !== 1) throw new Error("Rooms support BO1 only");
   if (![30, 60, 90].includes(input.roundDurationSeconds)) throw new Error("Round duration must be 30, 60, or 90 seconds");
   return {
     id: input.id,
     code: input.code,
     hostId: input.hostId,
     isPublic: input.isPublic,
+    isMatchmade: input.isMatchmade,
     maxPlayers: input.maxPlayers,
     roundCount: 1,
     roundDurationSeconds: input.roundDurationSeconds,
@@ -116,6 +123,8 @@ export function beginRound(room: LiveRoom, now = Date.now()): LiveRoom {
   if (room.phase !== "countdown" && room.phase !== "round_result") throw new Error("Room cannot begin a round now");
   room.phase = "playing";
   room.roundNumber += 1;
+  room.roundStartedAt = now;
+  room.roundFinishedAt = undefined;
   room.roundEndsAt = now + room.roundDurationSeconds * 1000;
   room.correctUserId = undefined;
   room.winnerId = undefined;
@@ -130,9 +139,10 @@ export function beginRound(room: LiveRoom, now = Date.now()): LiveRoom {
   return room;
 }
 
-export function finishRound(room: LiveRoom, reason: RoundFinishReason = "time_expired"): LiveRoom {
+export function finishRound(room: LiveRoom, reason: RoundFinishReason = "time_expired", now = Date.now()): LiveRoom {
   room.phase = "finished";
   room.roundEndsAt = undefined;
+  room.roundFinishedAt = now;
   room.finishReason = reason;
   return room;
 }
@@ -150,9 +160,9 @@ export function recordGuess(room: LiveRoom, userId: string, guess: PrivateGuess,
     member.score += points;
     room.correctUserId = userId;
     room.winnerId = userId;
-    finishRound(room, "correct");
+    finishRound(room, "correct", now);
   } else if (activeMembers(room).length > 0 && activeMembers(room).every((item) => item.guessCount >= 8)) {
-    finishRound(room, "guesses_exhausted");
+    finishRound(room, "guesses_exhausted", now);
   }
   return { room, points };
 }

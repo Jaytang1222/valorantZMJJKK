@@ -237,6 +237,7 @@ export const rooms = pgTable(
       .references(() => users.id, { onDelete: "restrict" }),
     state: roomStateEnum("state").notNull().default("lobby"),
     isPublic: boolean("is_public").notNull().default(false),
+    isMatchmade: boolean("is_matchmade").notNull().default(false),
     roundCount: integer("round_count").notNull().default(1),
     roundDurationSeconds: integer("round_duration_seconds")
       .notNull()
@@ -247,6 +248,10 @@ export const rooms = pgTable(
       .defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
+    winnerUserId: uuid("winner_user_id").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    finishReason: varchar("finish_reason", { length: 32 }),
   },
   (table) => [
     uniqueIndex("rooms_code_unique").on(table.code),
@@ -294,6 +299,10 @@ export const roomRounds = pgTable(
     roundNumber: integer("round_number").notNull(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
+    winnerUserId: uuid("winner_user_id").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    finishReason: varchar("finish_reason", { length: 32 }),
   },
   (table) => [
     uniqueIndex("room_rounds_room_number_unique").on(

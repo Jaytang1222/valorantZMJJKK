@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Server as HttpServer } from "node:http";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server } from "socket.io";
@@ -5,10 +6,10 @@ import { env } from "./config.js";
 import { verifyRealtimeTicket } from "./routes/auth.js";
 import { redis, redisSubscriber } from "./redis.js";
 import { db } from "./db/client.js";
-import { playerSnapshots, players, users } from "./db/schema.js";
+import { playerSnapshots, players, puzzles, users } from "./db/schema.js";
 import { and, eq, sql } from "drizzle-orm";
 import { beginCountdown, beginRound, cancelRoom, createInviteCode, createLiveRoom, disconnectMember, finishRound, forfeitExpiredMembers, hasActiveMembership, joinRoom, leaveRoom, recordGuess, setReady, surrenderMember, voteRematch, type LiveRoom } from "./services/room-state.js";
-import { acquireRoomLock, cancelMatch, deleteRoom, enqueueMatch, loadRoom, saveRoom, takeMatchOpponent } from "./services/room-store.js";
+import { acquireMatchLock, acquireRoomLock, cancelMatch, deleteRoom, enqueueMatch, loadRoom, saveRoom, takeMatchOpponent, type QueueEntry } from "./services/room-store.js";
 import { compareSoloGuess } from "./lib/solo-comparison.js";
 
 const FINISHED_ROOM_TTL_MS = 120_000;
@@ -28,7 +29,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
   });
 
   const publicRoom = (room: LiveRoom) => {
-    const { targetPlayerId: _targetPlayerId, ...safe } = room;
+    const { targetPlayerId: _targetPlayerId, targetPuzzleId: _targetPuzzleId, ...safe } = room;
     if (room.phase === "playing") {
       const { answerName: _answerName, ...duringRound } = safe;
       return {
@@ -131,9 +132,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       return user;
     };
     const pickTarget = async () => {
-      const [target] = await db.select({ id: players.id }).from(players).innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id)).where(and(eq(players.status, "active"), eq(playerSnapshots.reviewStatus, "approved"))).orderBy(sql`random()`).limit(1);
+      const [target] = await db.select({ playerId: players.id, snapshotId: playerSnapshots.id }).from(players).innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id)).where(and(eq(players.status, "active"), eq(playerSnapshots.reviewStatus, "approved"))).orderBy(sql`random()`).limit(1);
       if (!target) throw new Error("No approved puzzle is available");
-      return target;
+      let [puzzle] = await db.select({ id: puzzles.id }).from(puzzles).where(and(eq(puzzles.snapshotId, target.snapshotId), eq(puzzles.status, "approved"))).limit(1);
+      if (!puzzle) [puzzle] = await db.insert(puzzles).values({ snapshotId: target.snapshotId, difficulty: "full", status: "approved" }).returning({ id: puzzles.id });
+      return { playerId: target.playerId, puzzleId: puzzle.id };
     };
     const reconnect = async (code: string) => {
       const room = await loadRoom(code);
@@ -151,7 +154,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         const user = await getUser();
         let code = createInviteCode();
         while (await loadRoom(code)) code = createInviteCode();
-        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: userId, isPublic: false, maxPlayers: Number(input?.maxPlayers ?? 2), roundCount: Number(input?.roundCount ?? 1), roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60), host: { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() } });
+        const room = createLiveRoom({ id: randomUUID(), code, hostId: userId, isPublic: false, isMatchmade: false, maxPlayers: Number(input?.maxPlayers ?? 2), roundCount: Number(input?.roundCount ?? 1), roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60), host: { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() } });
         await saveRoom(room);
         await socket.join(`room:${code}`);
         acknowledge?.({ room: publicRoom(room), ownGuesses: ownGuesses(room, userId) });
@@ -161,13 +164,27 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
     });
 
     socket.on("match:join", async (input, acknowledge) => {
+      let release: (() => Promise<void>) | undefined;
       try {
         const maxPlayers = Number(input?.maxPlayers ?? 2);
         const roundCount = Number(input?.roundCount ?? 1);
         const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        if (maxPlayers !== 2 || roundCount !== 1) throw new Error("Matchmaking supports two-player BO1 only");
+        if (![30, 60, 90].includes(roundDurationSeconds)) throw new Error("Round duration is unavailable");
         const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;
         const user = await getUser();
-        const opponent = await takeMatchOpponent(settings, userId);
+        release = await acquireMatchLock(settings);
+        await cancelMatch(settings, userId);
+        let opponent: QueueEntry | null = null;
+        for (let attempt = 0; attempt < 16; attempt += 1) {
+          const candidate = await takeMatchOpponent(settings, userId);
+          if (!candidate) break;
+          const candidateSockets = await io.in(candidate.socketId).fetchSockets();
+          if (candidateSockets.some((candidateSocket) => candidateSocket.data.userId === candidate.userId)) {
+            opponent = candidate;
+            break;
+          }
+        }
         if (!opponent) {
           await enqueueMatch(settings, { userId, displayName: user.displayName, socketId: socket.id, joinedAt: Date.now() });
           acknowledge?.({ waiting: true });
@@ -175,7 +192,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         }
         let code = createInviteCode();
         while (await loadRoom(code)) code = createInviteCode();
-        const room = createLiveRoom({ id: crypto.randomUUID(), code, hostId: opponent.userId, isPublic: false, maxPlayers, roundCount, roundDurationSeconds, host: { userId: opponent.userId, displayName: opponent.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: opponent.joinedAt } });
+        const room = createLiveRoom({ id: randomUUID(), code, hostId: opponent.userId, isPublic: false, isMatchmade: true, maxPlayers, roundCount, roundDurationSeconds, host: { userId: opponent.userId, displayName: opponent.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: opponent.joinedAt } });
         joinRoom(room, { userId, displayName: user.displayName, status: "connected", ready: false, score: 0, guessCount: 0, joinedAt: Date.now() });
         await saveRoom(room);
         await io.in([socket.id, opponent.socketId]).socketsJoin(`room:${code}`);
@@ -184,13 +201,27 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         emitRoom(room);
       } catch (error) {
         acknowledge?.({ error: error instanceof Error ? error.message : "Unable to join matchmaking" });
+      } finally {
+        await release?.();
       }
     });
 
     socket.on("match:cancel", async (input, acknowledge) => {
-      const settings = `${Number(input?.maxPlayers ?? 2)}:${Number(input?.roundCount ?? 1)}:${Number(input?.roundDurationSeconds ?? 60)}`;
-      await cancelMatch(settings, userId);
-      acknowledge?.({ ok: true });
+      let release: (() => Promise<void>) | undefined;
+      try {
+        const maxPlayers = Number(input?.maxPlayers ?? 2);
+        const roundCount = Number(input?.roundCount ?? 1);
+        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        if (maxPlayers !== 2 || roundCount !== 1 || ![30, 60, 90].includes(roundDurationSeconds)) throw new Error("Matchmaking settings are unavailable");
+        const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;
+        release = await acquireMatchLock(settings);
+        await cancelMatch(settings, userId);
+        acknowledge?.({ ok: true });
+      } catch (error) {
+        acknowledge?.({ error: error instanceof Error ? error.message : "Unable to cancel matchmaking" });
+      } finally {
+        await release?.();
+      }
     });
 
     socket.on("room:join", async ({ code }, acknowledge) => {
@@ -235,7 +266,8 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         beginCountdown(room, userId);
         const target = await pickTarget();
         beginRound(room);
-        room.targetPlayerId = target.id;
+        room.targetPlayerId = target.playerId;
+        room.targetPuzzleId = target.puzzleId;
         await saveRoom(room);
         scheduleRoundTimeout(room.code, room.roundEndsAt!);
         emitRoom(room);
@@ -254,12 +286,12 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         const roomCode = String(code);
         release = await acquireRoomLock(roomCode);
         const room = await loadRoom(roomCode);
-        if (!room?.targetPlayerId) throw new Error("Round is not available");
-        const [target] = await db.select({ id: players.id, canonicalName: players.canonicalName, snapshot: playerSnapshots }).from(players).innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id)).where(and(eq(players.id, room.targetPlayerId), eq(playerSnapshots.reviewStatus, "approved"))).limit(1);
+        if (!room?.targetPuzzleId) throw new Error("Round is not available");
+        const [target] = await db.select({ id: players.id, canonicalName: players.canonicalName, snapshot: playerSnapshots }).from(puzzles).innerJoin(playerSnapshots, eq(playerSnapshots.id, puzzles.snapshotId)).innerJoin(players, eq(players.id, playerSnapshots.playerId)).where(eq(puzzles.id, room.targetPuzzleId)).limit(1);
         const [guess] = await db.select({ id: players.id, canonicalName: players.canonicalName, snapshot: playerSnapshots }).from(players).innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id)).where(and(eq(players.id, String(playerId)), eq(playerSnapshots.reviewStatus, "approved"))).orderBy(sql`${playerSnapshots.dataVersion} desc`).limit(1);
         if (!target || !guess) throw new Error("Selected player is unavailable");
         const comparison = compareSoloGuess(guess.snapshot, target.snapshot);
-        const result = recordGuess(room, userId, { canonicalName: guess.canonicalName, comparison, isCorrect: target.id === guess.id, points: 0 });
+        const result = recordGuess(room, userId, { id: randomUUID(), playerId: guess.id, canonicalName: guess.canonicalName, comparison, isCorrect: target.id === guess.id, points: 0 });
         socket.emit("room:guess-result", { playerId: guess.id, canonicalName: guess.canonicalName, isCorrect: target.id === guess.id, comparison, points: result.points });
         if (room.phase === "finished") {
           room.answerName = target.canonicalName;
@@ -330,7 +362,8 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         if (room.phase === "countdown") {
           const target = await pickTarget();
           beginRound(room);
-          room.targetPlayerId = target.id;
+          room.targetPlayerId = target.playerId;
+          room.targetPuzzleId = target.puzzleId;
           scheduleRoundTimeout(room.code, room.roundEndsAt!);
           io.to(`room:${room.code}`).emit("room:match-started", { code: room.code });
         }

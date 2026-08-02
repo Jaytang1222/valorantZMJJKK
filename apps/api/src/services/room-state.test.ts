@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { ROUND_WIN_POINTS, beginCountdown, beginRound, createLiveRoom, disconnectMember, forfeitExpiredMembers, joinRoom, leaveRoom, recordGuess, setReady, surrenderMember, voteRematch } from "./room-state.js";
 
 const host = { userId: "host", displayName: "Host", status: "connected" as const, ready: false, score: 0, guessCount: 0, joinedAt: 0 };
-const wrongGuess = { canonicalName: "Wrong", comparison: { country: "mismatch" }, isCorrect: false, points: 0 };
+const wrongGuess = (id: string) => ({ id, playerId: `player-${id}`, canonicalName: "Wrong", comparison: { country: "mismatch" }, isCorrect: false, points: 0 });
 
 function createRoom() {
-  return createLiveRoom({ id: "room", code: "ABC123", hostId: "host", isPublic: false, maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60, host });
+  return createLiveRoom({ id: "room", code: "ABC123", hostId: "host", isPublic: false, isMatchmade: false, maxPlayers: 2, roundCount: 1, roundDurationSeconds: 60, host });
 }
 
 function addGuest(room: ReturnType<typeof createRoom>) {
@@ -19,8 +19,8 @@ describe("room state", () => {
     setReady(room, "host", true);
     beginCountdown(room, "host");
     beginRound(room, 0);
-    for (let index = 0; index < 8; index += 1) recordGuess(room, "host", wrongGuess, 1);
-    expect(() => recordGuess(room, "host", wrongGuess, 1)).toThrow("Guess limit reached");
+    for (let index = 0; index < 8; index += 1) recordGuess(room, "host", wrongGuess(`guess-${index}`), 1);
+    expect(() => recordGuess(room, "host", wrongGuess("guess-9"), 1)).toThrow("Guess limit reached");
     expect(room.members[0].guesses).toHaveLength(8);
   });
 
@@ -29,10 +29,12 @@ describe("room state", () => {
     addGuest(room);
     room.phase = "playing";
     room.roundEndsAt = 60_000;
-    const result = recordGuess(room, "host", { canonicalName: "Target", comparison: { country: "exact" }, isCorrect: true, points: 0 }, 1);
+    const result = recordGuess(room, "host", { id: "correct", playerId: "target", canonicalName: "Target", comparison: { country: "exact" }, isCorrect: true, points: 0 }, 1);
     expect(result.points).toBe(ROUND_WIN_POINTS);
     expect(room.members[0].score).toBe(ROUND_WIN_POINTS);
     expect(room.winnerId).toBe("host");
+    expect(room.roundFinishedAt).toBe(1);
+    expect(() => recordGuess(room, "guest", { id: "late", playerId: "target", canonicalName: "Target", comparison: { country: "exact" }, isCorrect: true, points: 0 }, 2)).toThrow("Round is not accepting guesses");
   });
 
   it("allows a 20-second reconnect window before forfeit", () => {
@@ -42,6 +44,11 @@ describe("room state", () => {
     expect(room.members[0].status).toBe("disconnected");
     forfeitExpiredMembers(room, 20_000);
     expect(room.members[0].status).toBe("forfeited");
+  });
+
+  it("rejects any room configuration other than two-player BO1", () => {
+    expect(() => createLiveRoom({ id: "room", code: "ABC123", hostId: "host", isPublic: false, isMatchmade: false, maxPlayers: 3, roundCount: 1, roundDurationSeconds: 60, host })).toThrow("exactly two players");
+    expect(() => createLiveRoom({ id: "room", code: "ABC123", hostId: "host", isPublic: false, isMatchmade: false, maxPlayers: 2, roundCount: 3, roundDurationSeconds: 60, host })).toThrow("BO1 only");
   });
 
   it("awards the remaining player for a reconnect timeout", () => {
