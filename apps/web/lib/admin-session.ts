@@ -45,6 +45,7 @@ export function isValidAdminSession(value: string | undefined): boolean {
   const expiresAt = Number(expiresAtString);
   if (
     !username ||
+    username !== required("ADMIN_USERNAME") ||
     !Number.isInteger(expiresAt) ||
     expiresAt < Math.floor(Date.now() / 1000)
   )

@@ -136,6 +136,12 @@ export async function deleteRoom(code: string) {
   await redis.del(roomKey(code));
 }
 
+export async function archiveFinishedRoom(room: LiveRoom) {
+  if (room.phase !== "finished")
+    throw new Error("Only finished rooms can be archived");
+  await deleteRoom(room.code);
+}
+
 export async function loadRoom(code: string) {
   const value = await redis.get(roomKey(code));
   if (!value) return null;

@@ -8,6 +8,36 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: valo_yiba
+          POSTGRES_USER: valo
+          POSTGRES_PASSWORD: valo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U valo -d valo_yiba"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://valo:valo@localhost:5432/valo_yiba
+      REDIS_URL: redis://localhost:6379
+      SESSION_SECRET: ci-session-secret-with-at-least-thirty-two-characters
+      PASSWORD_PEPPER: ci-password-pepper-with-at-least-thirty-two-characters
+      INTERNAL_API_SECRET: ci-internal-secret-with-at-least-thirty-two-characters
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -21,5 +51,9 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm db:migrate
       - run: pnpm test
+      - run: pnpm --filter @valo-yiba/api test:integration
+        env:
+          RUN_DATABASE_TESTS: "true"
       - run: pnpm build

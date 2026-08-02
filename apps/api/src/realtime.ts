@@ -29,6 +29,7 @@ import {
 import {
   acquireMatchLock,
   acquireRoomLock,
+  archiveFinishedRoom,
   cancelMatch,
   deleteRoom,
   enqueueMatch,
@@ -107,7 +108,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
     if (hasActiveMembership(room)) return false;
     if (room.phase === "finished") {
       emitClosed(room);
-      await deleteRoom(room.code);
+      await archiveFinishedRoom(room);
       return true;
     }
     cancelRoom(room);
@@ -125,7 +126,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         const room = await loadRoom(code);
         if (!room || room.phase !== "finished") return;
         emitClosed(room);
-        await deleteRoom(code);
+        await archiveFinishedRoom(room);
       } finally {
         await release?.();
       }

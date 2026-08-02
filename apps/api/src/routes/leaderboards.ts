@@ -22,6 +22,8 @@ export async function registerLeaderboardRoutes(app: FastifyInstance) {
   });
 
   app.get("/v1/profiles/:userId/versus", async (request, reply) => {
+    if (!verifySession(bearer(request.headers.authorization)))
+      return reply.unauthorized("Authentication is required");
     const { userId } = z
       .object({ userId: z.string().uuid() })
       .parse(request.params);

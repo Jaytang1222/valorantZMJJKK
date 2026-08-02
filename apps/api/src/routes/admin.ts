@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { playerImportSchema } from "@valo-yiba/contracts";
 import { parse } from "csv-parse/sync";
@@ -40,7 +41,7 @@ const countryGroupSchema = z.object({
   version: z.coerce.number().int().positive().default(1),
 });
 const userRoleSchema = z.object({
-  role: z.enum(["user", "editor", "moderator", "admin"]),
+  role: z.enum(["user", "admin"]),
 });
 const reportResolutionSchema = z.object({
   status: z.enum(["resolved", "dismissed"]),
@@ -97,9 +98,16 @@ async function audit(input: {
   });
 }
 
+function hasValidInternalSecret(value: string | string[] | undefined) {
+  if (!value || Array.isArray(value)) return false;
+  const expected = Buffer.from(env.INTERNAL_API_SECRET);
+  const actual = Buffer.from(value);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
 export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
   app.addHook("onRequest", async (request, reply) => {
-    if (request.headers["x-internal-api-secret"] !== env.INTERNAL_API_SECRET) {
+    if (!hasValidInternalSecret(request.headers["x-internal-api-secret"])) {
       return reply.unauthorized("Invalid internal API secret");
     }
   });
@@ -107,6 +115,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
   app.post("/v1/admin/players", async (request, reply) => {
     const player = playerImportSchema.parse(request.body);
     const result = await upsertPlayerSnapshot(player);
+    await audit({
+      action: "player_snapshot_created",
+      entityType: "player",
+      entityId: result.playerId,
+      metadata: { snapshotId: result.snapshotId },
+    });
     return reply.code(201).send(result);
   });
 
@@ -166,6 +180,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         set: { displayName: data.displayName },
       })
       .returning();
+    await audit({
+      action: "country_group_upserted",
+      entityType: "country_group",
+      entityId: group.id,
+      metadata: { code: group.code, version: group.version },
+    });
     return group;
   });
 
@@ -253,6 +273,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         });
 
       if (!snapshot) return reply.notFound("Snapshot not found");
+      await audit({
+        action: "player_snapshot_reviewed",
+        entityType: "player_snapshot",
+        entityId: snapshot.id,
+        metadata: { reviewStatus },
+      });
       return snapshot;
     },
   );
@@ -268,6 +294,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .where(eq(players.id, playerId))
       .returning({ id: players.id, status: players.status });
     if (!player) return reply.notFound("Player not found");
+    await audit({
+      action: "player_status_changed",
+      entityType: "player",
+      entityId: player.id,
+      metadata: { status },
+    });
     return player;
   });
 
@@ -297,6 +329,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .insert(playerAliases)
       .values({ playerId, alias, normalizedAlias: normalizeAlias(alias) })
       .returning({ id: playerAliases.id, alias: playerAliases.alias });
+    await audit({
+      action: "player_alias_added",
+      entityType: "player_alias",
+      entityId: created.id,
+      metadata: { playerId, alias: created.alias },
+    });
     return reply.code(201).send(created);
   });
 
@@ -316,6 +354,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         )
         .returning({ id: playerAliases.id });
       if (!deleted) return reply.notFound("Alias not found");
+      await audit({
+        action: "player_alias_removed",
+        entityType: "player_alias",
+        entityId: deleted.id,
+        metadata: { playerId },
+      });
       return reply.code(204).send();
     },
   );

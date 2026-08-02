@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       await importPlayerCsv(body.csv, Boolean(body.apply)),
     );
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "CSV import failed" },
-      { status: 400 },
-    );
+  } catch {
+    return NextResponse.json({ error: "CSV import failed" }, { status: 400 });
   }
 }
