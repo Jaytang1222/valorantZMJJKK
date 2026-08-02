@@ -318,3 +318,23 @@ export async function getAccountSummary(userId: string) {
     recentGames,
   };
 }
+
+export async function getPublicVersusProfile(userId: string) {
+  const [user] = await db
+    .select({ displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!user) return null;
+
+  const entry = rankRows(await loadRows("versus")).find(
+    (row) => row.userId === userId,
+  );
+  return {
+    displayName: user.displayName,
+    gamesPlayed: entry?.gamesPlayed ?? 0,
+    wins: entry?.wins ?? 0,
+    winRate: entry?.winRate ?? 0,
+    averageGuesses: entry?.averageGuesses ?? 0,
+  };
+}

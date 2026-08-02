@@ -11,6 +11,35 @@
 body {
   margin: 0;
 }
+.site-nav {
+  border-bottom: 1px solid #27304d;
+  background: #0b1020;
+}
+.site-nav-inner {
+  display: flex;
+  width: min(1080px, calc(100% - 40px));
+  min-height: 56px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.site-nav a {
+  color: #c6cee6;
+  text-decoration: none;
+}
+.site-nav a:hover {
+  color: #fff;
+}
+.site-brand {
+  color: #f4f7ff !important;
+  font-weight: 700;
+}
+.site-nav-inner > div {
+  display: flex;
+  gap: 18px;
+  font-size: 0.9rem;
+}
 .site-footer {
   display: flex;
   flex-wrap: wrap;
@@ -933,6 +962,35 @@ button {
 .opponent-progress-label {
   margin-top: 20px;
 }
+.opponent-profile-toggle {
+  width: auto;
+  margin-top: 8px;
+  padding: 0;
+  color: #80a7ff;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+.opponent-profile-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #3a476c;
+  border-radius: 6px;
+  background: #0b1020;
+}
+.opponent-profile-card p {
+  margin: 0;
+  color: #94a0c2;
+  font-size: 0.78rem;
+}
+.opponent-profile-card strong {
+  display: block;
+  margin-top: 4px;
+  color: #f4f7ff;
+}
 .opponent-feedback {
   display: grid;
   gap: 6px;
@@ -984,5 +1042,11 @@ button {
   }
   .result-actions button {
     width: 100%;
+  }
+  .site-nav-inner {
+    width: min(100% - 24px, 1080px);
+  }
+  .site-nav-inner > div {
+    gap: 12px;
   }
 }

@@ -39,6 +39,13 @@ type GuessResult = {
   comparison: Record<string, string>;
   points: number;
 };
+type OpponentProfile = {
+  displayName: string;
+  gamesPlayed: number;
+  wins: number;
+  winRate: number;
+  averageGuesses: number;
+};
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
 const fields: Record<string, string> = {
@@ -96,6 +103,10 @@ function MatchPageContent() {
   const [answer, setAnswer] = useState("");
   const [now, setNow] = useState(Date.now());
   const [closed, setClosed] = useState(false);
+  const [opponentProfile, setOpponentProfile] =
+    useState<OpponentProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState("");
   const previousRoundRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -266,6 +277,29 @@ function MatchPageContent() {
     room?.members.find(
       (member) => member.userId !== me && member.status !== "left",
     ) ?? null;
+  useEffect(() => {
+    setOpponentProfile(null);
+    setProfileError("");
+  }, [opponent?.userId]);
+  const loadOpponentProfile = async () => {
+    if (!opponent) return;
+    setProfileLoading(true);
+    setProfileError("");
+    try {
+      const response = await fetch(`/api/profiles/${opponent.userId}/versus`);
+      const data = (await response.json()) as OpponentProfile & {
+        error?: string;
+      };
+      if (!response.ok) throw new Error(data.error ?? "无法获取对手战绩。");
+      setOpponentProfile(data);
+    } catch (cause) {
+      setProfileError(
+        cause instanceof Error ? cause.message : "无法获取对手战绩。",
+      );
+    } finally {
+      setProfileLoading(false);
+    }
+  };
   const candidates = useMemo(() => players.slice(0, 8), [players]);
   const remainingSeconds = (member: Member) =>
     member.disconnectedAt === undefined
@@ -403,9 +437,55 @@ function MatchPageContent() {
                 <div>
                   <p>对手</p>
                   <h1>{opponent?.displayName ?? "等待对手"}</h1>
+                  {opponent && (
+                    <button
+                      className="opponent-profile-toggle"
+                      disabled={profileLoading}
+                      onClick={() => {
+                        if (opponentProfile) {
+                          setOpponentProfile(null);
+                          setProfileError("");
+                          return;
+                        }
+                        void loadOpponentProfile();
+                      }}
+                    >
+                      {profileLoading
+                        ? "正在加载战绩"
+                        : opponentProfile
+                          ? "收起联机战绩"
+                          : "查看联机战绩"}
+                    </button>
+                  )}
                 </div>
                 <strong>{opponent?.score ?? 0} 分</strong>
               </div>
+              {profileError && <p className="form-error">{profileError}</p>}
+              {opponentProfile && (
+                <section
+                  className="opponent-profile-card"
+                  aria-label="对手联机战绩"
+                >
+                  <div>
+                    <p>联机局数</p>
+                    <strong>{opponentProfile.gamesPlayed}</strong>
+                  </div>
+                  <div>
+                    <p>胜场</p>
+                    <strong>{opponentProfile.wins}</strong>
+                  </div>
+                  <div>
+                    <p>胜率</p>
+                    <strong>
+                      {Math.round(opponentProfile.winRate * 100)}%
+                    </strong>
+                  </div>
+                  <div>
+                    <p>平均猜测数</p>
+                    <strong>{opponentProfile.averageGuesses}</strong>
+                  </div>
+                </section>
+              )}
               {opponent?.status === "disconnected" && (
                 <p className="disconnect-warning">
                   对手断线，{remainingSeconds(opponent)} 秒内可重连。

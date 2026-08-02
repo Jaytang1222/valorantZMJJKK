@@ -12,6 +12,17 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
+        <nav className="site-nav" aria-label="主导航">
+          <div className="site-nav-inner">
+            <a className="site-brand" href="/">
+              瓦一把
+            </a>
+            <div>
+              <a href="/leaderboards">排行榜</a>
+              <a href="/account">我的战绩</a>
+            </div>
+          </div>
+        </nav>
         {children}
         <footer className="site-footer">
           <a href="/privacy">隐私政策</a>
