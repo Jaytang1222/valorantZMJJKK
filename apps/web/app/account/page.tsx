@@ -65,7 +65,7 @@ export default function AccountPage() {
         <p>{displayName}</p>
         <p>{email}</p>
         <a className="text-link" href="/leaderboards">
-          查看总排行榜
+          联机排行榜后续开放
         </a>
         <div className="account-stats" aria-label="对局统计">
           <StatsCard title="单人" value={solo} />

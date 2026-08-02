@@ -187,6 +187,82 @@ function rankRows(rows: LeaderboardRow[]) {
   }));
 }
 
+function summaryFromRow(
+  row:
+    | {
+        totalScore: number | string;
+        gamesPlayed: number | string;
+        wins: number | string;
+        totalGuesses: number | string;
+      }
+    | undefined,
+) {
+  if (!row) return null;
+  const gamesPlayed = asNumber(row.gamesPlayed);
+  if (gamesPlayed === 0) return null;
+  const wins = asNumber(row.wins);
+  const totalGuesses = asNumber(row.totalGuesses);
+  return {
+    totalScore: asNumber(row.totalScore),
+    gamesPlayed,
+    wins,
+    averageGuesses:
+      gamesPlayed === 0 ? 0 : Number((totalGuesses / gamesPlayed).toFixed(2)),
+    winRate: gamesPlayed === 0 ? 0 : Number((wins / gamesPlayed).toFixed(4)),
+  };
+}
+
+async function getSoloStats(userId: string) {
+  const [row] = await db
+    .select({
+      totalScore: sql<number>`coalesce(sum(${soloAttempts.score}), 0)::int`,
+      gamesPlayed: sql<number>`count(*)::int`,
+      wins: sql<number>`count(*) filter (where ${soloAttempts.status} = 'won')::int`,
+      totalGuesses: sql<number>`coalesce(sum(${soloAttempts.guessCount}), 0)::int`,
+    })
+    .from(soloAttempts)
+    .where(
+      and(
+        eq(soloAttempts.userId, userId),
+        inArray(soloAttempts.status, ["won", "lost"]),
+      ),
+    );
+  return summaryFromRow(row);
+}
+
+async function getVersusStats(userId: string) {
+  const [row] = await db
+    .select({
+      totalScore: sql<number>`count(distinct ${rooms.id}) filter (where ${rooms.winnerUserId} = ${roomParticipants.userId})::int`,
+      gamesPlayed: sql<number>`count(distinct ${rooms.id})::int`,
+      wins: sql<number>`count(distinct ${rooms.id}) filter (where ${rooms.winnerUserId} = ${roomParticipants.userId})::int`,
+      totalGuesses: sql<number>`count(${guesses.id})::int`,
+    })
+    .from(roomParticipants)
+    .innerJoin(rooms, eq(rooms.id, roomParticipants.roomId))
+    .leftJoin(
+      roomRounds,
+      and(eq(roomRounds.roomId, rooms.id), eq(roomRounds.roundNumber, 1)),
+    )
+    .leftJoin(
+      guesses,
+      and(
+        eq(guesses.roomRoundId, roomRounds.id),
+        eq(guesses.userId, roomParticipants.userId),
+      ),
+    )
+    .where(
+      and(
+        eq(roomParticipants.userId, userId),
+        eq(rooms.state, "finished"),
+        isNotNull(rooms.finishedAt),
+        isNotNull(rooms.winnerUserId),
+      ),
+    )
+    .groupBy(roomParticipants.userId);
+  return summaryFromRow(row);
+}
+
 function decodeCursor(cursor: string | undefined) {
   if (!cursor) return 0;
   const value = Number(Buffer.from(cursor, "base64url").toString("utf8"));
@@ -233,11 +309,9 @@ export async function invalidateLeaderboard(mode: LeaderboardMode) {
 }
 
 export async function getAccountSummary(userId: string) {
-  const [soloRows, versusRows] = await Promise.all([
-    rankRows(await loadRows("solo")),
-    rankRows(await loadRows("versus")),
-  ]);
-  const [soloRecent, versusRecent] = await Promise.all([
+  const [solo, versus, soloRecent, versusRecent] = await Promise.all([
+    getSoloStats(userId),
+    getVersusStats(userId),
     db
       .select({
         id: soloAttempts.id,
@@ -313,8 +387,8 @@ export async function getAccountSummary(userId: string) {
     )
     .slice(0, 3);
   return {
-    solo: soloRows.find((row) => row.userId === userId) ?? null,
-    versus: versusRows.find((row) => row.userId === userId) ?? null,
+    solo,
+    versus,
     recentGames,
   };
 }
@@ -327,14 +401,12 @@ export async function getPublicVersusProfile(userId: string) {
     .limit(1);
   if (!user) return null;
 
-  const entry = rankRows(await loadRows("versus")).find(
-    (row) => row.userId === userId,
-  );
+  const stats = await getVersusStats(userId);
   return {
     displayName: user.displayName,
-    gamesPlayed: entry?.gamesPlayed ?? 0,
-    wins: entry?.wins ?? 0,
-    winRate: entry?.winRate ?? 0,
-    averageGuesses: entry?.averageGuesses ?? 0,
+    gamesPlayed: stats?.gamesPlayed ?? 0,
+    wins: stats?.wins ?? 0,
+    winRate: stats?.winRate ?? 0,
+    averageGuesses: stats?.averageGuesses ?? 0,
   };
 }
