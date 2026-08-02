@@ -68,7 +68,9 @@ export const users = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     displayName: varchar("display_name", { length: 20 }).notNull(),
-    normalizedDisplayName: varchar("normalized_display_name", { length: 20 }).notNull(),
+    normalizedDisplayName: varchar("normalized_display_name", {
+      length: 20,
+    }).notNull(),
     email: varchar("email", { length: 320 }),
     normalizedEmail: varchar("normalized_email", { length: 320 }),
     passwordHash: text("password_hash"),

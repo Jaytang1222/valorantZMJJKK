@@ -34,17 +34,23 @@ export default async function HomePage() {
         <article>
           <h2>单人对战</h2>
           <p>入门、简单、完整三种难度；每局 8 次猜测机会。</p>
-          <a className="entry-button" href="/solo">开始单人对战</a>
+          <a className="entry-button" href="/solo">
+            开始单人对战
+          </a>
         </article>
         <article>
           <h2>联机对战</h2>
           <p>在线匹配，或通过固定 6 位邀请码与好友开房。</p>
-          <a className="entry-button" href="/versus">进入联机对战</a>
+          <a className="entry-button" href="/versus">
+            进入联机对战
+          </a>
         </article>
         <article>
           <h2>查选手</h2>
           <p>按赛区、国籍、位置和战队检索已审核的公开资料。</p>
-          <a className="entry-button" href="/players">查找选手</a>
+          <a className="entry-button" href="/players">
+            查找选手
+          </a>
         </article>
       </section>
     </main>

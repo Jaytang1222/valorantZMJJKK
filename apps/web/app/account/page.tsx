@@ -26,5 +26,19 @@ export default function AccountPage() {
     router.refresh();
   }
 
-  return <main className="auth-page"><section className="auth-panel"><a href="/" className="back-link">返回首页</a><h1>账户</h1><p>{displayName}</p><p>{email}</p><button className="text-button" onClick={logout}>退出登录</button></section></main>;
+  return (
+    <main className="auth-page">
+      <section className="auth-panel">
+        <a href="/" className="back-link">
+          返回首页
+        </a>
+        <h1>账户</h1>
+        <p>{displayName}</p>
+        <p>{email}</p>
+        <button className="text-button" onClick={logout}>
+          退出登录
+        </button>
+      </section>
+    </main>
+  );
 }

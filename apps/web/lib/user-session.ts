@@ -18,6 +18,7 @@ export function unsealUserSession(value: string | undefined) {
   if (!token || !provided) return null;
   const expected = Buffer.from(signature(token));
   const actual = Buffer.from(provided);
-  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected))
+    return null;
   return Buffer.from(token, "base64url").toString("utf8");
 }
