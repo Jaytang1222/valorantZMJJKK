@@ -14,84 +14,101 @@ function asDate(timestamp: number | undefined) {
 
 async function auditRoom(room: LiveRoom) {
   await db.transaction(async (tx) => {
-    await tx.insert(rooms).values({
-      id: room.id,
-      code: room.code,
-      hostId: room.hostId,
-      state: room.phase,
-      isPublic: false,
-      isMatchmade: room.isMatchmade,
-      roundCount: room.roundCount,
-      roundDurationSeconds: room.roundDurationSeconds,
-      currentRound: room.roundNumber,
-      startedAt: asDate(room.roundStartedAt),
-      finishedAt: asDate(room.roundFinishedAt),
-      winnerUserId: room.winnerId,
-      finishReason: room.finishReason,
-    }).onConflictDoUpdate({
-      target: rooms.id,
-      set: {
+    await tx
+      .insert(rooms)
+      .values({
+        id: room.id,
+        code: room.code,
         hostId: room.hostId,
         state: room.phase,
+        isPublic: false,
         isMatchmade: room.isMatchmade,
+        roundCount: room.roundCount,
+        roundDurationSeconds: room.roundDurationSeconds,
         currentRound: room.roundNumber,
         startedAt: asDate(room.roundStartedAt),
         finishedAt: asDate(room.roundFinishedAt),
         winnerUserId: room.winnerId,
         finishReason: room.finishReason,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: rooms.id,
+        set: {
+          hostId: room.hostId,
+          state: room.phase,
+          isMatchmade: room.isMatchmade,
+          currentRound: room.roundNumber,
+          startedAt: asDate(room.roundStartedAt),
+          finishedAt: asDate(room.roundFinishedAt),
+          winnerUserId: room.winnerId,
+          finishReason: room.finishReason,
+        },
+      });
 
-    await Promise.all(room.members.map((member) => tx.insert(roomParticipants).values({
-      roomId: room.id,
-      userId: member.userId,
-      state: member.status,
-      score: member.score,
-      joinedAt: new Date(member.joinedAt),
-      disconnectedAt: asDate(member.disconnectedAt),
-      forfeitedAt: member.status === "forfeited" ? new Date() : null,
-    }).onConflictDoUpdate({
-      target: [roomParticipants.roomId, roomParticipants.userId],
-      set: {
-        state: member.status,
-        score: member.score,
-        disconnectedAt: asDate(member.disconnectedAt),
-        forfeitedAt: member.status === "forfeited" ? new Date() : null,
-      },
-    })));
+    await Promise.all(
+      room.members.map((member) =>
+        tx
+          .insert(roomParticipants)
+          .values({
+            roomId: room.id,
+            userId: member.userId,
+            state: member.status,
+            score: member.score,
+            joinedAt: new Date(member.joinedAt),
+            disconnectedAt: asDate(member.disconnectedAt),
+            forfeitedAt: member.status === "forfeited" ? new Date() : null,
+          })
+          .onConflictDoUpdate({
+            target: [roomParticipants.roomId, roomParticipants.userId],
+            set: {
+              state: member.status,
+              score: member.score,
+              disconnectedAt: asDate(member.disconnectedAt),
+              forfeitedAt: member.status === "forfeited" ? new Date() : null,
+            },
+          }),
+      ),
+    );
 
     if (!room.targetPuzzleId || room.roundNumber < 1) return;
-    const [round] = await tx.insert(roomRounds).values({
-      roomId: room.id,
-      puzzleId: room.targetPuzzleId,
-      roundNumber: room.roundNumber,
-      startedAt: asDate(room.roundStartedAt),
-      finishedAt: asDate(room.roundFinishedAt),
-      winnerUserId: room.winnerId,
-      finishReason: room.finishReason,
-    }).onConflictDoUpdate({
-      target: [roomRounds.roomId, roomRounds.roundNumber],
-      set: {
+    const [round] = await tx
+      .insert(roomRounds)
+      .values({
+        roomId: room.id,
         puzzleId: room.targetPuzzleId,
+        roundNumber: room.roundNumber,
         startedAt: asDate(room.roundStartedAt),
         finishedAt: asDate(room.roundFinishedAt),
         winnerUserId: room.winnerId,
         finishReason: room.finishReason,
-      },
-    }).returning({ id: roomRounds.id });
+      })
+      .onConflictDoUpdate({
+        target: [roomRounds.roomId, roomRounds.roundNumber],
+        set: {
+          puzzleId: room.targetPuzzleId,
+          startedAt: asDate(room.roundStartedAt),
+          finishedAt: asDate(room.roundFinishedAt),
+          winnerUserId: room.winnerId,
+          finishReason: room.finishReason,
+        },
+      })
+      .returning({ id: roomRounds.id });
     if (!round) return;
 
-    const auditedGuesses = room.members.flatMap((member) => member.guesses
-      .filter((guess) => Boolean(guess.id && guess.playerId))
-      .map((guess) => ({
-        id: guess.id,
-        roomRoundId: round.id,
-        userId: member.userId,
-        guessedPlayerId: guess.playerId,
-        isCorrect: guess.isCorrect,
-        comparison: guess.comparison,
-      })));
-    if (auditedGuesses.length > 0) await tx.insert(guesses).values(auditedGuesses).onConflictDoNothing();
+    const auditedGuesses = room.members.flatMap((member) =>
+      member.guesses
+        .filter((guess) => Boolean(guess.id && guess.playerId))
+        .map((guess) => ({
+          id: guess.id,
+          roomRoundId: round.id,
+          userId: member.userId,
+          guessedPlayerId: guess.playerId,
+          isCorrect: guess.isCorrect,
+          comparison: guess.comparison,
+        })),
+    );
+    if (auditedGuesses.length > 0)
+      await tx.insert(guesses).values(auditedGuesses).onConflictDoNothing();
   });
 }
 
@@ -114,7 +131,12 @@ export async function loadRoom(code: string) {
   room.maxPlayers = 2;
   room.roundCount = 1;
   if ((room.phase as string) === "round_result") room.phase = "finished";
-  room.members = room.members.map((member) => ({ ...member, feedback: member.feedback ?? [], guesses: member.guesses ?? [], rematchReady: member.rematchReady ?? false }));
+  room.members = room.members.map((member) => ({
+    ...member,
+    feedback: member.feedback ?? [],
+    guesses: member.guesses ?? [],
+    rematchReady: member.rematchReady ?? false,
+  }));
   return room;
 }
 
@@ -123,7 +145,12 @@ async function acquireLock(key: string) {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     if (await redis.set(key, token, "PX", 5_000, "NX")) {
       return async () => {
-        await redis.eval("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end", 1, key, token);
+        await redis.eval(
+          "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+          1,
+          key,
+          token,
+        );
       };
     }
     await delay(25);
@@ -139,12 +166,21 @@ export function acquireMatchLock(settings: string) {
   return acquireLock(`valo:match-lock:${settings}`);
 }
 
-export type QueueEntry = { userId: string; displayName: string; socketId: string; joinedAt: number };
+export type QueueEntry = {
+  userId: string;
+  displayName: string;
+  socketId: string;
+  joinedAt: number;
+};
 
 export async function cancelMatch(settings: string, userId: string) {
   const key = queueKey(settings);
   const values = await redis.lrange(key, 0, -1);
-  await Promise.all(values.filter((value) => (JSON.parse(value) as QueueEntry).userId === userId).map((value) => redis.lrem(key, 1, value)));
+  await Promise.all(
+    values
+      .filter((value) => (JSON.parse(value) as QueueEntry).userId === userId)
+      .map((value) => redis.lrem(key, 1, value)),
+  );
 }
 
 export async function enqueueMatch(settings: string, entry: QueueEntry) {
