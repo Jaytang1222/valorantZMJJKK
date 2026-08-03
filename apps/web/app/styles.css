@@ -993,6 +993,26 @@ main {
   font-size: 1.35rem;
 }
 
+.home-github {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  border: 1px solid #46525d;
+  padding: 0 14px;
+  color: #c8d0d2;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.home-github:hover,
+.home-github:focus-visible {
+  border-color: #7fe7dc;
+  color: #ece8e1;
+  outline: none;
+}
+
 article,
 .guess-box,
 .result-panel,
