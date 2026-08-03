@@ -17,6 +17,7 @@ const playerSearchSchema = z.object({
     .enum(["duelist", "initiator", "controller", "sentinel", "flex"])
     .optional(),
   team: z.string().trim().min(1).max(128).optional(),
+  limit: z.coerce.number().int().min(1).max(250).default(250),
 });
 
 export async function registerPlayerRoutes(
@@ -59,7 +60,7 @@ export async function registerPlayerRoutes(
     }
 
     return db
-      .selectDistinct({
+      .select({
         id: players.id,
         canonicalName: players.canonicalName,
         countryCode: playerSnapshots.countryCode,
@@ -67,6 +68,11 @@ export async function registerPlayerRoutes(
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         dataAsOf: playerSnapshots.dataAsOf,
+        aliases: sql<
+          string[]
+        >`coalesce(array_agg(distinct ${playerAliases.alias}) filter (where ${playerAliases.alias} is not null), '{}')`.as(
+          "aliases",
+        ),
       })
       .from(players)
       .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
@@ -79,8 +85,17 @@ export async function registerPlayerRoutes(
       )
       .leftJoin(playerAliases, eq(playerAliases.playerId, players.id))
       .where(and(...conditions))
+      .groupBy(
+        players.id,
+        players.canonicalName,
+        playerSnapshots.countryCode,
+        playerSnapshots.region,
+        playerSnapshots.primaryRole,
+        playerSnapshots.currentOrLastTeam,
+        playerSnapshots.dataAsOf,
+      )
       .orderBy(asc(players.canonicalName))
-      .limit(50);
+      .limit(query.limit);
   });
 
   app.get("/v1/players/:playerId", async (request, reply) => {

@@ -10,6 +10,7 @@ type Player = {
   region: string;
   primaryRole: string;
   currentOrLastTeam: string;
+  aliases?: string[];
 };
 type Guess = {
   canonicalName: string;
@@ -77,27 +78,24 @@ export default function SoloPage() {
       .catch(() => undefined);
   }, []);
   useEffect(() => {
-    if (!query.trim()) {
-      setPlayers([]);
-      return;
-    }
     const controller = new AbortController();
-    const timer = window.setTimeout(
-      () =>
-        fetch(`/api/players?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal,
-        })
-          .then((response) => response.json())
-          .then(setPlayers)
-          .catch(() => undefined),
-      180,
-    );
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query]);
-  const candidates = useMemo(() => players.slice(0, 8), [players]);
+    fetch("/api/players?limit=250", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setPlayers)
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+  const candidates = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    if (!normalizedQuery || selected) return [];
+    return players
+      .filter((player) =>
+        `${player.canonicalName} ${(player.aliases ?? []).join(" ")}`
+          .toLocaleLowerCase()
+          .includes(normalizedQuery),
+      )
+      .slice(0, 8);
+  }, [players, query, selected]);
   async function start(difficulty: Difficulty) {
     setBusy(true);
     setError("");
