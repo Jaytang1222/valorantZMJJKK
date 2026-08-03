@@ -12,8 +12,8 @@ const workers = positiveInteger("LOAD_WORKERS", roomCount, roomCount);
 const holdSeconds = positiveInteger("LOAD_HOLD_SECONDS", 15, 600);
 const roundDurationSeconds = positiveInteger(
   "LOAD_ROUND_DURATION_SECONDS",
-  90,
-  90,
+  300,
+  300,
 );
 const rampSeconds = nonNegativeInteger("LOAD_RAMP_SECONDS", 0, 300);
 const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -29,8 +29,8 @@ if (
   throw new Error(
     "LOAD_API_URL must use HTTPS unless ALLOW_INSECURE_LOAD=true",
   );
-if (![30, 60, 90].includes(roundDurationSeconds))
-  throw new Error("LOAD_ROUND_DURATION_SECONDS must be 30, 60, or 90");
+if (roundDurationSeconds !== 300)
+  throw new Error("LOAD_ROUND_DURATION_SECONDS must be 300");
 if (holdSeconds > roundDurationSeconds - 5)
   throw new Error(
     "LOAD_HOLD_SECONDS must leave at least 5 seconds before the round timeout",

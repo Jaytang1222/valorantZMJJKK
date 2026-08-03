@@ -191,3 +191,25 @@ export async function removeAlias(
   if (!response.ok)
     throw new Error(`Unable to remove alias: ${response.status}`);
 }
+
+export async function importPlayerCsv(csv: string, apply: boolean) {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/players/import`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-api-secret": internalApiSecret,
+      },
+      body: JSON.stringify({ csv, apply }),
+    },
+  );
+  if (!response.ok) throw new Error(`Unable to import CSV: ${response.status}`);
+  return response.json() as Promise<{
+    validRows: number;
+    errors: { row: number; errors: string[] }[];
+    conflicts: { canonicalName: string; resolution: string }[];
+    imported?: unknown[];
+  }>;
+}

@@ -28,4 +28,4 @@ COPY data ./data
 COPY apps/api/package.json apps/api/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 WORKDIR /app/apps/api
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "node dist/scripts/migrate.js && node dist/scripts/seed.js && node dist/server.js"]

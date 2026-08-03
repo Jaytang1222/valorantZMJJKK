@@ -12,6 +12,8 @@ import {
 } from "../db/schema.js";
 import { verifySession } from "./auth.js";
 import { compareSoloGuess } from "../lib/solo-comparison.js";
+import { invalidateLeaderboard } from "../services/leaderboard.js";
+import { findRandomEligibleSnapshot } from "../services/puzzle-selection.js";
 
 const difficulty = z.enum(["beginner", "easy", "full"]);
 const createSchema = z.object({
@@ -39,26 +41,15 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
     const input = createSchema.parse(request.body);
     const userId = verifySession(bearer(request.headers.authorization));
     const guestId = userId ? null : (input.guestId ?? randomUUID());
-    const rows = await db
-      .select({ snapshotId: playerSnapshots.id })
-      .from(playerSnapshots)
-      .innerJoin(players, eq(players.id, playerSnapshots.playerId))
-      .where(
-        and(
-          eq(players.status, "active"),
-          eq(playerSnapshots.reviewStatus, "approved"),
-        ),
-      )
-      .orderBy(sql`random()`)
-      .limit(1);
-    if (!rows[0])
+    const target = await findRandomEligibleSnapshot(input.difficulty);
+    if (!target)
       return reply.serviceUnavailable("No approved puzzle is available");
     let [puzzle] = await db
       .select()
       .from(puzzles)
       .where(
         and(
-          eq(puzzles.snapshotId, rows[0].snapshotId),
+          eq(puzzles.snapshotId, target.snapshotId),
           eq(puzzles.difficulty, input.difficulty),
           eq(puzzles.status, "approved"),
         ),
@@ -68,7 +59,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
       [puzzle] = await db
         .insert(puzzles)
         .values({
-          snapshotId: rows[0].snapshotId,
+          snapshotId: target.snapshotId,
           difficulty: input.difficulty,
           status: "approved",
         })
@@ -194,6 +185,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
       });
       if (!settled)
         return reply.conflict("Attempt changed; refresh before guessing again");
+      if (status !== "active" && userId) await invalidateLeaderboard("solo");
       return {
         guess: {
           playerId: guessed.playerId,

@@ -1,27 +1,249 @@
-canonical_name,aliases,country_code,country_group,region,primary_role,current_or_last_team,champions_titles,masters_titles,hero_top_3,data_as_of,source_url,source_checked_at,review_status
-TenZ,tenz|Tyson Ngo,CA,north_america,americas,duelist,Sentinels,0,2,Jett|Omen|Raze,2025-01-01,https://www.vlr.gg/player/9/tenz/,2026-07-30T00:00:00.000Z,approved
-Chronicle,chronicle|Timofey Khromov,RU,eastern_europe,emea,flex,FNATIC,0,2,Sova|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/1097/chronicle/,2026-07-30T00:00:00.000Z,approved
-aspas,Erick Santos|Aspas,BR,south_america,americas,duelist,MIBR,1,0,Jett|Raze|Reyna,2025-01-01,https://www.vlr.gg/player/8480/aspas/,2026-07-30T00:00:00.000Z,approved
-Demon1,demon1|Max Mazanov,US,north_america,americas,duelist,NRG,1,0,Jett|Raze|Omen,2025-01-01,https://www.vlr.gg/player/16869/demon1/,2026-07-30T00:00:00.000Z,approved
-ZmjjKK,KangKang|Zheng Yongkang,CN,greater_china,china,duelist,EDward Gaming,1,0,Jett|Raze|Chamber,2025-01-01,https://www.vlr.gg/player/9136/zmjjkk/,2026-07-30T00:00:00.000Z,approved
-Boaster,boaster|Jake Howlett,GB,western_europe,emea,controller,FNATIC,0,1,Omen|Brimstone|Viper,2025-01-01,https://www.vlr.gg/player/438/boaster/,2026-07-30T00:00:00.000Z,approved
-Derke,derke|Nikita Sirmitev,FI,western_europe,americas,duelist,Team Vitality,0,1,Jett|Raze|Neon,2025-01-01,https://www.vlr.gg/player/502/derke/,2026-07-30T00:00:00.000Z,approved
-Alfajer,alfajer|Emir Beder,TR,middle_east,emea,sentinel,FNATIC,0,1,Killjoy|Cypher|Raze,2025-01-01,https://www.vlr.gg/player/13886/alfajer/,2026-07-30T00:00:00.000Z,approved
-cNed,cned|Mehmet Yagiz Ipek,TR,middle_east,emea,duelist,Natus Vincere,1,0,Jett|Chamber|Raze,2025-01-01,https://www.vlr.gg/player/573/cned/,2026-07-30T00:00:00.000Z,approved
-yay,yay|Jacob Whiteaker,US,north_america,americas,duelist,bleed eSports,0,1,Chamber|Jett|Raze,2025-01-01,https://www.vlr.gg/player/881/yay/,2026-07-30T00:00:00.000Z,approved
-Less,less|Felipe Basso,BR,south_america,americas,sentinel,LOUD,1,0,Killjoy|Viper|Cypher,2025-01-01,https://www.vlr.gg/player/4238/less/,2026-07-30T00:00:00.000Z,approved
-saadhak,saadhak|Matias Delipetro,AR,south_america,americas,initiator,LOUD,1,0,KAY/O|Breach|Skye,2025-01-01,https://www.vlr.gg/player/727/saadhak/,2026-07-30T00:00:00.000Z,approved
-Mazino,mazino|Roberto Bugueño,CL,south_america,americas,controller,KRÜ Esports,0,0,Viper|Omen|Harbor,2025-01-01,https://www.vlr.gg/player/7603/mazino/,2026-07-30T00:00:00.000Z,approved
-zekken,zekken|Zachary Patrone,US,north_america,americas,duelist,Sentinels,0,1,Raze|Jett|Neon,2025-01-01,https://www.vlr.gg/player/4004/zekken/,2026-07-30T00:00:00.000Z,approved
-johnqt,johnqt|Mohammed Amine Ouarid,MA,north_africa,americas,controller,Sentinels,1,0,Omen|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/16555/johnqt/,2026-07-30T00:00:00.000Z,approved
-t3xture,t3xture|Kim Na-ra,KR,east_asia,pacific,duelist,Gen.G,0,1,Jett|Raze|Neon,2025-01-01,https://www.vlr.gg/player/1577/t3xture/,2026-07-30T00:00:00.000Z,approved
-Meteor,meteor|Kim Tae-o,KR,east_asia,pacific,sentinel,Gen.G,0,1,Killjoy|Cypher|Chamber,2025-01-01,https://www.vlr.gg/player/4387/meteor/,2026-07-30T00:00:00.000Z,approved
-something,something|Ilya Petrov,RU,eastern_europe,pacific,duelist,Paper Rex,0,0,Jett|Raze|Reyna,2025-01-01,https://www.vlr.gg/player/2791/something/,2026-07-30T00:00:00.000Z,approved
-Jinggg,jinggg|Wang Jing Jie,SG,southeast_asia,pacific,duelist,Paper Rex,1,0,Raze|Phoenix|Neon,2025-01-01,https://www.vlr.gg/player/1459/jinggg/,2026-07-30T00:00:00.000Z,approved
-f0rsakeN,forsaken|Jason Susanto,ID,southeast_asia,pacific,flex,Paper Rex,1,0,Yoru|Raze|Jett,2025-01-01,https://www.vlr.gg/player/980/f0rsaken/,2026-07-30T00:00:00.000Z,approved
-Mako,mako|Kim Myeong-kwan,KR,east_asia,pacific,controller,DRX,0,0,Omen|Viper|Astra,2025-01-01,https://www.vlr.gg/player/4464/mako/,2026-07-30T00:00:00.000Z,approved
-stax,stax|Kim Gu-taek,KR,east_asia,pacific,initiator,T1,1,1,Breach|KAY/O|Sova,2025-01-01,https://www.vlr.gg/player/4858/stax/,2026-07-30T00:00:00.000Z,approved
-leaf,leaf|Nathan Orf,US,north_america,americas,duelist,G2 Esports,0,0,Raze|Jett|Viper,2025-01-01,https://www.vlr.gg/player/7873/leaf/,2026-07-30T00:00:00.000Z,approved
-crashies,crashies|Austin Roberts,US,north_america,americas,initiator,NRG,0,1,Sova|KAY/O|Fade,2025-01-01,https://www.vlr.gg/player/4/crashies/,2026-07-30T00:00:00.000Z,approved
-FNS,fns|Pujan Mehta,CA,north_america,americas,controller,NRG,0,1,Omen|Viper|Brimstone,2025-01-01,https://www.vlr.gg/player/817/fns/,2026-07-30T00:00:00.000Z,approved
-nAts,nats|Ayaz Akhmetshin,RU,eastern_europe,emea,sentinel,Team Liquid,0,1,Cypher|Viper|Killjoy,2025-01-01,https://www.vlr.gg/player/457/nats/,2026-07-30T00:00:00.000Z,approved
+canonical_name,aliases,country_code,country_group,region,primary_role,current_or_last_team,is_active_roster,is_coach,is_featured_team,is_vct_cn_team,champions_titles,masters_titles,hero_top_3,data_as_of,source_url,source_checked_at,review_status
+TenZ,tenz|Tyson Ngo,CA,north_america,americas,duelist,Sentinels,false,false,true,false,0,2,Jett|Omen|Reyna,2026-08-03,https://www.vlr.gg/player/9/tenz/,2026-08-03T00:00:00.000Z,approved
+Chronicle,chronicle|Timofey Khromov,RU,eastern_europe,emea,flex,FNATIC,true,false,true,false,0,2,Viper|Sova|Breach,2026-08-03,https://www.vlr.gg/player/458/chronicle/,2026-08-03T00:00:00.000Z,approved
+aspas,Erick Santos|Aspas,BR,south_america,americas,duelist,MIBR,true,false,true,false,1,0,Jett|Raze|Reyna,2026-08-03,https://www.vlr.gg/player/8480/aspas/,2026-08-03T00:00:00.000Z,approved
+Demon1,demon1|Max Mazanov,US,north_america,americas,duelist,NRG,true,false,true,false,1,0,Chamber|Jett|Brimstone,2026-08-03,https://www.vlr.gg/player/26171/demon1/,2026-08-03T00:00:00.000Z,approved
+ZmjjKK,KangKang|Zheng Yongkang,CN,greater_china,china,duelist,EDward Gaming,true,false,true,true,1,0,Jett|Raze|Chamber,2026-08-03,https://www.vlr.gg/player/3520/zmjjkk/,2026-08-03T00:00:00.000Z,approved
+nobody,Wang Senxu|王森旭,CN,greater_china,china,initiator,EDward Gaming,true,false,true,true,1,0,Sova|Skye|Fade,2026-08-03,https://www.vlr.gg/player/3017/nobody/,2026-08-03T00:00:00.000Z,approved
+chichoo,Wan Shunzhi|万顺治,CN,greater_china,china,sentinel,EDward Gaming,true,false,true,true,1,0,Viper|Killjoy|Cypher,2026-08-03,https://www.vlr.gg/player/15559/chichoo/,2026-08-03T00:00:00.000Z,approved
+Smoggy,Zhang Zhao|张钊,CN,greater_china,china,flex,EDward Gaming,true,false,true,true,1,0,Jett|Omen|Raze,2026-08-03,https://www.vlr.gg/player/4742/smoggy/,2026-08-03T00:00:00.000Z,approved
+Jieni7,Zhang Juntai|张君泰,CN,greater_china,china,flex,EDward Gaming,true,false,true,true,0,0,KAY/O|Omen|Neon,2026-08-03,https://www.vlr.gg/player/51244/jieni7/,2026-08-03T00:00:00.000Z,approved
+zjc,Zhang Juncheng|张峻程,CN,greater_china,china,initiator,EDward Gaming,true,false,true,true,0,0,Sova|Raze|Skye,2026-08-03,https://www.vlr.gg/player/7135/zjc/,2026-08-03T00:00:00.000Z,approved
+Shr1mp,Yang Yong|杨勇,CN,greater_china,china,initiator,All Gamers,true,false,false,true,0,0,Skye|Sova|Fade,2026-08-03,https://www.vlr.gg/player/25494/shr1mp/,2026-08-03T00:00:00.000Z,approved
+K1ra,Huang Zhihao|黄志豪,CN,greater_china,china,flex,All Gamers,true,false,false,true,0,0,Omen|Raze|Viper,2026-08-03,https://www.vlr.gg/player/46748/k1ra/,2026-08-03T00:00:00.000Z,approved
+Bai,Zhang Zeyang|张泽洋,CN,greater_china,china,flex,All Gamers,true,false,false,true,0,0,Neon|Vyse|Viper,2026-08-03,https://www.vlr.gg/player/52101/bai/,2026-08-03T00:00:00.000Z,approved
+f4ngeer,Roman Smirnov,RU,eastern_europe,china,duelist,All Gamers,true,false,false,true,0,0,Jett|Yoru|Raze,2026-08-03,https://www.vlr.gg/player/21216/f4ngeer/,2026-08-03T00:00:00.000Z,approved
+iamgrq,Gao Ruiqi|高锐琦,CN,greater_china,china,controller,All Gamers,true,false,false,true,0,0,Omen|Brimstone|Waylay,2026-08-03,https://www.vlr.gg/player/58959/iamgrq/,2026-08-03T00:00:00.000Z,approved
+AAAAY,Zhang Yang|张杨,CN,greater_china,china,initiator,FunPlus Phoenix,true,false,false,true,0,0,Skye|Gekko|Fade,2026-08-03,https://www.vlr.gg/player/19530/aaaay/,2026-08-03T00:00:00.000Z,approved
+KovaQ,Blendi Kovaci,CH,western_europe,china,initiator,FunPlus Phoenix,true,false,false,true,0,0,Sova|Fade|Killjoy,2026-08-03,https://www.vlr.gg/player/7987/kovaq/,2026-08-03T00:00:00.000Z,approved
+coconut,Colin Patrick Chung|钟弘祖,HK,greater_china,china,flex,FunPlus Phoenix,true,false,false,true,0,0,Sova|Omen|Killjoy,2026-08-03,https://www.vlr.gg/player/12365/coconut/,2026-08-03T00:00:00.000Z,approved
+Xlele,Zhao Yanbo|赵炎博,CN,greater_china,china,initiator,FunPlus Phoenix,true,false,false,true,0,0,Breach|Waylay|Omen,2026-08-03,https://www.vlr.gg/player/54487/xlele/,2026-08-03T00:00:00.000Z,approved
+Setrod,Ou Taigeng|欧泰赓,TW,greater_china,china,duelist,FunPlus Phoenix,true,false,false,true,0,0,Neon|Viper|Vyse,2026-08-03,https://www.vlr.gg/player/50025/setrod/,2026-08-03T00:00:00.000Z,approved
+glacier,Liang Zhekai|梁哲恺,TW,greater_china,china,flex,Wolves Esports,true,false,false,true,0,0,Omen|Waylay|Yoru,2026-08-03,https://www.vlr.gg/player/49973/glacier/,2026-08-03T00:00:00.000Z,approved
+yosemite,Wang Lei|王磊,CN,greater_china,china,sentinel,Wolves Esports,true,false,false,true,0,0,Killjoy|Viper|Raze,2026-08-03,https://www.vlr.gg/player/6022/yosemite/,2026-08-03T00:00:00.000Z,approved
+Spring,Liu Jiunting|刘俊霆,TW,greater_china,china,duelist,Wolves Esports,true,false,false,true,0,0,Jett|Raze|Viper,2026-08-03,https://www.vlr.gg/player/14125/spring/,2026-08-03T00:00:00.000Z,approved
+Deryeon,Derrick Yee,SG,southeast_asia,china,duelist,Wolves Esports,true,false,false,true,0,0,Jett|Chamber|Killjoy,2026-08-03,https://www.vlr.gg/player/9152/deryeon/,2026-08-03T00:00:00.000Z,approved
+aluba,Zhong Haojun|钟皓钧,CN,greater_china,china,sentinel,Wolves Esports,true,false,false,true,0,0,Viper|Killjoy|Cypher,2026-08-03,https://www.vlr.gg/player/14441/aluba/,2026-08-03T00:00:00.000Z,approved
+jkuro,Yong Haochong|杨浩聪,CN,greater_china,china,flex,JD Mall JDG Esports,true,false,false,true,0,0,Omen|Jett|Breach,2026-08-03,https://www.vlr.gg/player/3519/jkuro/,2026-08-03T00:00:00.000Z,approved
+zhe,Niu Zhe|牛哲,CN,greater_china,china,duelist,JD Mall JDG Esports,true,false,false,true,0,0,Yoru|Neon|Viper,2026-08-03,https://www.vlr.gg/player/49476/zhe/,2026-08-03T00:00:00.000Z,approved
+Yuicaw,Huang Yung-chieh|黃湧傑,TW,greater_china,china,duelist,JD Mall JDG Esports,true,false,false,true,0,0,Jett|Chamber|Cypher,2026-08-03,https://www.vlr.gg/player/11218/yuicaw/,2026-08-03T00:00:00.000Z,approved
+crownfisher,Li Ao|李翱,CN,greater_china,china,flex,JD Mall JDG Esports,true,false,false,true,0,0,Omen|Jett|Raze,2026-08-03,https://www.vlr.gg/player/64969/crownfisher/,2026-08-03T00:00:00.000Z,approved
+BerLIN,Zhang Bolin|張柏霖,TW,greater_china,china,flex,JD Mall JDG Esports,true,false,false,true,0,0,Omen|Raze|Fade,2026-08-03,https://www.vlr.gg/player/7857/berlin/,2026-08-03T00:00:00.000Z,approved
+Nicc,Shao Yiqun|邵逸群,TW,greater_china,china,initiator,Dragon Ranger Gaming,true,false,false,true,0,0,Skye|Breach|KAY/O,2026-08-03,https://www.vlr.gg/player/11524/nicc/,2026-08-03T00:00:00.000Z,approved
+Flex1n,Lo Rui|罗瑞,CN,greater_china,china,controller,Dragon Ranger Gaming,true,false,false,true,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/4705/flex1n/,2026-08-03T00:00:00.000Z,approved
+Life,Qu Donghao|瞿东豪,CN,greater_china,china,duelist,Dragon Ranger Gaming,true,false,false,true,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/3028/life/,2026-08-03T00:00:00.000Z,approved
+vo0kashu,Ilya Ushakov,RU,eastern_europe,china,sentinel,Dragon Ranger Gaming,true,false,false,true,0,0,Cypher|Killjoy|Jett,2026-08-03,https://www.vlr.gg/player/3741/vo0kashu/,2026-08-03T00:00:00.000Z,approved
+Verse,Zhou Zijun|周子钧,CN,greater_china,china,controller,Dragon Ranger Gaming,true,false,false,true,0,0,Omen|Cypher|Harbor,2026-08-03,https://www.vlr.gg/player/55817/verse/,2026-08-03T00:00:00.000Z,approved
+SpiritZ1,Lin Dingyu|林定宇,TW,greater_china,china,duelist,Dragon Ranger Gaming,true,false,false,true,0,0,Yoru|Waylay|Jett,2026-08-03,https://www.vlr.gg/player/31753/spiritz1/,2026-08-03T00:00:00.000Z,approved
+LuoK1ng,Zhang Zhanpeng|张展鹏,CN,greater_china,china,controller,Trace Esports,true,false,false,true,0,0,Omen|Astra|Brimstone,2026-08-03,https://www.vlr.gg/player/3045/luok1ng/,2026-08-03T00:00:00.000Z,approved
+Kai,Lu Zhinan|卢智楠,CN,greater_china,china,duelist,Trace Esports,true,false,false,true,0,0,Jett|Yoru|Neon,2026-08-03,https://www.vlr.gg/player/37494/kai/,2026-08-03T00:00:00.000Z,approved
+FengF,Song Xuefeng|宋学锋,CN,greater_china,china,flex,Trace Esports,true,false,false,true,0,0,Raze|Cypher|Killjoy,2026-08-03,https://www.vlr.gg/player/4770/fengf/,2026-08-03T00:00:00.000Z,approved
+FKEY,Ke Chen,CN,greater_china,china,flex,Trace Esports,true,false,false,true,0,0,KAY/O|Jett|Neon,2026-08-03,https://www.vlr.gg/player/51249/fkey/,2026-08-03T00:00:00.000Z,approved
+deLb,Delbert Tanoto,ID,southeast_asia,china,duelist,Trace Esports,true,false,false,true,0,0,Jett|Raze|Cypher,2026-08-03,https://www.vlr.gg/player/10821/delb/,2026-08-03T00:00:00.000Z,approved
+Haodong,Guo Haodong|郭浩东,CN,greater_china,china,controller,Wuxi Titan Esports Club,true,false,false,true,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/4720/haodong/,2026-08-03T00:00:00.000Z,approved
+lucas,Yunkun Lu|路昀昆,CN,greater_china,china,initiator,Wuxi Titan Esports Club,true,false,false,true,0,0,Sova|Skye|Fade,2026-08-03,https://www.vlr.gg/player/19677/lucas/,2026-08-03T00:00:00.000Z,approved
+Spitfires,Xin Mingyan|辛明阳,CN,greater_china,china,duelist,Wuxi Titan Esports Club,true,false,false,true,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/4881/spitfires/,2026-08-03T00:00:00.000Z,approved
+Dynamite,Zhao Zihao|赵梓浩,CN,greater_china,china,duelist,Wuxi Titan Esports Club,true,false,false,true,0,0,Neon|Jett|Raze,2026-08-03,https://www.vlr.gg/player/42235/dynamite/,2026-08-03T00:00:00.000Z,approved
+ra1ny,Chen Baohuan|陈葆桓,CN,greater_china,china,duelist,Wuxi Titan Esports Club,true,false,false,true,0,0,Neon|Waylay|Jett,2026-08-03,https://www.vlr.gg/player/63107/ra1ny/,2026-08-03T00:00:00.000Z,approved
+Coco,Ding Dajian|丁达建,CN,greater_china,china,flex,Wuxi Titan Esports Club,true,false,false,true,0,0,Viper|Breach|Omen,2026-08-03,https://www.vlr.gg/player/47629/coco/,2026-08-03T00:00:00.000Z,approved
+Akeman,Zhang Haoran|张浩然,CN,greater_china,china,duelist,KeepBest Gaming,true,false,false,true,0,0,Neon|Clove|Waylay,2026-08-03,https://www.vlr.gg/player/52904/akeman/,2026-08-03T00:00:00.000Z,approved
+sibeastw0w,Anton Govorukhin,RU,eastern_europe,china,duelist,KeepBest Gaming,true,false,false,true,0,0,Jett|Raze|Yoru,2026-08-03,https://www.vlr.gg/player/6126/sibeastw0w/,2026-08-03T00:00:00.000Z,approved
+Tonk,tonk,CN,greater_china,china,flex,KeepBest Gaming,true,false,false,true,0,0,Omen|Yoru|Cypher,2026-08-03,https://www.vlr.gg/player/58008/tonk/,2026-08-03T00:00:00.000Z,approved
+Ying,Wang Chenxu|王晨旭,CN,greater_china,china,flex,KeepBest Gaming,true,false,false,true,0,0,Neon|Raze|Sova,2026-08-03,https://www.vlr.gg/player/51250/ying/,2026-08-03T00:00:00.000Z,approved
+Krst1Ng,krst1ng,CN,greater_china,china,controller,KeepBest Gaming,true,false,false,true,0,0,Vyse|Brimstone|Omen,2026-08-03,https://www.vlr.gg/player/58009/krst1ng/,2026-08-03T00:00:00.000Z,approved
+vora,Jordan Pulwer,CA,north_america,americas,initiator,100 Thieves,true,false,true,false,0,0,Sova|Fade|Omen,2026-08-03,https://www.vlr.gg/player/20140/vora/,2026-08-03T00:00:00.000Z,approved
+Cryocells,Matthew Panganiban,US,north_america,americas,duelist,100 Thieves,true,false,true,false,0,0,Jett|Sova|Chamber,2026-08-03,https://www.vlr.gg/player/4147/cryocells/,2026-08-03T00:00:00.000Z,approved
+Asuna,Peter Mazuryk,US,north_america,americas,duelist,100 Thieves,true,false,true,false,0,0,Raze|Phoenix|KAY/O,2026-08-03,https://www.vlr.gg/player/601/asuna/,2026-08-03T00:00:00.000Z,approved
+Timotino,Timothée Lavigne Dupont,CA,north_america,americas,duelist,100 Thieves,true,false,true,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/29893/timotino/,2026-08-03T00:00:00.000Z,approved
+bang,Sean Bezerra,US,north_america,americas,controller,100 Thieves,true,false,true,false,0,0,Omen|Viper|Astra,2026-08-03,https://www.vlr.gg/player/3880/bang/,2026-08-03T00:00:00.000Z,approved
+Ethan,Ethan Arnold,US,north_america,americas,initiator,NRG,true,false,true,false,0,0,Skye|KAY/O|Omen,2026-08-03,https://www.vlr.gg/player/11225/ethan/,2026-08-03T00:00:00.000Z,approved
+keiko,Georgio Sanassy,GB,western_europe,americas,flex,NRG,true,false,true,false,0,0,Jett|Omen|Raze,2026-08-03,https://www.vlr.gg/player/11494/keiko/,2026-08-03T00:00:00.000Z,approved
+brawk,Brock Somerhalder,US,north_america,americas,initiator,NRG,true,false,true,false,0,0,Sova|Skye|Breach,2026-08-03,https://www.vlr.gg/player/2172/brawk/,2026-08-03T00:00:00.000Z,approved
+mada,Adam Pampuch,CA,north_america,americas,duelist,NRG,true,false,true,false,0,0,Raze|Jett|Neon,2026-08-03,https://www.vlr.gg/player/5132/mada/,2026-08-03T00:00:00.000Z,approved
+skuba,Logan Jenkins,US,north_america,americas,controller,NRG,true,false,true,false,0,0,Astra|Viper|Omen,2026-08-03,https://www.vlr.gg/player/11118/skuba/,2026-08-03T00:00:00.000Z,approved
+kiNgg,Francisco Aravena,CL,south_america,americas,flex,LEVIATÁN,true,false,true,false,0,0,Viper|Raze|Omen,2026-08-03,https://www.vlr.gg/player/8549/kingg/,2026-08-03T00:00:00.000Z,approved
+spike,Rodrigo Lombardi,BR,south_america,americas,initiator,LEVIATÁN,true,false,true,false,0,0,Neon|KAY/O|Gekko,2026-08-03,https://www.vlr.gg/player/21661/spike/,2026-08-03T00:00:00.000Z,approved
+blowz,Guilherme Oliviera,BR,south_america,americas,initiator,LEVIATÁN,true,false,true,false,0,0,Sova|Fade|Skye,2026-08-03,https://www.vlr.gg/player/21251/blowz/,2026-08-03T00:00:00.000Z,approved
+Neon,Bruno Rodríguez,AR,south_america,americas,duelist,LEVIATÁN,true,false,true,false,0,0,Yoru|Jett|Chamber,2026-08-03,https://www.vlr.gg/player/29243/neon/,2026-08-03T00:00:00.000Z,approved
+Sato,Eduardo Kenzo Nagahama Sato,BR,south_america,americas,duelist,LEVIATÁN,true,false,true,false,0,0,Jett|Raze|Phoenix,2026-08-03,https://www.vlr.gg/player/21659/sato/,2026-08-03T00:00:00.000Z,approved
+Crewen,Ali Eren Sargin,TR,middle_east,emea,sentinel,BBL Esports,true,false,true,false,0,0,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/12795/crewen/,2026-08-03T00:00:00.000Z,approved
+Lar0k,Yusuf Kaan Kanber,TR,middle_east,emea,initiator,BBL Esports,true,false,true,false,0,0,Breach|Raze|KAY/O,2026-08-03,https://www.vlr.gg/player/31305/lar0k/,2026-08-03T00:00:00.000Z,approved
+Loita,Utku Kart,TR,middle_east,emea,controller,BBL Esports,true,false,true,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/24344/loita/,2026-08-03T00:00:00.000Z,approved
+lovers rock,Umut Pekdoğan,TR,middle_east,emea,duelist,BBL Esports,true,false,true,false,0,0,Jett|Yoru|Neon,2026-08-03,https://www.vlr.gg/player/40935/lovers-rock/,2026-08-03T00:00:00.000Z,approved
+Boaster,boaster|Jake Howlett,GB,western_europe,emea,controller,FNATIC,true,false,true,false,0,1,Omen|Astra|Brimstone,2026-08-03,https://www.vlr.gg/player/438/boaster/,2026-08-03T00:00:00.000Z,approved
+Derke,derke|Nikita Sirmitev,FI,western_europe,emea,duelist,Team Vitality,true,false,true,false,0,1,Jett|Raze|Yoru,2026-08-03,https://www.vlr.gg/player/5022/derke/,2026-08-03T00:00:00.000Z,approved
+Alfajer,alfajer|Emir Beder,TR,middle_east,emea,sentinel,FNATIC,true,false,true,false,0,1,Killjoy|Raze|Cypher,2026-08-03,https://www.vlr.gg/player/9810/alfajer/,2026-08-03T00:00:00.000Z,approved
+cNed,cned|Mehmet Yagiz Ipek,TR,middle_east,emea,duelist,Natus Vincere,true,false,true,false,1,0,Jett|Raze|Chamber,2026-08-03,https://www.vlr.gg/player/573/cned/,2026-08-03T00:00:00.000Z,approved
+yay,yay|Jacob Whiteaker,US,north_america,americas,duelist,bleed eSports,false,false,true,false,0,1,Jett|Chamber|Sage,2026-08-03,https://www.vlr.gg/player/881/yay/,2026-08-03T00:00:00.000Z,approved
+Less,less|Felipe Basso,BR,south_america,americas,sentinel,LOUD,true,false,true,false,1,0,Viper|Killjoy|Cypher,2026-08-03,https://www.vlr.gg/player/8447/less/,2026-08-03T00:00:00.000Z,approved
+saadhak,saadhak|Matias Delipetro,AR,south_america,americas,initiator,LOUD,true,false,true,false,1,0,KAY/O|Cypher|Killjoy,2026-08-03,https://www.vlr.gg/player/727/saadhak/,2026-08-03T00:00:00.000Z,approved
+Mazino,mazino|Roberto Bugueño,CL,south_america,americas,controller,KRÜ Esports,true,false,true,false,0,0,Omen|Sage|Harbor,2026-08-03,https://www.vlr.gg/player/7603/mazino/,2026-08-03T00:00:00.000Z,approved
+zekken,zekken|Zachary Patrone,US,north_america,americas,duelist,Sentinels,true,false,true,false,0,1,Raze|Sova|Neon,2026-08-03,https://www.vlr.gg/player/4004/zekken/,2026-08-03T00:00:00.000Z,approved
+johnqt,johnqt|Mohammed Amine Ouarid,MA,north_africa,emea,controller,Sentinels,true,false,true,false,1,0,Chamber|Viper|Cypher,2026-08-03,https://www.vlr.gg/player/1265/johnqt/,2026-08-03T00:00:00.000Z,approved
+t3xture,t3xture|Kim Na-ra,KR,east_asia,pacific,duelist,Gen.G,true,false,true,false,0,1,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/9196/t3xture/,2026-08-03T00:00:00.000Z,approved
+Meteor,meteor|Kim Tae-o,KR,east_asia,pacific,sentinel,Gen.G,true,false,true,false,0,1,Jett|Killjoy|Cypher,2026-08-03,https://www.vlr.gg/player/13039/meteor/,2026-08-03T00:00:00.000Z,approved
+something,something|Ilya Petrov,RU,eastern_europe,pacific,duelist,Paper Rex,true,false,true,false,0,0,Jett|Yoru|Reyna,2026-08-03,https://www.vlr.gg/player/17086/something/,2026-08-03T00:00:00.000Z,approved
+Jinggg,jinggg|Wang Jing Jie,SG,southeast_asia,pacific,duelist,Paper Rex,true,false,true,false,1,0,Raze|Reyna|Omen,2026-08-03,https://www.vlr.gg/player/7378/jinggg/,2026-08-03T00:00:00.000Z,approved
+f0rsakeN,forsaken|Jason Susanto,ID,southeast_asia,pacific,flex,Paper Rex,true,false,true,false,1,0,Jett|Omen|Neon,2026-08-03,https://www.vlr.gg/player/9801/f0rsaken/,2026-08-03T00:00:00.000Z,approved
+Mako,mako|Kim Myeong-kwan,KR,east_asia,pacific,controller,DRX,true,false,true,false,0,0,Omen|Viper|Astra,2026-08-03,https://www.vlr.gg/player/4462/mako/,2026-08-03T00:00:00.000Z,approved
+stax,stax|Kim Gu-taek,KR,east_asia,pacific,initiator,T1,true,false,true,false,1,1,Breach|Skye|KAY/O,2026-08-03,https://www.vlr.gg/player/485/stax/,2026-08-03T00:00:00.000Z,approved
+leaf,leaf|Nathan Orf,US,north_america,americas,duelist,G2 Esports,true,false,true,false,0,0,Viper|Jett|Raze,2026-08-03,https://www.vlr.gg/player/7873/leaf/,2026-08-03T00:00:00.000Z,approved
+crashies,crashies|Austin Roberts,US,north_america,americas,initiator,NRG,true,false,true,false,0,1,Sova|Skye|Fade,2026-08-03,https://www.vlr.gg/player/4/crashies/,2026-08-03T00:00:00.000Z,approved
+FNS,fns|Pujan Mehta,CA,north_america,americas,controller,NRG,false,false,true,false,0,1,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/817/fns/,2026-08-03T00:00:00.000Z,approved
+nAts,nats|Ayaz Akhmetshin,RU,eastern_europe,emea,sentinel,Team Liquid,true,false,true,false,0,1,Cypher|Viper|Killjoy,2026-08-03,https://www.vlr.gg/player/457/nats/,2026-08-03T00:00:00.000Z,approved
+Boo,boo|Ričardas Lukaševičius,LT,eastern_europe,emea,controller,Team Heretics,true,false,true,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/1144/boo/,2026-08-03T00:00:00.000Z,approved
+koshmaras,koshmaras|Martynas Namikas,LT,eastern_europe,emea,flex,Team Heretics,true,false,true,false,0,0,Neon|Omen|Yoru,2026-08-03,https://www.vlr.gg/player/23365/koshmaras/,2026-08-03T00:00:00.000Z,approved
+Wo0t,wo0t|Mert Alkan,TR,eastern_europe,emea,duelist,Team Heretics,true,false,true,false,0,0,Jett|Raze|Viper,2026-08-03,https://www.vlr.gg/player/21328/wo0t/,2026-08-03T00:00:00.000Z,approved
+RieNs,riens|Enes Ecirli,TR,eastern_europe,emea,initiator,Team Heretics,true,false,true,false,0,0,Sova|Breach|Fade,2026-08-03,https://www.vlr.gg/player/10971/riens/,2026-08-03T00:00:00.000Z,approved
+benjyfishy,Benjyfishy|Benjamin David Fish,GB,western_europe,emea,sentinel,Team Heretics,true,false,true,false,0,0,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/29873/benjyfishy/,2026-08-03T00:00:00.000Z,approved
+invy,Adrian Jiggs Reyes,PH,southeast_asia,pacific,initiator,Paper Rex,true,false,true,false,0,0,Sova|Breach|Fade,2026-08-03,https://www.vlr.gg/player/8504/invy/,2026-08-03T00:00:00.000Z,approved
+d4v41,d4v41|Khalish Rusyaidee,MY,southeast_asia,pacific,flex,Paper Rex,true,false,true,false,1,0,Skye|Viper|Jett,2026-08-03,https://www.vlr.gg/player/9803/d4v41/,2026-08-03T00:00:00.000Z,approved
+Ash,ash|Ha Hyun-cheol,KR,east_asia,pacific,duelist,Gen.G,true,false,true,false,0,0,Jett|Neon|Raze,2026-08-03,https://www.vlr.gg/player/25017/ash/,2026-08-03T00:00:00.000Z,approved
+Karon,karon|Kim Won-tae,KR,east_asia,pacific,controller,Gen.G,true,false,true,false,0,1,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/34974/karon/,2026-08-03T00:00:00.000Z,approved
+Efina,efina|Kim Nak-yeon,KR,east_asia,pacific,sentinel,Gen.G,true,false,true,false,0,0,Killjoy|Cypher|Fade,2026-08-03,https://www.vlr.gg/player/985/efina/,2026-08-03T00:00:00.000Z,approved
+Raxcal,raxcal|Kim Min-seok,KR,east_asia,pacific,duelist,Gen.G,true,false,true,false,0,0,Neon|Jett|Phoenix,2026-08-03,https://www.vlr.gg/player/48925/raxcal/,2026-08-03T00:00:00.000Z,approved
+Xiesta,xiesta|Jung Si-hwan,KR,east_asia,pacific,duelist,Gen.G,true,false,true,false,0,0,Neon|Jett|Waylay,2026-08-03,https://www.vlr.gg/player/62291/xiesta/,2026-08-03T00:00:00.000Z,approved
+ZynX,zynx|Kim Dong-ha,KR,east_asia,pacific,sentinel,Gen.G,true,false,true,false,0,0,Cypher|Viper|Vyse,2026-08-03,https://www.vlr.gg/player/51099/zynx/,2026-08-03T00:00:00.000Z,approved
+crazyguy,Crazyguy|Ngô Công Anh,VN,southeast_asia,pacific,flex,Rex Regum Qeon,true,false,true,false,0,0,Sova|Omen|Breach,2026-08-03,https://www.vlr.gg/player/1430/crazyguy/,2026-08-03T00:00:00.000Z,approved
+Monyet,monyet|Cahya Nugraha,ID,southeast_asia,pacific,flex,Rex Regum Qeon,true,false,true,false,0,0,Omen|Jett|Neon,2026-08-03,https://www.vlr.gg/player/8497/monyet/,2026-08-03T00:00:00.000Z,approved
+xffero,Xffero|David Monangin,ID,southeast_asia,pacific,controller,Rex Regum Qeon,true,false,true,false,0,0,Viper|Astra|Cypher,2026-08-03,https://www.vlr.gg/player/4871/xffero/,2026-08-03T00:00:00.000Z,approved
+Xan,xan|Xan Ng,MY,southeast_asia,pacific,duelist,Rex Regum Qeon,true,false,true,false,0,0,Neon|Jett|Raze,2026-08-03,https://www.vlr.gg/player/11737/xan/,2026-08-03T00:00:00.000Z,approved
+Jemkin,jemkin|Maksim Batorov,RU,eastern_europe,pacific,duelist,Rex Regum Qeon,true,false,true,false,0,0,Jett|Raze|Yoru,2026-08-03,https://www.vlr.gg/player/24895/jemkin/,2026-08-03T00:00:00.000Z,approved
+Kushy,kushy|Bryan Carlos Setiawan,ID,southeast_asia,pacific,initiator,Rex Regum Qeon,true,false,true,false,0,0,Sova|Fade|Skye,2026-08-03,https://www.vlr.gg/player/4866/kushy/,2026-08-03T00:00:00.000Z,approved
+Jamppi,jamppi|Elias Olkkonen,FI,western_europe,emea,flex,Team Vitality,true,false,true,false,0,0,Jett|Sova|Breach,2026-08-03,https://www.vlr.gg/player/9780/jamppi/,2026-08-03T00:00:00.000Z,approved
+PROFEK,profek|Dawid Święć,PL,eastern_europe,emea,controller,Team Vitality,true,false,true,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/5554/profek/,2026-08-03T00:00:00.000Z,approved
+Sayonara,sayonara|Ștefan Mîtcu,MD,eastern_europe,emea,flex,Team Vitality,true,false,true,false,0,0,Sova|Viper|Phoenix,2026-08-03,https://www.vlr.gg/player/33902/sayonara/,2026-08-03T00:00:00.000Z,approved
+Rosé,rose|Eren Erzan,TR,middle_east,emea,initiator,BBL Esports,true,false,true,false,0,0,Sova|Fade|Breach,2026-08-03,https://www.vlr.gg/player/5565/ros/,2026-08-03T00:00:00.000Z,approved
+FireBallOps,fireballops|Cameron Tomaselli,US,north_america,americas,sentinel,Cloud9,true,false,false,false,0,0,Killjoy|Cypher|Chamber,2026-08-03,https://www.vlr.gg/player/10053/fireballops/,2026-08-03T00:00:00.000Z,approved
+OXY,oxy|Francis Hoang,US,north_america,americas,duelist,Cloud9,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/18796/oxy/,2026-08-03T00:00:00.000Z,approved
+Jackk,jackk|Jack Foote,US,north_america,americas,initiator,Cloud9,true,false,false,false,0,0,Fade|Sova|Tejo,2026-08-03,https://www.vlr.gg/player/44842/jackk/,2026-08-03T00:00:00.000Z,approved
+supamen,supamen|Phat Le,US,north_america,americas,controller,Evil Geniuses,true,false,false,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/826/supamen/,2026-08-03T00:00:00.000Z,approved
+Zellsis,zellsis|Jordan Montemurro,US,north_america,americas,flex,Cloud9,true,false,false,false,0,0,KAY/O|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/729/zellsis/,2026-08-03T00:00:00.000Z,approved
+v1c,v1c|Victor Truong,US,north_america,americas,controller,Cloud9,true,false,false,false,0,0,Omen|Brimstone|KAY/O,2026-08-03,https://www.vlr.gg/player/17433/v1c/,2026-08-03T00:00:00.000Z,approved
+Paincakes,paincakes|Jake Hass,US,north_america,americas,flex,Evil Geniuses,true,false,false,false,0,0,Omen|Sova|Raze,2026-08-03,https://www.vlr.gg/player/2164/paincakes/,2026-08-03T00:00:00.000Z,approved
+dgzin,dgzin|Douglas Silva,BR,south_america,americas,duelist,Evil Geniuses,true,false,false,false,0,0,Jett|Neon|Raze,2026-08-03,https://www.vlr.gg/player/8873/dgzin/,2026-08-03T00:00:00.000Z,approved
+zerona,zerona|Javan Varela,US,north_america,americas,initiator,Evil Geniuses,true,false,false,false,0,0,Sova|Viper|Skye,2026-08-03,https://www.vlr.gg/player/14048/zerona/,2026-08-03T00:00:00.000Z,approved
+bao,bao|Bao Nguyen,VN,southeast_asia,americas,controller,Evil Geniuses,true,false,false,false,0,0,Viper|Cypher|Omen,2026-08-03,https://www.vlr.gg/player/34400/bao/,2026-08-03T00:00:00.000Z,approved
+C0M,c0m|Corbin Lee,US,north_america,americas,flex,FURIA,true,false,false,false,0,0,Sova|Viper|Cypher,2026-08-03,https://www.vlr.gg/player/619/c0m/,2026-08-03T00:00:00.000Z,approved
+eeiu,eeiu|Daniel Vucenovic,CA,north_america,americas,initiator,FURIA,true,false,false,false,0,0,Sova|Fade|Breach,2026-08-03,https://www.vlr.gg/player/796/eeiu/,2026-08-03T00:00:00.000Z,approved
+koalanoob,koalanoob|Gianfranco Potestio,CA,north_america,americas,flex,FURIA,true,false,false,false,0,0,Jett|Omen|Chamber,2026-08-03,https://www.vlr.gg/player/3722/koalanoob/,2026-08-03T00:00:00.000Z,approved
+artzin,artzin|Arthur Araujo,BR,south_america,americas,duelist,FURIA,true,false,false,false,0,0,Jett|KAY/O|Raze,2026-08-03,https://www.vlr.gg/player/5957/artzin/,2026-08-03T00:00:00.000Z,approved
+Shyy,shyy|Fabian Usnayo,CL,south_america,americas,sentinel,FURIA,true,false,false,false,0,0,Killjoy|Cypher|Viper,2026-08-03,https://www.vlr.gg/player/24007/shyy/,2026-08-03T00:00:00.000Z,approved
+basic,basic|Luis Henrique Ferlin Tessaro,BR,south_america,americas,initiator,FURIA,true,false,false,false,0,0,Breach|KAY/O|Omen,2026-08-03,https://www.vlr.gg/player/37354/basic/,2026-08-03T00:00:00.000Z,approved
+mwzera,mwzera|Leonardo Serrati,BR,south_america,americas,duelist,KRÜ Esports,true,false,false,false,0,0,Raze|Jett|Sova,2026-08-03,https://www.vlr.gg/player/939/mwzera/,2026-08-03T00:00:00.000Z,approved
+heat,heat|Olavo Marcelo,BR,south_america,americas,flex,KRÜ Esports,true,false,false,false,0,0,Jett|Chamber|KAY/O,2026-08-03,https://www.vlr.gg/player/8673/heat/,2026-08-03T00:00:00.000Z,approved
+Dantedeu5,dantedeu5|Jesús Federico Larrosa,AR,south_america,americas,duelist,KRÜ Esports,true,false,false,false,0,0,Jett|Neon|Raze,2026-08-03,https://www.vlr.gg/player/41135/dantedeu5/,2026-08-03T00:00:00.000Z,approved
+Darker,darker|Sebastián Castro Cicuamia,CO,south_america,americas,initiator,LOUD,true,false,false,false,0,0,Breach|Omen|KAY/O,2026-08-03,https://www.vlr.gg/player/10557/darker/,2026-08-03T00:00:00.000Z,approved
+DaviH,davih|David Cruz,PT,western_europe,americas,initiator,LOUD,true,false,false,false,0,0,Sova|Fade|Omen,2026-08-03,https://www.vlr.gg/player/10885/davih/,2026-08-03T00:00:00.000Z,approved
+lukxo,lukxo|Lucca Travaioli,BR,south_america,americas,controller,LOUD,true,false,false,false,0,0,Omen|Viper|Cypher,2026-08-03,https://www.vlr.gg/player/28716/lukxo/,2026-08-03T00:00:00.000Z,approved
+erde,erde|Roberto Lobos,CL,south_america,americas,controller,LOUD,true,false,false,false,0,0,Omen|Breach|Astra,2026-08-03,https://www.vlr.gg/player/29242/erde/,2026-08-03T00:00:00.000Z,approved
+tkzin,tkzin|Enzo Zimiani,BR,south_america,americas,duelist,LOUD,true,false,false,false,0,0,Jett|Raze|Yoru,2026-08-03,https://www.vlr.gg/player/41224/tkzin/,2026-08-03T00:00:00.000Z,approved
+tex,tex|Ian Botsch,DE,western_europe,americas,duelist,MIBR,true,false,false,false,0,0,Jett|Cypher|Raze,2026-08-03,https://www.vlr.gg/player/1818/tex/,2026-08-03T00:00:00.000Z,approved
+Verno,verno|Andrew Maust,US,north_america,americas,initiator,MIBR,true,false,false,false,0,0,Sova|Fade|Skye,2026-08-03,https://www.vlr.gg/player/21668/verno/,2026-08-03T00:00:00.000Z,approved
+Marved,marved|Jimmy Nguyen,CA,north_america,americas,controller,Sentinels,true,false,false,false,0,0,Omen|Astra|Brimstone,2026-08-03,https://www.vlr.gg/player/263/marved/,2026-08-03T00:00:00.000Z,approved
+JonahP,jonahp|Jonah Pulice,CA,north_america,americas,initiator,Sentinels,true,false,false,false,0,0,Skye|Sova|KAY/O,2026-08-03,https://www.vlr.gg/player/4581/jonahp/,2026-08-03T00:00:00.000Z,approved
+cortezia,cortezia|Gabriel Cortez,BR,south_america,americas,controller,Sentinels,true,false,false,false,0,0,Omen|Viper|Brimstone,2026-08-03,https://www.vlr.gg/player/5395/cortezia/,2026-08-03T00:00:00.000Z,approved
+Reduxx,reduxx|Yassin Aboulalazm,US,north_america,americas,duelist,Sentinels,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/8419/reduxx/,2026-08-03T00:00:00.000Z,approved
+Jerrwin,jerrwin|Gurjiwan Gill,IN,southeast_asia,americas,duelist,Sentinels,true,false,false,false,0,0,Raze|Jett|Neon,2026-08-03,https://www.vlr.gg/player/34057/jerrwin/,2026-08-03T00:00:00.000Z,approved
+BABYBAY,babybay|Andrej Francisty,US,north_america,americas,flex,G2 Esports,true,false,false,false,0,0,Jett|Chamber|Vyse,2026-08-03,https://www.vlr.gg/player/2170/babybay/,2026-08-03T00:00:00.000Z,approved
+valyn,valyn|Jacob Batio,US,north_america,americas,controller,G2 Esports,true,false,false,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/3885/valyn/,2026-08-03T00:00:00.000Z,approved
+trent,trent|Trent Cairns,US,north_america,americas,initiator,G2 Esports,true,false,false,false,0,0,Sova|Fade|Tejo,2026-08-03,https://www.vlr.gg/player/15500/trent/,2026-08-03T00:00:00.000Z,approved
+Rossy,rossy|Daniel Abedrabbo,US,north_america,americas,controller,ENVY,true,false,false,false,0,0,Viper|Astra|Breach,2026-08-03,https://www.vlr.gg/player/1129/rossy/,2026-08-03T00:00:00.000Z,approved
+keznit,keznit|Angelo Mori,CL,south_america,americas,duelist,ENVY,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/2462/keznit/,2026-08-03T00:00:00.000Z,approved
+GLYPH,glyph|Conner Garcia,PH,southeast_asia,americas,controller,ENVY,true,false,false,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/8286/glyph/,2026-08-03T00:00:00.000Z,approved
+nightz,nightz|Christian Smith,US,north_america,americas,flex,ENVY,true,false,false,false,0,0,Yoru|Omen|Clove,2026-08-03,https://www.vlr.gg/player/41798/nightz/,2026-08-03T00:00:00.000Z,approved
+sociablEE,sociablee|Volkan Yonal,TR,middle_east,emea,duelist,FUT Esports,true,false,false,false,0,0,Jett|Raze|Omen,2026-08-03,https://www.vlr.gg/player/5568/sociablee/,2026-08-03T00:00:00.000Z,approved
+yetujey,yetujey|Eray Budak,TR,middle_east,emea,sentinel,FUT Esports,true,false,false,false,0,0,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/8369/yetujey/,2026-08-03T00:00:00.000Z,approved
+xeus,xeus|Doğan Gözgen,TR,middle_east,emea,duelist,FUT Esports,true,false,false,false,0,0,Raze|Jett|Yoru,2026-08-03,https://www.vlr.gg/player/12793/xeus/,2026-08-03T00:00:00.000Z,approved
+KROSTALY,krostaly|Okan Alaçam,TR,middle_east,emea,initiator,FUT Esports,true,false,false,false,0,0,KAY/O|Sova|Tejo,2026-08-03,https://www.vlr.gg/player/15735/krostaly/,2026-08-03T00:00:00.000Z,approved
+s0pp,s0pp|Efe Tur,TR,middle_east,emea,duelist,FUT Esports,true,false,false,false,0,0,Neon|Jett|Yoru,2026-08-03,https://www.vlr.gg/player/39357/s0pp/,2026-08-03T00:00:00.000Z,approved
+starxo,starxo|Patryk Kopczynski,PL,eastern_europe,emea,initiator,Gentle Mates,true,false,false,false,0,0,Skye|Sova|Sage,2026-08-03,https://www.vlr.gg/player/565/starxo/,2026-08-03T00:00:00.000Z,approved
+marteen,marteen|Martin Pátek,CZ,eastern_europe,emea,duelist,Gentle Mates,true,false,false,false,0,0,Yoru|Jett|Raze,2026-08-03,https://www.vlr.gg/player/10307/marteen/,2026-08-03T00:00:00.000Z,approved
+bipo,bipo|Taranvir Singh,IT,western_europe,emea,duelist,Gentle Mates,true,false,false,false,0,0,Jett|Neon|Raze,2026-08-03,https://www.vlr.gg/player/18400/bipo/,2026-08-03T00:00:00.000Z,approved
+Minny,minny|Patrik Hušek,CZ,eastern_europe,emea,sentinel,Gentle Mates,true,false,false,false,0,0,Killjoy|Cypher|Chamber,2026-08-03,https://www.vlr.gg/player/23169/minny/,2026-08-03T00:00:00.000Z,approved
+Proxh,proxh|Yusuf Emre Tunc,TR,middle_east,emea,controller,Gentle Mates,true,false,false,false,0,0,Omen|Brimstone|Astra,2026-08-03,https://www.vlr.gg/player/45494/proxh/,2026-08-03T00:00:00.000Z,approved
+CyvOph,cyvoph|Clement Millard,FR,western_europe,emea,flex,Natus Vincere,true,false,false,false,0,0,Breach|Jett|Raze,2026-08-03,https://www.vlr.gg/player/13258/cyvoph/,2026-08-03T00:00:00.000Z,approved
+chloric,chloric|Caide Heaton,US,north_america,emea,initiator,Natus Vincere,true,false,false,false,0,0,Sova|Raze|KAY/O,2026-08-03,https://www.vlr.gg/player/15639/chloric/,2026-08-03T00:00:00.000Z,approved
+Ruxic,ruxic|Uğur Güç,TR,middle_east,emea,controller,Natus Vincere,true,false,false,false,0,0,Omen|Viper|Astra,2026-08-03,https://www.vlr.gg/player/18677/ruxic/,2026-08-03T00:00:00.000Z,approved
+hiro,hiro|Emirhan Kat,TR,middle_east,emea,flex,Natus Vincere,true,false,false,false,0,0,Cypher|Viper|Raze,2026-08-03,https://www.vlr.gg/player/29867/hiro/,2026-08-03T00:00:00.000Z,approved
+al0rante,al0rante|Felix Brandl,DE,western_europe,emea,flex,PCIFIC Esports,true,false,false,false,0,0,Cypher|Viper|Raze,2026-08-03,https://www.vlr.gg/player/5292/al0rante/,2026-08-03T00:00:00.000Z,approved
+qpert,qpert|Mateja Mijovic,RS,eastern_europe,emea,controller,PCIFIC Esports,true,false,false,false,0,0,Omen|Astra|Breach,2026-08-03,https://www.vlr.gg/player/7105/qpert/,2026-08-03T00:00:00.000Z,approved
+waddle,waddle|Wadir Taraki,GB,western_europe,emea,initiator,PCIFIC Esports,true,false,false,false,0,0,Sova|Fade|Sage,2026-08-03,https://www.vlr.gg/player/8226/waddle/,2026-08-03T00:00:00.000Z,approved
+seven,seven|Johann Hernandez,MX,north_america,emea,flex,PCIFIC Esports,true,false,false,false,0,0,Jett|Chamber|Killjoy,2026-08-03,https://www.vlr.gg/player/8376/seven/,2026-08-03T00:00:00.000Z,approved
+NINJA,ninja|Patryk Koczyba,PL,eastern_europe,emea,flex,PCIFIC Esports,true,false,false,false,0,0,Omen|Fade|Sova,2026-08-03,https://www.vlr.gg/player/28948/ninja/,2026-08-03T00:00:00.000Z,approved
+nekky,nekky|Anıl Dağdeviren,TR,middle_east,emea,initiator,Eternal Fire,true,false,false,false,0,0,Sova|Fade|Tejo,2026-08-03,https://www.vlr.gg/player/12670/nekky/,2026-08-03T00:00:00.000Z,approved
+audaz,audaz|Soner Ekiz,TR,middle_east,emea,controller,Eternal Fire,true,false,false,false,0,0,Omen|Astra|Brimstone,2026-08-03,https://www.vlr.gg/player/40843/audaz/,2026-08-03T00:00:00.000Z,approved
+Spear,spear|Arda Burak Kartal,TR,middle_east,emea,flex,Eternal Fire,true,false,false,false,0,0,Cypher|Viper|Neon,2026-08-03,https://www.vlr.gg/player/41718/spear/,2026-08-03T00:00:00.000Z,approved
+Favian,favian|Enes Yiğiter,TR,middle_east,emea,flex,Eternal Fire,true,false,false,false,0,0,Raze|Breach|KAY/O,2026-08-03,https://www.vlr.gg/player/41720/favian/,2026-08-03T00:00:00.000Z,approved
+echo,echo|Ömür Serkan Şenol,TR,middle_east,emea,sentinel,Eternal Fire,true,false,false,false,0,0,Cypher|Viper|Vyse,2026-08-03,https://www.vlr.gg/player/49346/echo/,2026-08-03T00:00:00.000Z,approved
+Cloud,cloud|Kirill Nehozhin,RU,eastern_europe,emea,initiator,FNATIC,true,false,false,false,0,0,Sova|Skye|Raze,2026-08-03,https://www.vlr.gg/player/4181/cloud/,2026-08-03T00:00:00.000Z,approved
+kaajak,kaajak|Kajetan Haremski,PL,eastern_europe,emea,duelist,FNATIC,true,false,false,false,0,0,Jett|Yoru|Raze,2026-08-03,https://www.vlr.gg/player/9554/kaajak/,2026-08-03T00:00:00.000Z,approved
+Jesse,jesse|Adam Čtvrtníček,CZ,eastern_europe,emea,controller,GIANTX,true,false,false,false,0,0,Omen|Sova|Viper,2026-08-03,https://www.vlr.gg/player/2653/jesse/,2026-08-03T00:00:00.000Z,approved
+neT,net|Michael Bernet,US,north_america,emea,sentinel,GIANTX,true,false,false,false,0,0,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/6582/net/,2026-08-03T00:00:00.000Z,approved
+Flickless,flickless|Karel Maeckelbergh,BE,western_europe,emea,initiator,GIANTX,true,false,false,false,0,0,Breach|KAY/O|Jett,2026-08-03,https://www.vlr.gg/player/6959/flickless/,2026-08-03T00:00:00.000Z,approved
+ara,ara|Hanceriuc Eduard-George,RO,eastern_europe,emea,duelist,GIANTX,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/11332/ara/,2026-08-03T00:00:00.000Z,approved
+westside,westside|Miłosz Duda,PL,eastern_europe,emea,sentinel,GIANTX,true,false,false,false,0,0,Killjoy|Cypher|Jett,2026-08-03,https://www.vlr.gg/player/34684/westside/,2026-08-03T00:00:00.000Z,approved
+paTiTek,patitek|Patryk Fabrowski,PL,eastern_europe,emea,flex,Enterprise Esports,true,false,false,false,0,0,Omen|KAY/O|Breach,2026-08-03,https://www.vlr.gg/player/309/patitek/,2026-08-03T00:00:00.000Z,approved
+MAGNUM,magnum|Martin Penkov,CZ,eastern_europe,emea,sentinel,Enterprise Esports,true,false,false,false,0,0,Killjoy|Cypher|Viper,2026-08-03,https://www.vlr.gg/player/2173/magnum/,2026-08-03T00:00:00.000Z,approved
+iluri,iluri|Ilari Puranen,FI,western_europe,emea,initiator,Enterprise Esports,true,false,false,false,0,0,Sova|Breach|Fade,2026-08-03,https://www.vlr.gg/player/3674/iluri/,2026-08-03T00:00:00.000Z,approved
+Lime,lime|Jacob Foster,GB,western_europe,emea,duelist,Enterprise Esports,true,false,false,false,0,0,Yoru|Jett|Killjoy,2026-08-03,https://www.vlr.gg/player/10338/lime/,2026-08-03T00:00:00.000Z,approved
+kozzy,kozzy|Denis Stefan Aionitoaei,RO,eastern_europe,emea,duelist,Enterprise Esports,true,false,false,false,0,0,Waylay|Neon|Jett,2026-08-03,https://www.vlr.gg/player/55681/kozzy/,2026-08-03T00:00:00.000Z,approved
+DeadInk,deadink|Utku Onur Aydin,TR,middle_east,emea,duelist,REBORN,true,false,false,false,0,0,Jett|Raze|Waylay,2026-08-03,https://www.vlr.gg/player/5564/deadink/,2026-08-03T00:00:00.000Z,approved
+reazy,reazy|Kaan Ürpek,TR,middle_east,emea,initiator,REBORN,true,false,false,false,0,0,Sova|Viper|Fade,2026-08-03,https://www.vlr.gg/player/10146/reazy/,2026-08-03T00:00:00.000Z,approved
+batujnax,batujnax|Mehmet Batu Özaslan,TR,middle_east,emea,initiator,REBORN,true,false,false,false,0,0,Sova|Skye|Cypher,2026-08-03,https://www.vlr.gg/player/18615/batujnax/,2026-08-03T00:00:00.000Z,approved
+hezacoil,hezacoil|Berkay Doğar,TR,middle_east,emea,controller,REBORN,true,false,false,false,0,0,Astra|Omen|Viper,2026-08-03,https://www.vlr.gg/player/55694/hezacoil/,2026-08-03T00:00:00.000Z,approved
+Kachoww,kachoww|Samet Arıcı,TR,middle_east,emea,duelist,REBORN,true,false,false,false,0,0,Neon|Yoru|Omen,2026-08-03,https://www.vlr.gg/player/58496/kachoww/,2026-08-03T00:00:00.000Z,approved
+chiwa,chiwa|Egor Stepanyuk,RU,eastern_europe,emea,sentinel,Joblife,true,false,false,false,0,0,Cypher|Killjoy|Viper,2026-08-03,https://www.vlr.gg/player/321/chiwa/,2026-08-03T00:00:00.000Z,approved
+doma,doma|Domagoj Fancev,HR,eastern_europe,emea,flex,Joblife,true,false,false,false,0,0,Raze|Skye|Sage,2026-08-03,https://www.vlr.gg/player/1369/doma/,2026-08-03T00:00:00.000Z,approved
+kamyk,kamyk|Maks Rychlewski,PL,eastern_europe,emea,controller,Joblife,true,false,false,false,0,0,Astra|Viper|Omen,2026-08-03,https://www.vlr.gg/player/1475/kamyk/,2026-08-03T00:00:00.000Z,approved
+UNFAKE,unfake|Bartosz Bernacki,PL,eastern_europe,emea,initiator,Joblife,true,false,false,false,0,0,Sova|Skye|Fade,2026-08-03,https://www.vlr.gg/player/4521/unfake/,2026-08-03T00:00:00.000Z,approved
+MONSTEERR,monsteerr|Ondřej Petrů,CZ,eastern_europe,emea,sentinel,Eintracht Frankfurt,true,false,false,false,0,0,Killjoy|Cypher|Viper,2026-08-03,https://www.vlr.gg/player/3127/monsteerr/,2026-08-03T00:00:00.000Z,approved
+musashi,musashi|Alessio Xhaferi,DE,western_europe,emea,initiator,Eintracht Frankfurt,true,false,false,false,0,0,Sova|Fade|Raze,2026-08-03,https://www.vlr.gg/player/4325/musashi/,2026-08-03T00:00:00.000Z,approved
+azury,azury|Luca Sammer,DE,western_europe,emea,flex,Eintracht Frankfurt,true,false,false,false,0,0,Viper|Killjoy|Cypher,2026-08-03,https://www.vlr.gg/player/4629/azury/,2026-08-03T00:00:00.000Z,approved
+Fizzy,fizzy|David Figueiredo,PT,western_europe,emea,sentinel,Eintracht Frankfurt,true,false,false,false,0,0,Cypher|Killjoy|Omen,2026-08-03,https://www.vlr.gg/player/7660/fizzy/,2026-08-03T00:00:00.000Z,approved
+Jamelinho213,jamelinho213|Ryad Bentot,FR,western_europe,emea,duelist,Eintracht Frankfurt,true,false,false,false,0,0,Neon|Waylay|Raze,2026-08-03,https://www.vlr.gg/player/57336/jamelinho213/,2026-08-03T00:00:00.000Z,approved
+Meiy,meiy|Ibuki Seki,JP,east_asia,pacific,duelist,DetonatioN FocusMe,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/6672/meiy/,2026-08-03T00:00:00.000Z,approved
+Akame,akame|Yu Gwang-hui (유광희),KR,east_asia,pacific,initiator,DetonatioN FocusMe,true,false,false,false,0,0,Sova|KAY/O|Raze,2026-08-03,https://www.vlr.gg/player/13002/akame/,2026-08-03T00:00:00.000Z,approved
+SSeeS,ssees|Tomonori Okimura,JP,east_asia,pacific,controller,DetonatioN FocusMe,true,false,false,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/21438/ssees/,2026-08-03T00:00:00.000Z,approved
+Caedye,caedye|Amon Mateus Okakura,JP,east_asia,pacific,flex,DetonatioN FocusMe,true,false,false,false,0,0,Viper|Cypher|Raze,2026-08-03,https://www.vlr.gg/player/29841/caedye/,2026-08-03T00:00:00.000Z,approved
+yatsuka,yatsuka|Kazuya Ikeda,JP,east_asia,pacific,initiator,DetonatioN FocusMe,true,false,false,false,0,0,Sova|Yoru|Breach,2026-08-03,https://www.vlr.gg/player/29843/yatsuka/,2026-08-03T00:00:00.000Z,approved
+free1ng,free1ng|No Ha-jun (노하준),KR,east_asia,pacific,sentinel,KIWOOM DRX,true,false,false,false,0,0,Cypher|Tejo|Killjoy,2026-08-03,https://www.vlr.gg/player/1916/free1ng/,2026-08-03T00:00:00.000Z,approved
+BeYN,beyn|Kang Ha-bin (강하빈),KR,east_asia,pacific,initiator,KIWOOM DRX,true,false,false,false,0,0,Sova|Jett|Fade,2026-08-03,https://www.vlr.gg/player/4678/beyn/,2026-08-03T00:00:00.000Z,approved
+HYUNMIN,hyunmin|Song Hyun-min (송현민),KR,east_asia,pacific,duelist,KIWOOM DRX,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/28400/hyunmin/,2026-08-03T00:00:00.000Z,approved
+Flicker,flicker|Kim Tae-hee (김태희),KR,east_asia,pacific,duelist,KIWOOM DRX,true,false,false,false,0,0,Waylay|Sova|Yoru,2026-08-03,https://www.vlr.gg/player/51100/flicker/,2026-08-03T00:00:00.000Z,approved
+Crws,crws|Thanamethk Mahatthananuyut,TH,southeast_asia,pacific,initiator,FULL SENSE,true,false,false,false,0,0,Breach|Omen|Skye,2026-08-03,https://www.vlr.gg/player/3977/crws/,2026-08-03T00:00:00.000Z,approved
+Killua,killua|Tanate Teerasawad,TH,southeast_asia,pacific,flex,FULL SENSE,true,false,false,false,0,0,Jett|Sova|Fade,2026-08-03,https://www.vlr.gg/player/13784/killua/,2026-08-03T00:00:00.000Z,approved
+JitBoyS,jitboys|Jittana Nokngam,TH,southeast_asia,pacific,sentinel,FULL SENSE,true,false,false,false,0,0,Killjoy|Cypher|Omen,2026-08-03,https://www.vlr.gg/player/13788/jitboys/,2026-08-03T00:00:00.000Z,approved
+primmie,primmie|Papaphat Sriprapha,TH,southeast_asia,pacific,duelist,FULL SENSE,true,false,false,false,0,0,Jett|Yoru|Deadlock,2026-08-03,https://www.vlr.gg/player/25255/primmie/,2026-08-03T00:00:00.000Z,approved
+seph1roth,seph1roth|Chinnakrit Phoojaroen,TH,southeast_asia,pacific,controller,FULL SENSE,true,false,false,false,0,0,Omen|Viper|Jett,2026-08-03,https://www.vlr.gg/player/27244/seph1roth/,2026-08-03T00:00:00.000Z,approved
+Autumn,autumn|Kale Dunne,AU,oceania,pacific,flex,Global Esports,true,false,false,false,0,0,Jett|Cypher|Chamber,2026-08-03,https://www.vlr.gg/player/872/autumn/,2026-08-03T00:00:00.000Z,approved
+UdoTan,udotan|Go Kyung-won (고경원),KR,east_asia,pacific,duelist,Global Esports,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/4428/udotan/,2026-08-03T00:00:00.000Z,approved
+Kr1stal,kr1stal|Savva Fedorov,RU,eastern_europe,pacific,initiator,Global Esports,true,false,false,false,0,0,Sova|Fade|Jett,2026-08-03,https://www.vlr.gg/player/5796/kr1stal/,2026-08-03T00:00:00.000Z,approved
+xavi8k,xavi8k|Xavier Juan,PH,southeast_asia,pacific,initiator,Global Esports,true,false,false,false,0,0,Breach|Sova|Raze,2026-08-03,https://www.vlr.gg/player/7754/xavi8k/,2026-08-03T00:00:00.000Z,approved
+PatMen,patmen|Patrick Mendoza,PH,southeast_asia,pacific,flex,Global Esports,true,false,false,false,0,0,Fade|Viper|Killjoy,2026-08-03,https://www.vlr.gg/player/13744/patmen/,2026-08-03T00:00:00.000Z,approved
+BuZz,buzz|Yu Byeong-cheol (유병철),KR,east_asia,pacific,duelist,T1,true,false,false,false,0,0,Jett|Raze|Neon,2026-08-03,https://www.vlr.gg/player/804/buzz/,2026-08-03T00:00:00.000Z,approved
+Munchkin,munchkin|Byeon Sang-beom (변상범),KR,east_asia,pacific,flex,T1,true,false,false,false,0,0,Viper|KAY/O|Killjoy,2026-08-03,https://www.vlr.gg/player/2489/munchkin/,2026-08-03T00:00:00.000Z,approved
+iZu,izu|Ham Woo-ju (함우주),KR,east_asia,pacific,duelist,T1,true,false,false,false,0,0,Yoru|Jett|Sova,2026-08-03,https://www.vlr.gg/player/29833/izu/,2026-08-03T00:00:00.000Z,approved
+DH,dh|Kang Dong-ho (강동호),KR,east_asia,pacific,controller,T1,true,false,false,false,0,0,Omen|Cypher|Viper,2026-08-03,https://www.vlr.gg/player/43057/dh/,2026-08-03T00:00:00.000Z,approved
+Sylvan,sylvan|Go Young-sup (고영섭),KR,east_asia,pacific,controller,Team Secret,true,false,false,false,0,0,Omen|Astra|Brimstone,2026-08-03,https://www.vlr.gg/player/4056/sylvan/,2026-08-03T00:00:00.000Z,approved
+natz,natz|Jonathan Adiputra,ID,southeast_asia,pacific,sentinel,Team Secret,true,false,false,false,0,0,Cypher|Omen|Chamber,2026-08-03,https://www.vlr.gg/player/7049/natz/,2026-08-03T00:00:00.000Z,approved
+skye,skye|Felipe Skye Lim,SG,southeast_asia,pacific,controller,Team Secret,true,false,false,false,0,0,Omen|Viper|Brimstone,2026-08-03,https://www.vlr.gg/player/7416/skye/,2026-08-03T00:00:00.000Z,approved
+kellyS,kellys|Kelly Sedillo,PH,southeast_asia,pacific,duelist,Team Secret,true,false,false,false,0,0,Raze|KAY/O|Jett,2026-08-03,https://www.vlr.gg/player/7437/kellys/,2026-08-03T00:00:00.000Z,approved
+STYRON,styron|Tidus Goh,SG,southeast_asia,pacific,initiator,Team Secret,true,false,false,false,0,0,Sova|Fade|Skye,2026-08-03,https://www.vlr.gg/player/11704/styron/,2026-08-03T00:00:00.000Z,approved
+Zeus,zeus|Jhian Vega,PH,southeast_asia,pacific,duelist,Team Secret,true,false,false,false,0,0,Neon|Jett|Raze,2026-08-03,https://www.vlr.gg/player/46135/zeus/,2026-08-03T00:00:00.000Z,approved
+eKo,eko|Yeom Wang-ryong (염왕룡),KR,east_asia,pacific,initiator,ZETA DIVISION,true,false,false,false,0,0,Sova|Neon|Fade,2026-08-03,https://www.vlr.gg/player/1960/eko/,2026-08-03T00:00:00.000Z,approved
+SugarZ3ro,sugarz3ro|Shota Watanabe,JP,east_asia,pacific,controller,ZETA DIVISION,true,false,false,false,0,0,Omen|Astra|Viper,2026-08-03,https://www.vlr.gg/player/6668/sugarz3ro/,2026-08-03T00:00:00.000Z,approved
+SyouTa,syouta|Shota Aoki,JP,east_asia,pacific,controller,ZETA DIVISION,true,false,false,false,0,0,Astra|Viper|Cypher,2026-08-03,https://www.vlr.gg/player/12990/syouta/,2026-08-03T00:00:00.000Z,approved
+Xdll,xdll|Yuto Mizomori,JP,east_asia,pacific,initiator,ZETA DIVISION,true,false,false,false,0,0,Sova|Fade|Sage,2026-08-03,https://www.vlr.gg/player/25221/xdll/,2026-08-03T00:00:00.000Z,approved
+Absol,absol|Kazuki Fujinoki,JP,east_asia,pacific,duelist,ZETA DIVISION,true,false,false,false,0,0,Jett|Neon|Yoru,2026-08-03,https://www.vlr.gg/player/34776/absol/,2026-08-03T00:00:00.000Z,approved
+C1ndeR,c1nder|Ko Jae-hyuk (고재혁),KR,east_asia,pacific,flex,VARREL,true,false,false,false,0,0,Omen|Raze|Breach,2026-08-03,https://www.vlr.gg/player/2149/c1nder/,2026-08-03T00:00:00.000Z,approved
+Klaus,klaus|Kim Min-hyuk (김민혁),KR,east_asia,pacific,sentinel,VARREL,true,false,false,false,0,0,Cypher|Vyse|Waylay,2026-08-03,https://www.vlr.gg/player/4426/klaus/,2026-08-03T00:00:00.000Z,approved
+Foxy9,foxy9|Jung Jae-sung (정재성),KR,east_asia,pacific,sentinel,VARREL,true,false,false,false,0,0,Killjoy|Jett|Cypher,2026-08-03,https://www.vlr.gg/player/11600/foxy9/,2026-08-03T00:00:00.000Z,approved
+oonzmlp,oonzmlp|Shin Sang-beom (신상범),KR,east_asia,pacific,controller,VARREL,true,false,false,false,0,0,Omen|Viper|Cypher,2026-08-03,https://www.vlr.gg/player/34926/oonzmlp/,2026-08-03T00:00:00.000Z,approved
+Zexy,zexy|Jang Suk-hyun (장석현),KR,east_asia,pacific,duelist,VARREL,true,false,false,false,0,0,Jett|Neon|Raze,2026-08-03,https://www.vlr.gg/player/37532/zexy/,2026-08-03T00:00:00.000Z,approved
+XuNa,xuna|Kim Tae-geon (김태건),KR,east_asia,pacific,initiator,VARREL,true,false,false,false,0,0,Sova|Fade|Tejo,2026-08-03,https://www.vlr.gg/player/42733/xuna/,2026-08-03T00:00:00.000Z,approved
+Rb,rb|Goo Sang-min (구상민),KR,east_asia,pacific,duelist,Nongshim RedForce,true,false,false,false,0,0,Jett|Raze|Omen,2026-08-03,https://www.vlr.gg/player/488/rb/,2026-08-03T00:00:00.000Z,approved
+Dambi,dambi|Lee Hyuk-kyu (이혁규),KR,east_asia,pacific,duelist,Nongshim RedForce,true,false,false,false,0,0,Neon|Raze|Waylay,2026-08-03,https://www.vlr.gg/player/31827/dambi/,2026-08-03T00:00:00.000Z,approved
+Francis,francis|Kim Mu-bin (김무빈),KR,east_asia,pacific,flex,Nongshim RedForce,true,false,false,false,0,0,Yoru|Sova|Fade,2026-08-03,https://www.vlr.gg/player/31828/francis/,2026-08-03T00:00:00.000Z,approved
+Ivy,ivy|Park Sung-hyeon (박성현),KR,east_asia,pacific,flex,Nongshim RedForce,true,false,false,false,0,0,Viper|Sova|Deadlock,2026-08-03,https://www.vlr.gg/player/31829/ivy/,2026-08-03T00:00:00.000Z,approved
+Xross,xross|Jeonghwan (정환),KR,east_asia,pacific,duelist,Nongshim RedForce,true,false,false,false,0,0,Yoru|Phoenix|Fade,2026-08-03,https://www.vlr.gg/player/42772/xross/,2026-08-03T00:00:00.000Z,approved

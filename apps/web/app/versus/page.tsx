@@ -158,14 +158,14 @@ export default function VersusPage() {
     run("room:create", {
       maxPlayers: 2,
       roundCount: 1,
-      roundDurationSeconds: 60,
+      roundDurationSeconds: 300,
     });
   const join = () => run("room:join", { code: joinCode.trim().toUpperCase() });
   const match = async () => {
     const reply = await run("match:join", {
       maxPlayers: 2,
       roundCount: 1,
-      roundDurationSeconds: 60,
+      roundDurationSeconds: 300,
     });
     if (reply?.waiting) setWaiting(true);
   };
@@ -173,7 +173,7 @@ export default function VersusPage() {
     await run("match:cancel", {
       maxPlayers: 2,
       roundCount: 1,
-      roundDurationSeconds: 60,
+      roundDurationSeconds: 300,
     });
     setWaiting(false);
   };
@@ -205,7 +205,7 @@ export default function VersusPage() {
           className="text-button header-link"
           onClick={() => leaveLobby("/")}
         >
-          VALO 一把
+          康一把
         </button>
         <a href="/solo">单人对战</a>
       </header>

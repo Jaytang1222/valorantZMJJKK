@@ -10,6 +10,7 @@ type Player = {
   primaryRole: string;
   currentOrLastTeam: string;
   dataAsOf: string;
+  aliases?: string[];
 };
 export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -24,7 +25,7 @@ export default function PlayersPage() {
   const results = useMemo(
     () =>
       players.filter((player) =>
-        `${player.canonicalName} ${player.countryCode} ${player.region} ${player.primaryRole} ${player.currentOrLastTeam}`
+        `${player.canonicalName} ${(player.aliases ?? []).join(" ")} ${player.countryCode} ${player.region} ${player.primaryRole} ${player.currentOrLastTeam}`
           .toLowerCase()
           .includes(query.trim().toLowerCase()),
       ),
@@ -33,7 +34,7 @@ export default function PlayersPage() {
   return (
     <main className="game-shell">
       <header className="game-header">
-        <a href="/">VALO 一把</a>
+        <a href="/">康一把</a>
         <a href="/solo">单人对战</a>
       </header>
       <section className="game-intro">
@@ -51,6 +52,7 @@ export default function PlayersPage() {
           />
         </label>
         {error && <p className="form-error">{error}</p>}
+        {!error && <p className="results-count">共 {results.length} 名选手</p>}
         <div className="player-results">
           {results.map((player) => (
             <article key={player.id}>

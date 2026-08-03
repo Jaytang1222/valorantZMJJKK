@@ -41,7 +41,7 @@ function createRoom() {
     isMatchmade: false,
     maxPlayers: 2,
     roundCount: 1,
-    roundDurationSeconds: 60,
+    roundDurationSeconds: 300,
     host,
   });
 }
@@ -131,7 +131,7 @@ describe("room state", () => {
         isMatchmade: false,
         maxPlayers: 3,
         roundCount: 1,
-        roundDurationSeconds: 60,
+        roundDurationSeconds: 300,
         host,
       }),
     ).toThrow("exactly two players");
@@ -144,7 +144,7 @@ describe("room state", () => {
         isMatchmade: false,
         maxPlayers: 2,
         roundCount: 3,
-        roundDurationSeconds: 60,
+        roundDurationSeconds: 300,
         host,
       }),
     ).toThrow("BO1 only");

@@ -13,7 +13,12 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
+export const userRoleEnum = pgEnum("user_role", [
+  "user",
+  "editor",
+  "moderator",
+  "admin",
+]);
 export const reviewStatusEnum = pgEnum("review_status", [
   "pending_review",
   "approved",
@@ -32,6 +37,7 @@ export const playerRoleEnum = pgEnum("player_role", [
   "controller",
   "sentinel",
   "flex",
+  "coach",
 ]);
 export const difficultyEnum = pgEnum("difficulty", [
   "beginner",
@@ -61,6 +67,16 @@ export const participantStateEnum = pgEnum("participant_state", [
 export const leaderboardModeEnum = pgEnum("leaderboard_mode", [
   "solo",
   "versus",
+]);
+export const reportStatusEnum = pgEnum("report_status", [
+  "open",
+  "resolved",
+  "dismissed",
+]);
+export const moderationActionEnum = pgEnum("moderation_action", [
+  "hide_leaderboard",
+  "void_scores",
+  "restrict_account",
 ]);
 
 export const users = pgTable(
@@ -161,6 +177,10 @@ export const playerSnapshots = pgTable(
     currentOrLastTeam: varchar("current_or_last_team", {
       length: 128,
     }).notNull(),
+    isActiveRoster: boolean("is_active_roster").notNull().default(true),
+    isCoach: boolean("is_coach").notNull().default(false),
+    isFeaturedTeam: boolean("is_featured_team").notNull().default(false),
+    isVctCnTeam: boolean("is_vct_cn_team").notNull().default(false),
     championsTitles: integer("champions_titles").notNull().default(0),
     mastersTitles: integer("masters_titles").notNull().default(0),
     heroTop3: jsonb("hero_top_3").$type<[string, string, string]>().notNull(),
@@ -240,10 +260,11 @@ export const rooms = pgTable(
     state: roomStateEnum("state").notNull().default("lobby"),
     isPublic: boolean("is_public").notNull().default(false),
     isMatchmade: boolean("is_matchmade").notNull().default(false),
+    rankedEligible: boolean("ranked_eligible").notNull().default(false),
     roundCount: integer("round_count").notNull().default(1),
     roundDurationSeconds: integer("round_duration_seconds")
       .notNull()
-      .default(60),
+      .default(300),
     currentRound: integer("current_round").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -258,6 +279,10 @@ export const rooms = pgTable(
   (table) => [
     uniqueIndex("rooms_code_unique").on(table.code),
     index("rooms_state_public_idx").on(table.state, table.isPublic),
+    index("rooms_ranked_eligible_idx").on(
+      table.rankedEligible,
+      table.finishedAt,
+    ),
   ],
 );
 
@@ -367,6 +392,80 @@ export const leaderboardEntries = pgTable(
       table.mode,
       table.totalScore,
     ),
+  ],
+);
+
+export const contentReports = pgTable(
+  "content_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    reporterUserId: uuid("reporter_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    category: varchar("category", { length: 32 }).notNull(),
+    subject: varchar("subject", { length: 128 }).notNull(),
+    details: text("details").notNull(),
+    status: reportStatusEnum("status").notNull().default("open"),
+    reviewerUserId: uuid("reviewer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    resolution: text("resolution"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("content_reports_status_created_idx").on(
+      table.status,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const moderationActions = pgTable(
+  "moderation_actions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    targetUserId: uuid("target_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: moderationActionEnum("action").notNull(),
+    reason: text("reason").notNull(),
+    active: boolean("active").notNull().default(true),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("moderation_actions_target_active_idx").on(
+      table.targetUserId,
+      table.active,
+    ),
+  ],
+);
+
+export const adminAuditLogs = pgTable(
+  "admin_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    action: varchar("action", { length: 64 }).notNull(),
+    entityType: varchar("entity_type", { length: 64 }).notNull(),
+    entityId: varchar("entity_id", { length: 128 }).notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("admin_audit_logs_entity_idx").on(table.entityType, table.entityId),
   ],
 );
 

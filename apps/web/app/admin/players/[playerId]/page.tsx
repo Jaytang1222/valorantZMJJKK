@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPlayerDetails } from "../../../../lib/admin-api";
+import { requireAdminCapability } from "../../../../lib/admin-operator";
 import {
   addAliasAction,
   createPlayerAction,
@@ -10,6 +11,7 @@ import {
 type PageProps = { params: Promise<{ playerId: string }> };
 
 export default async function PlayerPage({ params }: PageProps) {
+  await requireAdminCapability("content");
   const player = await getPlayerDetails((await params).playerId);
   return (
     <main className="admin-shell">

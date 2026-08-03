@@ -96,63 +96,71 @@ async function defaultName() {
 }
 
 export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/v1/auth/register", async (request, reply) => {
-    if (!env.PASSWORD_PEPPER)
-      return reply.serviceUnavailable(
-        "Password registration is not configured",
-      );
-    const input = credentialsSchema.parse(request.body);
-    const email = normalize(input.email);
-    const [existing] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.normalizedEmail, email))
-      .limit(1);
-    if (existing) return reply.conflict("This email is already registered");
-    const displayName = await defaultName();
-    const passwordHash = await argon2.hash(
-      `${input.password}${env.PASSWORD_PEPPER}`,
-      { type: argon2.argon2id },
-    );
-    const [user] = await db
-      .insert(users)
-      .values({
-        displayName,
-        normalizedDisplayName: normalize(displayName),
-        email: input.email.trim(),
-        normalizedEmail: email,
-        passwordHash,
-      })
-      .returning({ id: users.id, displayName: users.displayName });
-    return reply.status(201).send({ user, session: sessionFor(user.id) });
-  });
-
-  app.post("/v1/auth/login", async (request, reply) => {
-    if (!env.PASSWORD_PEPPER)
-      return reply.serviceUnavailable("Password login is not configured");
-    const input = credentialsSchema.parse(request.body);
-    const [user] = await db
-      .select({
-        id: users.id,
-        displayName: users.displayName,
-        passwordHash: users.passwordHash,
-      })
-      .from(users)
-      .where(eq(users.normalizedEmail, normalize(input.email)))
-      .limit(1);
-    if (
-      !user?.passwordHash ||
-      !(await argon2.verify(
-        user.passwordHash,
+  app.post(
+    "/v1/auth/register",
+    { config: { rateLimit: { max: 5, timeWindow: "1 hour" } } },
+    async (request, reply) => {
+      if (!env.PASSWORD_PEPPER)
+        return reply.serviceUnavailable(
+          "Password registration is not configured",
+        );
+      const input = credentialsSchema.parse(request.body);
+      const email = normalize(input.email);
+      const [existing] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.normalizedEmail, email))
+        .limit(1);
+      if (existing) return reply.conflict("This email is already registered");
+      const displayName = await defaultName();
+      const passwordHash = await argon2.hash(
         `${input.password}${env.PASSWORD_PEPPER}`,
-      ))
-    )
-      return reply.unauthorized("Invalid email or password");
-    return {
-      user: { id: user.id, displayName: user.displayName },
-      session: sessionFor(user.id),
-    };
-  });
+        { type: argon2.argon2id },
+      );
+      const [user] = await db
+        .insert(users)
+        .values({
+          displayName,
+          normalizedDisplayName: normalize(displayName),
+          email: input.email.trim(),
+          normalizedEmail: email,
+          passwordHash,
+        })
+        .returning({ id: users.id, displayName: users.displayName });
+      return reply.status(201).send({ user, session: sessionFor(user.id) });
+    },
+  );
+
+  app.post(
+    "/v1/auth/login",
+    { config: { rateLimit: { max: 10, timeWindow: "15 minutes" } } },
+    async (request, reply) => {
+      if (!env.PASSWORD_PEPPER)
+        return reply.serviceUnavailable("Password login is not configured");
+      const input = credentialsSchema.parse(request.body);
+      const [user] = await db
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          passwordHash: users.passwordHash,
+        })
+        .from(users)
+        .where(eq(users.normalizedEmail, normalize(input.email)))
+        .limit(1);
+      if (
+        !user?.passwordHash ||
+        !(await argon2.verify(
+          user.passwordHash,
+          `${input.password}${env.PASSWORD_PEPPER}`,
+        ))
+      )
+        return reply.unauthorized("Invalid email or password");
+      return {
+        user: { id: user.id, displayName: user.displayName },
+        session: sessionFor(user.id),
+      };
+    },
+  );
 
   app.get("/v1/auth/me", async (request, reply) => {
     const userId = verifySession(
@@ -164,6 +172,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
         id: users.id,
         displayName: users.displayName,
         email: users.email,
+        role: users.role,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -172,11 +181,15 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     return { user };
   });
 
-  app.post("/v1/auth/realtime-ticket", async (request, reply) => {
-    const userId = verifySession(
-      request.headers.authorization?.replace(/^Bearer\s+/i, ""),
-    );
-    if (!userId) return reply.unauthorized("Authentication is required");
-    return { ticket: signedToken(userId, 5 * 60 * 1000, "realtime") };
-  });
+  app.post(
+    "/v1/auth/realtime-ticket",
+    { config: { rateLimit: { max: 30, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      const userId = verifySession(
+        request.headers.authorization?.replace(/^Bearer\s+/i, ""),
+      );
+      if (!userId) return reply.unauthorized("Authentication is required");
+      return { ticket: signedToken(userId, 5 * 60 * 1000, "realtime") };
+    },
+  );
 }

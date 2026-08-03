@@ -3,7 +3,7 @@ import { seedInitialPlayerData } from "../services/initial-seed.js";
 
 try {
   const count = await seedInitialPlayerData(process.argv[2]);
-  console.info(`Seeded ${count} player drafts.`);
+  console.info(`Synchronized ${count} approved player records from CSV.`);
 } finally {
   await closeDatabase();
 }

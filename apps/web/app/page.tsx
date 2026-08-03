@@ -19,40 +19,62 @@ export default async function HomePage() {
   const apiStatus = await getApiStatus();
 
   return (
-    <main>
+    <main className="home-page">
       <section className="hero">
-        <p className="eyebrow">VALORANT PRO PLAYER GUESSING GAME</p>
-        <h1>VALO 一把</h1>
-        <p className="lead">
-          根据赛区、国籍、位置、战队与赛事成就，猜出这位职业选手。
-        </p>
-        <div className="status" data-online={apiStatus === "online"}>
-          API {apiStatus === "online" ? "已连接" : "未连接"}
+        <div className="hero-reticle" aria-hidden="true" />
+        <div className="hero-copy">
+          <p className="eyebrow">VALORANT // PLAYER INTEL</p>
+          <h1>康一把</h1>
+          <p className="lead">从职业选手的赛区、位置与战队履历中锁定答案。</p>
+          <div className="status" data-online={apiStatus === "online"}>
+            <span aria-hidden="true" />
+            {apiStatus === "online" ? "服务在线" : "服务离线"}
+          </div>
+        </div>
+        <div className="hero-readout" aria-hidden="true">
+          <span>08</span>
+          <i />
+          <span>GUESSES</span>
+          <i />
+          <span>LIVE</span>
         </div>
       </section>
-      <section className="entries" aria-label="产品入口">
-        <article>
-          <h2>单人对战</h2>
-          <p>入门、简单、完整三种难度；每局 8 次猜测机会。</p>
-          <a className="entry-button" href="/solo">
-            开始单人对战
-          </a>
-        </article>
-        <article>
-          <h2>联机对战</h2>
-          <p>在线匹配，或通过固定 6 位邀请码与好友开房。</p>
-          <a className="entry-button" href="/versus">
-            进入联机对战
-          </a>
-        </article>
-        <article>
-          <h2>查选手</h2>
-          <p>按赛区、国籍、位置和战队检索已审核的公开资料。</p>
-          <a className="entry-button" href="/players">
-            查找选手
-          </a>
-        </article>
+      <section className="entries" aria-label="游戏入口">
+        <a className="entry-card solo-entry" href="/solo">
+          <span className="entry-icon">
+            <Crosshair aria-hidden="true" size={28} />
+          </span>
+          <span className="entry-kicker">SOLO</span>
+          <strong>单人对战</strong>
+          <small>三档题库 · 8 次机会</small>
+          <span className="entry-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </a>
+        <a className="entry-card versus-entry-card" href="/versus">
+          <span className="entry-icon">
+            <Swords aria-hidden="true" size={28} />
+          </span>
+          <span className="entry-kicker">VERSUS</span>
+          <strong>联机对战</strong>
+          <small>匹配或 6 位邀请码</small>
+          <span className="entry-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </a>
+        <a className="entry-card directory-entry" href="/players">
+          <span className="entry-icon">
+            <UsersRound aria-hidden="true" size={28} />
+          </span>
+          <span className="entry-kicker">DIRECTORY</span>
+          <strong>查选手</strong>
+          <small>浏览已审核公开资料</small>
+          <span className="entry-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </a>
       </section>
     </main>
   );
 }
+import { Crosshair, Swords, UsersRound } from "lucide-react";

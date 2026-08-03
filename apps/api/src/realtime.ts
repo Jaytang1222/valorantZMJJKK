@@ -29,6 +29,7 @@ import {
 import {
   acquireMatchLock,
   acquireRoomLock,
+  archiveFinishedRoom,
   cancelMatch,
   deleteRoom,
   enqueueMatch,
@@ -38,6 +39,7 @@ import {
   type QueueEntry,
 } from "./services/room-store.js";
 import { compareSoloGuess } from "./lib/solo-comparison.js";
+import { findVersusEligibleSnapshot } from "./services/puzzle-selection.js";
 
 const FINISHED_ROOM_TTL_MS = 120_000;
 
@@ -105,6 +107,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
 
   const disposeIfEmpty = async (room: LiveRoom) => {
     if (hasActiveMembership(room)) return false;
+    if (room.phase === "finished") {
+      emitClosed(room);
+      await archiveFinishedRoom(room);
+      return true;
+    }
     cancelRoom(room);
     await saveRoom(room);
     emitClosed(room);
@@ -119,10 +126,8 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         release = await acquireRoomLock(code);
         const room = await loadRoom(code);
         if (!room || room.phase !== "finished") return;
-        cancelRoom(room);
-        await saveRoom(room);
         emitClosed(room);
-        await deleteRoom(code);
+        await archiveFinishedRoom(room);
       } finally {
         await release?.();
       }
@@ -182,18 +187,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       return user;
     };
     const pickTarget = async () => {
-      const [target] = await db
-        .select({ playerId: players.id, snapshotId: playerSnapshots.id })
-        .from(players)
-        .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
-        .where(
-          and(
-            eq(players.status, "active"),
-            eq(playerSnapshots.reviewStatus, "approved"),
-          ),
-        )
-        .orderBy(sql`random()`)
-        .limit(1);
+      const target = await findVersusEligibleSnapshot();
       if (!target) throw new Error("No approved puzzle is available");
       let [puzzle] = await db
         .select({ id: puzzles.id })
@@ -210,7 +204,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           .insert(puzzles)
           .values({
             snapshotId: target.snapshotId,
-            difficulty: "full",
+            difficulty: target.difficulty,
             status: "approved",
           })
           .returning({ id: puzzles.id });
@@ -248,7 +242,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           isMatchmade: false,
           maxPlayers: Number(input?.maxPlayers ?? 2),
           roundCount: Number(input?.roundCount ?? 1),
-          roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60),
+          roundDurationSeconds: Number(input?.roundDurationSeconds ?? 300),
           host: {
             userId,
             displayName: user.displayName,
@@ -278,10 +272,10 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       try {
         const maxPlayers = Number(input?.maxPlayers ?? 2);
         const roundCount = Number(input?.roundCount ?? 1);
-        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 300);
         if (maxPlayers !== 2 || roundCount !== 1)
           throw new Error("Matchmaking supports two-player BO1 only");
-        if (![30, 60, 90].includes(roundDurationSeconds))
+        if (roundDurationSeconds !== 300)
           throw new Error("Round duration is unavailable");
         const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;
         const user = await getUser();
@@ -371,11 +365,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       try {
         const maxPlayers = Number(input?.maxPlayers ?? 2);
         const roundCount = Number(input?.roundCount ?? 1);
-        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 300);
         if (
           maxPlayers !== 2 ||
           roundCount !== 1 ||
-          ![30, 60, 90].includes(roundDurationSeconds)
+          roundDurationSeconds !== 300
         )
           throw new Error("Matchmaking settings are unavailable");
         const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;
