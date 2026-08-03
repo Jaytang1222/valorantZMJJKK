@@ -74,6 +74,13 @@ function parseCsvPlayers(csv: string) {
       region: row.region,
       primaryRole: row.primary_role,
       currentOrLastTeam: row.current_or_last_team,
+      isActiveRoster:
+        row.is_active_roster === undefined
+          ? true
+          : row.is_active_roster === "true",
+      isCoach: row.is_coach === "true",
+      isFeaturedTeam: row.is_featured_team === "true",
+      isVctCnTeam: row.is_vct_cn_team === "true",
       championsTitles: Number(row.champions_titles),
       mastersTitles: Number(row.masters_titles),
       heroTop3: row.hero_top_3?.split("|"),

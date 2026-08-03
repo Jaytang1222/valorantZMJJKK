@@ -39,6 +39,7 @@ import {
   type QueueEntry,
 } from "./services/room-store.js";
 import { compareSoloGuess } from "./lib/solo-comparison.js";
+import { findVersusEligibleSnapshot } from "./services/puzzle-selection.js";
 
 const FINISHED_ROOM_TTL_MS = 120_000;
 
@@ -186,18 +187,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       return user;
     };
     const pickTarget = async () => {
-      const [target] = await db
-        .select({ playerId: players.id, snapshotId: playerSnapshots.id })
-        .from(players)
-        .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
-        .where(
-          and(
-            eq(players.status, "active"),
-            eq(playerSnapshots.reviewStatus, "approved"),
-          ),
-        )
-        .orderBy(sql`random()`)
-        .limit(1);
+      const target = await findVersusEligibleSnapshot();
       if (!target) throw new Error("No approved puzzle is available");
       let [puzzle] = await db
         .select({ id: puzzles.id })
@@ -214,7 +204,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           .insert(puzzles)
           .values({
             snapshotId: target.snapshotId,
-            difficulty: "full",
+            difficulty: target.difficulty,
             status: "approved",
           })
           .returning({ id: puzzles.id });

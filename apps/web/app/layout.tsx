@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CircleUserRound, Trophy } from "lucide-react";
 import "./styles.css";
 
 export const metadata: Metadata = {
@@ -15,11 +16,18 @@ export default function RootLayout({
         <nav className="site-nav" aria-label="主导航">
           <div className="site-nav-inner">
             <a className="site-brand" href="/">
-              瓦一把
+              <span className="brand-mark" aria-hidden="true">
+                V
+              </span>
+              <span>瓦一把</span>
             </a>
-            <div>
-              <a href="/leaderboards">排行榜</a>
-              <a href="/account">我的战绩</a>
+            <div className="site-nav-tools">
+              <a href="/leaderboards" aria-label="排行榜" title="排行榜">
+                <Trophy aria-hidden="true" size={18} />
+              </a>
+              <a href="/account" aria-label="我的战绩" title="我的战绩">
+                <CircleUserRound aria-hidden="true" size={19} />
+              </a>
             </div>
           </div>
         </nav>

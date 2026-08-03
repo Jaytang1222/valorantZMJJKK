@@ -37,6 +37,7 @@ export const playerRoleEnum = pgEnum("player_role", [
   "controller",
   "sentinel",
   "flex",
+  "coach",
 ]);
 export const difficultyEnum = pgEnum("difficulty", [
   "beginner",
@@ -176,6 +177,10 @@ export const playerSnapshots = pgTable(
     currentOrLastTeam: varchar("current_or_last_team", {
       length: 128,
     }).notNull(),
+    isActiveRoster: boolean("is_active_roster").notNull().default(true),
+    isCoach: boolean("is_coach").notNull().default(false),
+    isFeaturedTeam: boolean("is_featured_team").notNull().default(false),
+    isVctCnTeam: boolean("is_vct_cn_team").notNull().default(false),
     championsTitles: integer("champions_titles").notNull().default(0),
     mastersTitles: integer("masters_titles").notNull().default(0),
     heroTop3: jsonb("hero_top_3").$type<[string, string, string]>().notNull(),

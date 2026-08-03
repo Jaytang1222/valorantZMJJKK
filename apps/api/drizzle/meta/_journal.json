@@ -43,6 +43,13 @@
       "when": 1785651684095,
       "tag": "0005_wooden_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785728591029,
+      "tag": "0006_zippy_agent_brand",
+      "breakpoints": true
     }
   ]
 }

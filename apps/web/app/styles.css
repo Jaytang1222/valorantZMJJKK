@@ -690,6 +690,576 @@ button {
   }
 }
 
+/* M4 visual system: Valorant-inspired, angular and information-dense. */
+:root {
+  color-scheme: dark;
+  background: #0f1923;
+  color: #ece8e1;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #0f1923;
+}
+
+body::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  border: 1px solid #26323d;
+  content: "";
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.site-nav {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  border-color: #36434e;
+  background: #0f1923;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 22%);
+}
+
+.site-nav-inner {
+  width: min(1240px, calc(100% - 40px));
+  min-height: 64px;
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #ece8e1 !important;
+  font-size: 1rem;
+}
+
+.brand-mark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #ff4655;
+  background: #ff4655;
+  color: #0f1923;
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.site-nav-tools {
+  align-items: center;
+}
+
+.site-nav-tools a {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid transparent;
+  color: #aab6bf;
+}
+
+.site-nav-tools a:hover,
+.site-nav-tools a:focus-visible {
+  border-color: #ff4655;
+  color: #ece8e1;
+  outline: none;
+}
+
+.site-footer {
+  width: min(1240px, calc(100% - 40px));
+  margin: 0 auto;
+  justify-content: flex-start;
+  border-top: 1px solid #36434e;
+  color: #7f8b95;
+}
+
+.site-footer a,
+.legal-page a,
+.text-link,
+.back-link {
+  color: #7fe7dc;
+}
+
+main,
+.game-shell,
+.auth-page,
+.match-shell,
+.admin-shell {
+  width: min(1240px, calc(100% - 40px));
+}
+
+main {
+  padding: 56px 0 72px;
+}
+
+.home-page {
+  padding-top: 32px;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  min-height: 390px;
+  max-width: none;
+  align-items: flex-end;
+  justify-content: space-between;
+  overflow: hidden;
+  border: 1px solid #46525d;
+  background: #151f29;
+  padding: 44px;
+}
+
+.hero::before,
+.hero::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.hero::before {
+  top: 24px;
+  right: 24px;
+  bottom: 24px;
+  width: 38%;
+  border: 1px solid #ff4655;
+  border-left-width: 0;
+  opacity: 0.7;
+}
+
+.hero::after {
+  top: 58px;
+  right: 58px;
+  width: 35%;
+  height: 1px;
+  background: #7fe7dc;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  width: min(610px, 66%);
+}
+
+.hero h1 {
+  max-width: 520px;
+  font-size: clamp(3.8rem, 9vw, 7.2rem);
+  line-height: 0.94;
+}
+
+.eyebrow {
+  color: #ff4655;
+  letter-spacing: 0.1em;
+}
+
+.lead {
+  max-width: 500px;
+  color: #c8d0d2;
+  line-height: 1.65;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #46525d;
+  border-radius: 0;
+  background: #101820;
+  padding: 8px 10px;
+  color: #aab6bf;
+}
+
+.status span {
+  width: 7px;
+  height: 7px;
+  background: #ff4655;
+}
+
+.status[data-online="true"] span {
+  background: #7fe7dc;
+}
+
+.hero-reticle {
+  position: absolute;
+  top: 50%;
+  right: 13%;
+  width: 130px;
+  height: 130px;
+  transform: translateY(-50%);
+  border: 1px solid #7fe7dc;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.hero-reticle::before,
+.hero-reticle::after {
+  position: absolute;
+  top: 50%;
+  left: -25px;
+  width: 180px;
+  height: 1px;
+  background: #7fe7dc;
+  content: "";
+}
+
+.hero-reticle::after {
+  transform: rotate(90deg);
+}
+
+.hero-readout {
+  position: absolute;
+  z-index: 1;
+  right: 44px;
+  bottom: 34px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #7f8b95;
+  font-family: "Courier New", monospace;
+  font-size: 0.7rem;
+}
+
+.hero-readout i {
+  width: 16px;
+  height: 1px;
+  background: #ff4655;
+}
+
+.entries {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.entry-card {
+  position: relative;
+  display: grid;
+  min-height: 230px;
+  align-content: end;
+  border: 1px solid #46525d;
+  background: #18232e;
+  padding: 24px;
+  color: #ece8e1;
+  text-decoration: none;
+}
+
+.entry-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: #ff4655;
+  content: "";
+}
+
+.entry-card:hover,
+.entry-card:focus-visible {
+  border-color: #ff4655;
+  background: #202d39;
+  outline: none;
+}
+
+.entry-icon {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  color: #ff4655;
+}
+
+.entry-kicker {
+  margin-bottom: 8px;
+  color: #7fe7dc;
+  font-family: "Courier New", monospace;
+  font-size: 0.7rem;
+}
+
+.entry-card strong {
+  font-size: 1.45rem;
+}
+
+.entry-card small {
+  margin-top: 7px;
+  color: #aab6bf;
+}
+
+.entry-arrow {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  color: #ff4655;
+  font-size: 1.35rem;
+}
+
+article,
+.guess-box,
+.result-panel,
+.auth-panel,
+.account-panel,
+.match-player-panel,
+.admin-login,
+.admin-create,
+.snapshot,
+.leaderboard-notice {
+  border-color: #46525d;
+  border-radius: 2px;
+  background: #18232e;
+}
+
+button,
+.entry-button,
+.difficulty-grid button,
+.submit-guess,
+.result-panel button,
+.auth-form button,
+.room-actions button,
+.versus-entry button,
+.guess-box .candidate {
+  min-height: 44px;
+  border-radius: 2px;
+  background: #ff4655;
+  color: #0f1923;
+  font-weight: 700;
+}
+
+button:hover:not(:disabled),
+.entry-button:hover,
+.difficulty-grid button:hover,
+.submit-guess:hover,
+.result-panel button:hover,
+.auth-form button:hover {
+  background: #ff6b76;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #7fe7dc;
+  outline-offset: 2px;
+}
+
+.secondary,
+.secondary-action,
+.surrender-button,
+.room-actions .secondary-action,
+.result-actions .secondary-action {
+  border-color: #63707b !important;
+  background: transparent !important;
+  color: #d8dedc !important;
+}
+
+.text-button,
+.opponent-profile-toggle {
+  width: auto;
+  color: #7fe7dc;
+}
+
+.game-intro {
+  margin: 38px 0 26px;
+}
+
+.game-intro h1,
+.leaderboard-header h1,
+.legal-page h1 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+}
+
+.difficulty-grid button {
+  align-items: flex-start;
+  border: 1px solid #46525d;
+  background: #18232e;
+  color: #ece8e1;
+}
+
+.difficulty-grid button::before {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #ff4655;
+  content: "";
+}
+
+.difficulty-grid button:hover {
+  border-color: #ff4655;
+  background: #202d39;
+}
+
+.guess-box input,
+.auth-form input,
+.player-directory input,
+.versus-entry input,
+.match-guess-control input,
+.report-form input,
+.report-form select,
+.report-form textarea,
+.admin-login input,
+.player-form input,
+.player-form select,
+.inline-form input {
+  border-color: #46525d;
+  border-radius: 2px;
+  background: #101820;
+}
+
+.candidate-list,
+.candidate-list button,
+.comparison-grid span,
+.feedback-row span,
+.opponent-profile-card {
+  border-radius: 2px;
+}
+
+.candidate-list button,
+.guess-box .candidate {
+  background: #202d39;
+  color: #ece8e1;
+}
+
+.candidate-list button:hover,
+.guess-box .candidate:hover {
+  background: #2b3945;
+}
+
+.comparison-grid span,
+.feedback-row span {
+  background: #4b2730;
+}
+
+.comparison-grid span[data-match="exact"],
+.comparison-grid span[data-match="equal"],
+.feedback-row span[data-match="exact"],
+.feedback-row span[data-match="equal"] {
+  background: #176b63;
+}
+
+.comparison-grid span[data-match="nearby"],
+.comparison-grid span[data-match="partial"],
+.feedback-row span[data-match="nearby"],
+.feedback-row span[data-match="partial"] {
+  background: #897137;
+}
+
+.comparison-grid span[data-match="higher"],
+.comparison-grid span[data-match="lower"],
+.feedback-row span[data-match="higher"],
+.feedback-row span[data-match="lower"] {
+  background: #355b77;
+}
+
+.player-results,
+.difficulty-grid {
+  gap: 12px;
+}
+
+.player-results article,
+.account-stats section,
+.recent-games,
+.versus-progress section {
+  position: relative;
+  border-color: #46525d;
+  border-radius: 2px;
+  background: #18232e;
+}
+
+.player-results article::before,
+.account-stats section::before,
+.recent-games::before,
+.versus-progress section::before {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  background: #ff4655;
+  content: "";
+}
+
+.match-shell {
+  padding-top: 24px;
+}
+
+.match-player-panel {
+  min-height: 540px;
+}
+
+.own-panel {
+  background: #18232e;
+}
+
+.opponent-panel {
+  background: #131d26;
+}
+
+.match-player-heading > strong,
+.result-panel p,
+.success-message {
+  color: #7fe7dc;
+}
+
+.disconnect-warning,
+.form-error {
+  color: #ff9a9f;
+}
+
+@media (max-width: 720px) {
+  .site-nav-inner,
+  main,
+  .game-shell,
+  .auth-page,
+  .match-shell,
+  .admin-shell,
+  .site-footer {
+    width: min(100% - 24px, 1240px);
+  }
+
+  .hero {
+    min-height: 430px;
+    padding: 28px;
+  }
+
+  .hero-copy {
+    width: 100%;
+  }
+
+  .hero h1 {
+    font-size: clamp(3.4rem, 20vw, 5.4rem);
+  }
+
+  .hero::before {
+    top: 18px;
+    right: 18px;
+    width: 50%;
+  }
+
+  .hero-reticle {
+    top: 32%;
+    right: 16%;
+    width: 86px;
+    height: 86px;
+  }
+
+  .hero-reticle::before {
+    left: -18px;
+    width: 120px;
+  }
+
+  .hero-readout {
+    right: 28px;
+    bottom: 25px;
+  }
+
+  .entries {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-card {
+    min-height: 180px;
+  }
+}
+
 .admin-shell {
   width: min(960px, calc(100% - 40px));
   margin: 0 auto;
