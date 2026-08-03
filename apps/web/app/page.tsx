@@ -74,7 +74,16 @@ export default async function HomePage() {
           </span>
         </a>
       </section>
+      <a
+        className="home-github"
+        href="https://github.com/Jaytang1222/valorantZMJJKK"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <GitFork aria-hidden="true" size={19} />
+        <span>如果觉得还行, 请点个 star :-)</span>
+      </a>
     </main>
   );
 }
-import { Crosshair, Swords, UsersRound } from "lucide-react";
+import { Crosshair, GitFork, Swords, UsersRound } from "lucide-react";
