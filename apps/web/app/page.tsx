@@ -24,7 +24,7 @@ export default async function HomePage() {
         <div className="hero-reticle" aria-hidden="true" />
         <div className="hero-copy">
           <p className="eyebrow">VALORANT // PLAYER INTEL</p>
-          <h1>瓦一把</h1>
+          <h1>康一把</h1>
           <p className="lead">从职业选手的赛区、位置与战队履历中锁定答案。</p>
           <div className="status" data-online={apiStatus === "online"}>
             <span aria-hidden="true" />

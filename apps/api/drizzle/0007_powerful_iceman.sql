@@ -1,0 +1,1 @@
+ALTER TABLE "rooms" ALTER COLUMN "round_duration_seconds" SET DEFAULT 300;

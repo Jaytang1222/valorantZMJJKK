@@ -112,7 +112,7 @@ testSuite("finished room persistence", () => {
       isMatchmade: true,
       maxPlayers: 2,
       roundCount: 1,
-      roundDurationSeconds: 60,
+      roundDurationSeconds: 300,
       host: {
         userId: hostId,
         displayName: "Host",

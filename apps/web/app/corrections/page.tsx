@@ -1,4 +1,4 @@
-export const metadata = { title: "资料更正 | VALO 一把" };
+export const metadata = { title: "资料更正 | 康一把" };
 
 export default function CorrectionsPage() {
   return (

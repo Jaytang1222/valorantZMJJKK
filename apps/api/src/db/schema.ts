@@ -264,7 +264,7 @@ export const rooms = pgTable(
     roundCount: integer("round_count").notNull().default(1),
     roundDurationSeconds: integer("round_duration_seconds")
       .notNull()
-      .default(60),
+      .default(300),
     currentRound: integer("current_round").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

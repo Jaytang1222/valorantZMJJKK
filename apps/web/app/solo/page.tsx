@@ -162,7 +162,7 @@ export default function SoloPage() {
   return (
     <main className="game-shell">
       <header className="game-header">
-        <a href="/">VALO 一把</a>
+        <a href="/">康一把</a>
         {displayName ? (
           <a href="/account">{displayName}</a>
         ) : (

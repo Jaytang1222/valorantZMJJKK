@@ -39,10 +39,29 @@ function eligibilityConditions(difficulty: Difficulty) {
 }
 
 export async function findRandomEligibleSnapshot(difficulty: Difficulty) {
+  const latestApprovedSnapshots = db
+    .select({
+      playerId: playerSnapshots.playerId,
+      dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+        "latest_data_version",
+      ),
+    })
+    .from(playerSnapshots)
+    .where(eq(playerSnapshots.reviewStatus, "approved"))
+    .groupBy(playerSnapshots.playerId)
+    .as("latest_approved_snapshots");
+
   const [target] = await db
     .select({ playerId: players.id, snapshotId: playerSnapshots.id })
     .from(players)
     .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
+    .innerJoin(
+      latestApprovedSnapshots,
+      and(
+        eq(latestApprovedSnapshots.playerId, playerSnapshots.playerId),
+        eq(latestApprovedSnapshots.dataVersion, playerSnapshots.dataVersion),
+      ),
+    )
     .where(and(...eligibilityConditions(difficulty)))
     .orderBy(sql`random()`)
     .limit(1);

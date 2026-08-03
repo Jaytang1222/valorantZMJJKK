@@ -3,7 +3,7 @@ import { CircleUserRound, Trophy } from "lucide-react";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "VALO 一把",
+  title: "康一把",
   description: "猜猜这位 VALORANT 职业选手是谁。",
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
               <span className="brand-mark" aria-hidden="true">
                 V
               </span>
-              <span>瓦一把</span>
+              <span>康一把</span>
             </a>
             <div className="site-nav-tools">
               <a href="/leaderboards" aria-label="排行榜" title="排行榜">

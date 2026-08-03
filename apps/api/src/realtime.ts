@@ -242,7 +242,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           isMatchmade: false,
           maxPlayers: Number(input?.maxPlayers ?? 2),
           roundCount: Number(input?.roundCount ?? 1),
-          roundDurationSeconds: Number(input?.roundDurationSeconds ?? 60),
+          roundDurationSeconds: Number(input?.roundDurationSeconds ?? 300),
           host: {
             userId,
             displayName: user.displayName,
@@ -272,10 +272,10 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       try {
         const maxPlayers = Number(input?.maxPlayers ?? 2);
         const roundCount = Number(input?.roundCount ?? 1);
-        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 300);
         if (maxPlayers !== 2 || roundCount !== 1)
           throw new Error("Matchmaking supports two-player BO1 only");
-        if (![30, 60, 90].includes(roundDurationSeconds))
+        if (roundDurationSeconds !== 300)
           throw new Error("Round duration is unavailable");
         const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;
         const user = await getUser();
@@ -365,11 +365,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
       try {
         const maxPlayers = Number(input?.maxPlayers ?? 2);
         const roundCount = Number(input?.roundCount ?? 1);
-        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 60);
+        const roundDurationSeconds = Number(input?.roundDurationSeconds ?? 300);
         if (
           maxPlayers !== 2 ||
           roundCount !== 1 ||
-          ![30, 60, 90].includes(roundDurationSeconds)
+          roundDurationSeconds !== 300
         )
           throw new Error("Matchmaking settings are unavailable");
         const settings = `${maxPlayers}:${roundCount}:${roundDurationSeconds}`;

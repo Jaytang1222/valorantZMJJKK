@@ -1,4 +1,4 @@
-export const metadata = { title: "服务条款 | VALO 一把" };
+export const metadata = { title: "服务条款 | 康一把" };
 
 export default function TermsPage() {
   return (

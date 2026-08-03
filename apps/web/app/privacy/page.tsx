@@ -1,4 +1,4 @@
-export const metadata = { title: "隐私政策 | VALO 一把" };
+export const metadata = { title: "隐私政策 | 康一把" };
 
 export default function PrivacyPage() {
   return (

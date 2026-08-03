@@ -1,4 +1,4 @@
-export const metadata = { title: "数据与商标声明 | VALO 一把" };
+export const metadata = { title: "数据与商标声明 | 康一把" };
 
 export default function DataSourcesPage() {
   return (

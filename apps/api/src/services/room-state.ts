@@ -78,8 +78,8 @@ export function createLiveRoom(
   if (input.maxPlayers !== 2)
     throw new Error("Rooms support exactly two players");
   if (input.roundCount !== 1) throw new Error("Rooms support BO1 only");
-  if (![30, 60, 90].includes(input.roundDurationSeconds))
-    throw new Error("Round duration must be 30, 60, or 90 seconds");
+  if (input.roundDurationSeconds !== 300)
+    throw new Error("Round duration must be 300 seconds");
   return {
     id: input.id,
     code: input.code,
