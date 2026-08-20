@@ -60,9 +60,6 @@ function list(value: FormDataEntryValue | null): string[] {
 
 export async function createPlayerAction(formData: FormData): Promise<void> {
   await requireAdminCapability("content");
-  const heroes = list(formData.get("heroTop3"));
-  if (heroes.length !== 3)
-    throw new Error("Hero Top 3 must contain exactly three heroes");
   await createPlayer({
     canonicalName: String(formData.get("canonicalName") ?? ""),
     aliases: list(formData.get("aliases")),
@@ -75,7 +72,7 @@ export async function createPlayerAction(formData: FormData): Promise<void> {
     currentOrLastTeam: String(formData.get("team") ?? ""),
     championsTitles: Number(formData.get("championsTitles")),
     mastersTitles: Number(formData.get("mastersTitles")),
-    heroTop3: heroes as [string, string, string],
+    isActiveRoster: formData.get("isActiveRoster") === "true",
     dataAsOf: String(formData.get("dataAsOf") ?? ""),
     sourceUrl: String(formData.get("sourceUrl") ?? ""),
     sourceCheckedAt: new Date().toISOString(),

@@ -183,7 +183,6 @@ export const playerSnapshots = pgTable(
     isVctCnTeam: boolean("is_vct_cn_team").notNull().default(false),
     championsTitles: integer("champions_titles").notNull().default(0),
     mastersTitles: integer("masters_titles").notNull().default(0),
-    heroTop3: jsonb("hero_top_3").$type<[string, string, string]>().notNull(),
     dataAsOf: timestamp("data_as_of", { withTimezone: true }).notNull(),
     sourceUrl: text("source_url").notNull(),
     sourceCheckedAt: timestamp("source_checked_at", {

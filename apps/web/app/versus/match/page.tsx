@@ -43,6 +43,15 @@ type GuessResult = {
   isCorrect: boolean;
   comparison: Record<string, string>;
   points: number;
+  details?: {
+    region: string;
+    countryCode: string;
+    primaryRole: string;
+    currentOrLastTeam: string;
+    isActiveRoster: boolean;
+    championsTitles: number;
+    mastersTitles: number;
+  };
 };
 type OpponentProfile = {
   displayName: string;
@@ -58,17 +67,25 @@ const fields: Record<string, string> = {
   country: "国籍",
   primaryRole: "位置",
   currentOrLastTeam: "队伍",
-  championsTitles: "冠军赛冠军",
-  mastersTitles: "大师赛冠军",
-  heroTop3: "英雄 Top 3",
+  status: "状态",
+  championsTitles: "冠军赛次数",
+  mastersTitles: "大师赛次数",
 };
+function matchSymbol(tone: string) {
+  return tone === "higher" ? "↑" : tone === "lower" ? "↓" : "";
+}
 
-function matchLabel(tone: string) {
-  if (tone === "exact" || tone === "equal") return "匹配";
-  if (tone === "nearby" || tone === "partial") return "接近";
-  if (tone === "higher") return "更高";
-  if (tone === "lower") return "更低";
-  return "不匹配";
+function guessValue(field: string, guess: GuessResult) {
+  const details = guess.details;
+  if (!details) return "—";
+  if (field === "region") return details.region;
+  if (field === "country") return details.countryCode;
+  if (field === "status") return details.isActiveRoster ? "现役" : "退役";
+  if (field === "primaryRole") return details.primaryRole;
+  if (field === "currentOrLastTeam") return details.currentOrLastTeam;
+  if (field === "championsTitles") return details.championsTitles;
+  if (field === "mastersTitles") return details.mastersTitles;
+  return "—";
 }
 
 async function getRealtimeTicket() {
@@ -423,12 +440,11 @@ function MatchPageContent() {
                       <strong>
                         {index + 1}. {guess.canonicalName}
                       </strong>
-                      {guess.isCorrect && <span>正确 +{guess.points}</span>}
                     </header>
                     <div className="comparison-grid">
                       {Object.entries(guess.comparison).map(([field, tone]) => (
                         <span key={field} data-match={tone}>
-                          {fields[field]}：{matchLabel(tone)}
+                          {guessValue(field, guess)} {matchSymbol(tone)}
                         </span>
                       ))}
                     </div>
@@ -509,7 +525,7 @@ function MatchPageContent() {
                       <span
                         key={toneIndex}
                         data-match={tone}
-                        aria-label={`第 ${index + 1} 次猜测，第 ${toneIndex + 1} 项：${matchLabel(tone)}`}
+                        aria-label={`第 ${index + 1} 次猜测，第 ${toneIndex + 1} 项`}
                       />
                     ))}
                   </div>

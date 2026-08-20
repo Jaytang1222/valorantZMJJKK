@@ -38,7 +38,7 @@ export type AdminSnapshot = {
   currentOrLastTeam: string;
   championsTitles: number;
   mastersTitles: number;
-  heroTop3: [string, string, string];
+  isActiveRoster: boolean;
   dataAsOf: string;
   sourceUrl: string;
 };
@@ -53,7 +53,7 @@ export type PlayerInput = {
   currentOrLastTeam: string;
   championsTitles: number;
   mastersTitles: number;
-  heroTop3: [string, string, string];
+  isActiveRoster?: boolean;
   dataAsOf: string;
   sourceUrl: string;
   sourceCheckedAt: string;

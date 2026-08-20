@@ -4,12 +4,12 @@
 
 字段约定：
 
-- `aliases` 与 `hero_top_3` 使用 `|` 分隔；英雄必须恰好三个。
+- `aliases` 使用 `|` 分隔。
 - `country_group` 用于国籍“相近”的版本化地理分区，例如 `north_america`、`eastern_europe`、`south_america`、`greater_china`。
-- `data_as_of` 是资料快照日期；赛事冠军次数与英雄 Top 3 都以该日期为截止点。
+- `data_as_of` 是资料快照日期；赛事冠军次数与选手状态都以该日期为截止点。`is_active_roster=true` 表示现役，`false` 表示退役。
 - `source_url` 必须是可公开核验的资料来源；导入前需要人工核验。
 
-当前 `players.seed.csv` 为 248 名已批准选手的内容快照。每行保留公开选手档案 URL 与核验日期；`hero_top_3` 依据“截至快照日，官方/高水平赛事出场次数最多的三个英雄”的产品定义。该字段在题目发布前应以赛事统计源二次复核，不能将 CSV 视为永久赛事档案。
+当前 `players.seed.csv` 为 248 名已批准选手的内容快照。每行保留公开选手档案 URL 与核验日期；冠军赛次数、大师赛次数和现役状态均以快照日期为准，发布前仍应按来源复核。
 
 难度分层字段：
 

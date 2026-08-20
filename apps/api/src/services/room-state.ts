@@ -13,6 +13,15 @@ export type PrivateGuess = {
   comparison: Record<string, string>;
   isCorrect: boolean;
   points: number;
+  details?: {
+    region: string;
+    countryCode: string;
+    primaryRole: string;
+    currentOrLastTeam: string;
+    isActiveRoster: boolean;
+    championsTitles: number;
+    mastersTitles: number;
+  };
 };
 
 export type RoomMember = {

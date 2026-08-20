@@ -11,9 +11,9 @@ describe("playerImportSchema", () => {
       region: "americas",
       primaryRole: "duelist",
       currentOrLastTeam: "Example Team",
+      isActiveRoster: true,
       championsTitles: 0,
       mastersTitles: 1,
-      heroTop3: ["Jett", "Raze", "Omen"],
       dataAsOf: "2026-07-29",
       sourceUrl: "https://example.com/player/example",
       sourceCheckedAt: "2026-07-29T00:00:00.000Z",
@@ -23,7 +23,7 @@ describe("playerImportSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("requires exactly three heroes", () => {
+  it("requires a boolean status value", () => {
     const result = playerImportSchema.safeParse({
       canonicalName: "Example",
       aliases: ["example"],
@@ -32,9 +32,9 @@ describe("playerImportSchema", () => {
       region: "americas",
       primaryRole: "duelist",
       currentOrLastTeam: "Example Team",
+      isActiveRoster: "active",
       championsTitles: 0,
       mastersTitles: 1,
-      heroTop3: ["Jett", "Raze"],
       dataAsOf: "2026-07-29",
       sourceUrl: "https://example.com/player/example",
       sourceCheckedAt: "2026-07-29T00:00:00.000Z",

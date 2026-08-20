@@ -264,6 +264,73 @@ button {
   font-size: 1rem;
   margin: 0 0 10px;
 }
+.guess-table-wrap {
+  margin-top: 18px;
+  overflow-x: auto;
+  border: 1px solid #27304d;
+  border-radius: 8px;
+  background: #121a31;
+}
+.guess-table {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.25fr) repeat(7, minmax(104px, 1fr));
+  min-width: 920px;
+  align-items: stretch;
+}
+.guess-table > * {
+  min-width: 0;
+  padding: 12px 10px;
+  border-right: 1px solid #27304d;
+  border-bottom: 1px solid #27304d;
+  color: #dbe2f6;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.guess-table > *:last-child {
+  border-right: 0;
+}
+.guess-table-header {
+  background: #182542;
+  color: #94a0c2;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.guess-table-header > * {
+  color: #94a0c2;
+  white-space: nowrap;
+}
+.guess-table .guess-name {
+  color: #fff;
+  font-weight: 700;
+}
+.guess-table-empty {
+  margin: 0;
+  padding: 22px;
+  color: #94a0c2;
+  text-align: center;
+}
+.guess-table span[data-match="exact"],
+.guess-table span[data-match="equal"] {
+  background: #164d3b;
+}
+.guess-table span[data-match="nearby"] {
+  background: #6b5415;
+}
+.guess-table span[data-match="higher"],
+.guess-table span[data-match="lower"] {
+  background: #6b5415;
+}
+.guess-table span[data-match="mismatch"] {
+  background: #4d1d29;
+}
+.guess-composer {
+  position: sticky;
+  bottom: 14px;
+  z-index: 2;
+  margin-top: 16px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 25%);
+}
 .comparison-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -688,6 +755,15 @@ button {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+.guess-table-wrap {
+  margin-right: -20px;
+  margin-left: -20px;
+  border-radius: 0;
+}
+.guess-composer {
+  bottom: 0;
+  border-radius: 8px 8px 0 0;
 }
 
 /* M4 visual system: Valorant-inspired, angular and information-dense. */

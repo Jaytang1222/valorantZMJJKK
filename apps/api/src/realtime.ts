@@ -506,6 +506,15 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           comparison,
           isCorrect: target.id === guess.id,
           points: 0,
+          details: {
+            region: guess.snapshot.region,
+            countryCode: guess.snapshot.countryCode,
+            primaryRole: guess.snapshot.primaryRole,
+            currentOrLastTeam: guess.snapshot.currentOrLastTeam,
+            isActiveRoster: guess.snapshot.isActiveRoster,
+            championsTitles: guess.snapshot.championsTitles,
+            mastersTitles: guess.snapshot.mastersTitles,
+          },
         });
         socket.emit("room:guess-result", {
           playerId: guess.id,
@@ -513,6 +522,9 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
           isCorrect: target.id === guess.id,
           comparison,
           points: result.points,
+          details: result.room.members
+            .find((member) => member.userId === userId)
+            ?.guesses.at(-1)?.details,
         });
         if (room.phase === "finished") {
           room.answerName = target.canonicalName;

@@ -6,16 +6,23 @@ type Difficulty = "beginner" | "easy" | "full";
 type Player = {
   id: string;
   canonicalName: string;
-  countryCode: string;
-  region: string;
-  primaryRole: string;
   currentOrLastTeam: string;
   aliases?: string[];
+};
+type PlayerDetails = {
+  region: string;
+  countryCode: string;
+  primaryRole: string;
+  currentOrLastTeam: string;
+  isActiveRoster: boolean;
+  championsTitles: number;
+  mastersTitles: number;
 };
 type Guess = {
   canonicalName: string;
   isCorrect: boolean;
   comparison: Record<string, string>;
+  details?: PlayerDetails;
 };
 type Attempt = {
   id: string;
@@ -24,15 +31,16 @@ type Attempt = {
   guessCount: number;
   score?: number | null;
 };
-const labels: Record<string, string> = {
-  region: "赛区",
-  country: "国籍",
-  primaryRole: "位置",
-  currentOrLastTeam: "队伍",
-  championsTitles: "冠军赛",
-  mastersTitles: "大师赛",
-  heroTop3: "英雄 Top 3",
-};
+
+const columns = [
+  ["region", "赛区"],
+  ["country", "国籍"],
+  ["status", "状态"],
+  ["primaryRole", "位置"],
+  ["currentOrLastTeam", "队伍"],
+  ["championsTitles", "冠军赛次数"],
+  ["mastersTitles", "大师赛次数"],
+] as const;
 
 function guestId() {
   const key = "valo_guest_id";
@@ -42,6 +50,25 @@ function guestId() {
     localStorage.setItem(key, value);
   }
   return value;
+}
+
+function matchSymbol(tone: string | undefined) {
+  if (tone === "higher") return "↑";
+  if (tone === "lower") return "↓";
+  return "";
+}
+
+function valueFor(column: string, guess: Guess) {
+  const details = guess.details;
+  if (!details) return "—";
+  if (column === "region") return details.region;
+  if (column === "country") return details.countryCode;
+  if (column === "status") return details.isActiveRoster ? "现役" : "退役";
+  if (column === "primaryRole") return details.primaryRole;
+  if (column === "currentOrLastTeam") return details.currentOrLastTeam;
+  if (column === "championsTitles") return details.championsTitles;
+  if (column === "mastersTitles") return details.mastersTitles;
+  return "—";
 }
 
 export default function SoloPage() {
@@ -57,6 +84,7 @@ export default function SoloPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+
   useEffect(() => {
     const savedAttemptId = localStorage.getItem("valo_solo_attempt_id");
     if (savedAttemptId)
@@ -71,12 +99,14 @@ export default function SoloPage() {
         })
         .catch(() => undefined);
   }, []);
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((response) => response.json())
       .then((data) => setDisplayName(data.user?.displayName ?? null))
       .catch(() => undefined);
   }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/players?limit=250", { signal: controller.signal })
@@ -85,6 +115,7 @@ export default function SoloPage() {
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
+
   const candidates = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     if (!normalizedQuery || selected) return [];
@@ -96,6 +127,7 @@ export default function SoloPage() {
       )
       .slice(0, 8);
   }, [players, query, selected]);
+
   async function start(difficulty: Difficulty) {
     setBusy(true);
     setError("");
@@ -119,6 +151,7 @@ export default function SoloPage() {
       setBusy(false);
     }
   }
+
   async function submit() {
     if (!attempt || !selected) return;
     setBusy(true);
@@ -143,6 +176,7 @@ export default function SoloPage() {
       setBusy(false);
     }
   }
+
   async function abandon() {
     if (!attempt || !confirm("确定要放弃本局吗？")) return;
     const response = await fetch(`/api/solo/attempts/${attempt.id}/abandon`, {
@@ -157,8 +191,9 @@ export default function SoloPage() {
       setResult(data.result);
     } else setError(data.error ?? "放弃失败。");
   }
+
   return (
-    <main className="game-shell">
+    <main className="game-shell solo-page">
       <header className="game-header">
         <a href="/">康一把</a>
         {displayName ? (
@@ -205,8 +240,44 @@ export default function SoloPage() {
               </button>
             )}
           </div>
+          <div className="guess-table-wrap" aria-label="猜测信息表">
+            <div className="guess-table guess-table-header">
+              <span>猜测</span>
+              {columns.map(([, label]) => (
+                <span key={label}>{label}</span>
+              ))}
+            </div>
+            {guesses.map((guess, index) => (
+              <div
+                className="guess-table"
+                key={`${guess.canonicalName}-${index}`}
+              >
+                <strong className="guess-name">
+                  {index + 1}. {guess.canonicalName}
+                </strong>
+                {columns.map(([key, label]) => {
+                  const tone = guess.comparison[key];
+                  return (
+                    <span
+                      key={key}
+                      data-match={tone}
+                      title={label}
+                      aria-label={`${label}: ${valueFor(key, guess)}`}
+                    >
+                      {valueFor(key, guess)} {matchSymbol(tone)}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
+            {guesses.length === 0 && (
+              <p className="guess-table-empty">
+                完成一次猜测后，信息会显示在这里。
+              </p>
+            )}
+          </div>
           {attempt.status === "active" && (
-            <div className="guess-box">
+            <div className="guess-box guess-composer">
               <label>
                 搜索选手
                 <input
@@ -246,34 +317,6 @@ export default function SoloPage() {
               )}
             </div>
           )}
-          {guesses.length > 0 && (
-            <div className="guess-history">
-              {guesses.map((guess, index) => (
-                <article key={`${guess.canonicalName}-${index}`}>
-                  <h2>
-                    {index + 1}. {guess.canonicalName}{" "}
-                    {guess.isCorrect ? "正确" : ""}
-                  </h2>
-                  <div className="comparison-grid">
-                    {Object.entries(guess.comparison).map(([key, value]) => (
-                      <span key={key} data-match={value}>
-                        {labels[key]}:{" "}
-                        {value === "exact" || value === "equal"
-                          ? "匹配"
-                          : value === "nearby" || value === "partial"
-                            ? "接近"
-                            : value === "higher"
-                              ? "更高"
-                              : value === "lower"
-                                ? "更低"
-                                : "不匹配"}
-                      </span>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
           {result && (
             <section className="result-panel">
               <p>
@@ -288,6 +331,7 @@ export default function SoloPage() {
               <button
                 onClick={() => {
                   setAttempt(null);
+                  setGuesses([]);
                   setResult(null);
                 }}
               >

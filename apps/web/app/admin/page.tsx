@@ -80,8 +80,11 @@ function NewPlayerForm() {
           />
         </label>
         <label>
-          英雄 Top 3（以 | 分隔）
-          <input name="heroTop3" placeholder="Jett|Raze|Omen" required />
+          选手状态
+          <select name="isActiveRoster" defaultValue="true">
+            <option value="true">现役</option>
+            <option value="false">退役</option>
+          </select>
         </label>
         <label>
           资料快照日
@@ -169,7 +172,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
               </p>
               <p>
                 冠军赛 {snapshot.championsTitles} · 大师赛{" "}
-                {snapshot.mastersTitles} · {snapshot.heroTop3.join(" / ")}
+                {snapshot.mastersTitles}
               </p>
               <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">
                 查看来源

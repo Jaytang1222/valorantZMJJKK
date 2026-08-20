@@ -1,0 +1,1 @@
+ALTER TABLE "player_snapshots" DROP COLUMN "hero_top_3";

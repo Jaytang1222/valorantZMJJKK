@@ -132,12 +132,14 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            英雄 Top 3（以 | 分隔）
-            <input
-              name="heroTop3"
-              defaultValue={player.heroTop3.join("|")}
-              required
-            />
+            选手状态
+            <select
+              name="isActiveRoster"
+              defaultValue={player.isActiveRoster === false ? "false" : "true"}
+            >
+              <option value="true">现役</option>
+              <option value="false">退役</option>
+            </select>
           </label>
           <label>
             资料快照日

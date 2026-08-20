@@ -51,7 +51,6 @@ export async function upsertPlayerSnapshot(
         isVctCnTeam: data.isVctCnTeam,
         championsTitles: data.championsTitles,
         mastersTitles: data.mastersTitles,
-        heroTop3: data.heroTop3,
         dataAsOf: new Date(`${data.dataAsOf}T00:00:00.000Z`),
         sourceUrl: data.sourceUrl,
         sourceCheckedAt: new Date(data.sourceCheckedAt),
