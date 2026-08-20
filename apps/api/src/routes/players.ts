@@ -126,6 +126,7 @@ export async function registerPlayerRoutes(
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
+        championsAppearances: playerSnapshots.championsAppearances,
         isActiveRoster: playerSnapshots.isActiveRoster,
         dataAsOf: playerSnapshots.dataAsOf,
         sourceUrl: playerSnapshots.sourceUrl,

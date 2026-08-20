@@ -21,6 +21,7 @@ export type PrivateGuess = {
     isActiveRoster: boolean;
     championsTitles: number;
     mastersTitles: number;
+    championsAppearances: number;
   };
 };
 

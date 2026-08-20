@@ -139,15 +139,46 @@ button {
   margin: 0 auto;
   padding: 32px 0 72px;
 }
+.solo-page {
+  width: min(1040px, calc(100% - 32px));
+  padding-top: 24px;
+}
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 .game-header a {
   color: #f4f7ff;
   text-decoration: none;
+}
+.solo-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.solo-nav-mode {
+  color: #80a7ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.solo-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+.solo-nav-difficulty {
+  color: #94a0c2;
+  font-size: 0.85rem;
+}
+.solo-nav-count {
+  color: #f4f7ff;
+  font-size: 0.85rem;
 }
 .game-intro {
   margin: 56px 0 28px;
@@ -181,6 +212,9 @@ button {
 }
 .game-board {
   max-width: 800px;
+}
+.solo-page .game-board {
+  max-width: none;
 }
 .game-meta {
   display: flex;
@@ -266,26 +300,29 @@ button {
 }
 .guess-table-wrap {
   margin-top: 18px;
-  overflow-x: auto;
   border: 1px solid #27304d;
   border-radius: 8px;
   background: #121a31;
 }
 .guess-table {
   display: grid;
-  grid-template-columns: minmax(150px, 1.25fr) repeat(7, minmax(104px, 1fr));
-  min-width: 920px;
+  grid-template-columns: minmax(0, 1.7fr) repeat(8, minmax(0, 1fr));
   align-items: stretch;
 }
 .guess-table > * {
   min-width: 0;
-  padding: 12px 10px;
+  padding: 10px 8px;
   border-right: 1px solid #27304d;
   border-bottom: 1px solid #27304d;
   color: #dbe2f6;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+.guess-table > *:nth-child(7),
+.guess-table > *:nth-child(8),
+.guess-table > *:nth-child(9) {
+  text-align: center;
 }
 .guess-table > *:last-child {
   border-right: 0;
@@ -298,7 +335,6 @@ button {
 }
 .guess-table-header > * {
   color: #94a0c2;
-  white-space: nowrap;
 }
 .guess-table .guess-name {
   color: #fff;
@@ -697,7 +733,7 @@ button {
 }
 .feedback-row {
   display: grid;
-  grid-template-columns: repeat(7, minmax(12px, 1fr));
+  grid-template-columns: repeat(8, minmax(12px, 1fr));
   gap: 4px;
   margin-top: 5px;
 }
@@ -757,9 +793,9 @@ button {
   }
 }
 .guess-table-wrap {
-  margin-right: -20px;
-  margin-left: -20px;
   border-radius: 0;
+  border-left: 0;
+  border-right: 0;
 }
 .guess-composer {
   bottom: 0;

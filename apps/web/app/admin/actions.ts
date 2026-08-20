@@ -72,6 +72,7 @@ export async function createPlayerAction(formData: FormData): Promise<void> {
     currentOrLastTeam: String(formData.get("team") ?? ""),
     championsTitles: Number(formData.get("championsTitles")),
     mastersTitles: Number(formData.get("mastersTitles")),
+    championsAppearances: Number(formData.get("championsAppearances")),
     isActiveRoster: formData.get("isActiveRoster") === "true",
     dataAsOf: String(formData.get("dataAsOf") ?? ""),
     sourceUrl: String(formData.get("sourceUrl") ?? ""),

@@ -3,6 +3,12 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
+import {
+  formatCountry,
+  formatRegion,
+  formatRole,
+  formatTeam,
+} from "../../lib/display";
 
 type Member = {
   userId: string;
@@ -51,6 +57,7 @@ type GuessResult = {
     isActiveRoster: boolean;
     championsTitles: number;
     mastersTitles: number;
+    championsAppearances: number;
   };
 };
 type OpponentProfile = {
@@ -68,8 +75,9 @@ const fields: Record<string, string> = {
   primaryRole: "位置",
   currentOrLastTeam: "队伍",
   status: "状态",
-  championsTitles: "冠军赛次数",
-  mastersTitles: "大师赛次数",
+  championsTitles: "冠军赛夺冠次数",
+  mastersTitles: "大师赛夺冠次数",
+  championsAppearances: "冠军赛入围次数",
 };
 function matchSymbol(tone: string) {
   return tone === "higher" ? "↑" : tone === "lower" ? "↓" : "";
@@ -78,13 +86,15 @@ function matchSymbol(tone: string) {
 function guessValue(field: string, guess: GuessResult) {
   const details = guess.details;
   if (!details) return "—";
-  if (field === "region") return details.region;
-  if (field === "country") return details.countryCode;
+  if (field === "region") return formatRegion(details.region);
+  if (field === "country") return formatCountry(details.countryCode);
   if (field === "status") return details.isActiveRoster ? "现役" : "退役";
-  if (field === "primaryRole") return details.primaryRole;
-  if (field === "currentOrLastTeam") return details.currentOrLastTeam;
+  if (field === "primaryRole") return formatRole(details.primaryRole);
+  if (field === "currentOrLastTeam")
+    return formatTeam(details.currentOrLastTeam);
   if (field === "championsTitles") return details.championsTitles;
   if (field === "mastersTitles") return details.mastersTitles;
+  if (field === "championsAppearances") return details.championsAppearances;
   return "—";
 }
 

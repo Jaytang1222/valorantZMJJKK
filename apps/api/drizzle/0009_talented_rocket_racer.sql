@@ -1,0 +1,1 @@
+ALTER TABLE "player_snapshots" ADD COLUMN "champions_appearances" integer DEFAULT 0 NOT NULL;

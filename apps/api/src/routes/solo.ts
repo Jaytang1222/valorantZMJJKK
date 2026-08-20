@@ -34,6 +34,7 @@ function playerDetails(snapshot: typeof playerSnapshots.$inferSelect) {
     isActiveRoster: snapshot.isActiveRoster,
     championsTitles: snapshot.championsTitles,
     mastersTitles: snapshot.mastersTitles,
+    championsAppearances: snapshot.championsAppearances,
   };
 }
 

@@ -112,7 +112,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            冠军赛冠军次数
+            冠军赛夺冠次数
             <input
               name="championsTitles"
               type="number"
@@ -122,12 +122,22 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            大师赛冠军次数
+            大师赛夺冠次数
             <input
               name="mastersTitles"
               type="number"
               min="0"
               defaultValue={player.mastersTitles}
+              required
+            />
+          </label>
+          <label>
+            冠军赛入围次数
+            <input
+              name="championsAppearances"
+              type="number"
+              min="0"
+              defaultValue={player.championsAppearances}
               required
             />
           </label>

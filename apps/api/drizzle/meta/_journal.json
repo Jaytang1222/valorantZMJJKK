@@ -64,6 +64,13 @@
       "when": 1787201193104,
       "tag": "0008_icy_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787208512627,
+      "tag": "0009_talented_rocket_racer",
+      "breakpoints": true
     }
   ]
 }

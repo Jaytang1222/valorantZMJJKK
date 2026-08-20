@@ -35,6 +35,7 @@ export const playerImportSchema = z.object({
   isVctCnTeam: z.boolean().default(false),
   championsTitles: z.number().int().min(0).max(10),
   mastersTitles: z.number().int().min(0).max(20),
+  championsAppearances: z.number().int().min(0).max(10),
   dataAsOf: z.string().date(),
   sourceUrl: z.string().url(),
   sourceCheckedAt: z.string().datetime(),

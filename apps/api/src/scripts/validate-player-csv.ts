@@ -29,6 +29,7 @@ for (const [index, row] of rows.entries()) {
     isVctCnTeam: row.is_vct_cn_team === "true",
     championsTitles: Number(row.champions_titles),
     mastersTitles: Number(row.masters_titles),
+    championsAppearances: Number(row.champions_appearances),
     dataAsOf: row.data_as_of,
     sourceUrl: row.source_url,
     sourceCheckedAt: row.source_checked_at,

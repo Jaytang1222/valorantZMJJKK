@@ -60,7 +60,7 @@ function NewPlayerForm() {
           <input name="team" required />
         </label>
         <label>
-          冠军赛冠军次数
+          冠军赛夺冠次数
           <input
             name="championsTitles"
             type="number"
@@ -70,9 +70,19 @@ function NewPlayerForm() {
           />
         </label>
         <label>
-          大师赛冠军次数
+          大师赛夺冠次数
           <input
             name="mastersTitles"
+            type="number"
+            min="0"
+            defaultValue="0"
+            required
+          />
+        </label>
+        <label>
+          冠军赛入围次数
+          <input
+            name="championsAppearances"
             type="number"
             min="0"
             defaultValue="0"
@@ -171,8 +181,9 @@ export default async function AdminPage({ searchParams }: PageProps) {
                 {snapshot.primaryRole} · {snapshot.currentOrLastTeam}
               </p>
               <p>
-                冠军赛 {snapshot.championsTitles} · 大师赛{" "}
-                {snapshot.mastersTitles}
+                冠军赛夺冠 {snapshot.championsTitles} · 大师赛夺冠{" "}
+                {snapshot.mastersTitles} · 冠军赛入围{" "}
+                {snapshot.championsAppearances}
               </p>
               <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">
                 查看来源

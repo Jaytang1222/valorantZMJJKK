@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  formatCountry,
+  formatRegion,
+  formatRole,
+  formatTeam,
+} from "../lib/display";
 
 type Player = {
   id: string;
@@ -57,19 +63,19 @@ export default function PlayersPage() {
           {results.map((player) => (
             <article key={player.id}>
               <h2>{player.canonicalName}</h2>
-              <p>{player.currentOrLastTeam}</p>
+              <p>{formatTeam(player.currentOrLastTeam)}</p>
               <dl>
                 <div>
                   <dt>赛区</dt>
-                  <dd>{player.region}</dd>
+                  <dd>{formatRegion(player.region)}</dd>
                 </div>
                 <div>
                   <dt>国籍</dt>
-                  <dd>{player.countryCode}</dd>
+                  <dd>{formatCountry(player.countryCode)}</dd>
                 </div>
                 <div>
                   <dt>位置</dt>
-                  <dd>{player.primaryRole}</dd>
+                  <dd>{formatRole(player.primaryRole)}</dd>
                 </div>
               </dl>
             </article>

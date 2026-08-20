@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  formatCountry,
+  formatRegion,
+  formatRole,
+  formatTeam,
+} from "../lib/display";
 
 type Difficulty = "beginner" | "easy" | "full";
 type Player = {
@@ -17,6 +23,7 @@ type PlayerDetails = {
   isActiveRoster: boolean;
   championsTitles: number;
   mastersTitles: number;
+  championsAppearances: number;
 };
 type Guess = {
   canonicalName: string;
@@ -38,9 +45,16 @@ const columns = [
   ["status", "状态"],
   ["primaryRole", "位置"],
   ["currentOrLastTeam", "队伍"],
-  ["championsTitles", "冠军赛次数"],
-  ["mastersTitles", "大师赛次数"],
+  ["championsTitles", "冠军赛夺冠次数"],
+  ["mastersTitles", "大师赛夺冠次数"],
+  ["championsAppearances", "冠军赛入围次数"],
 ] as const;
+
+const difficultyLabels: Record<Difficulty, string> = {
+  beginner: "入门",
+  easy: "简单",
+  full: "完整",
+};
 
 function guestId() {
   const key = "valo_guest_id";
@@ -61,13 +75,14 @@ function matchSymbol(tone: string | undefined) {
 function valueFor(column: string, guess: Guess) {
   const details = guess.details;
   if (!details) return "—";
-  if (column === "region") return details.region;
-  if (column === "country") return details.countryCode;
+  if (column === "region") return formatRegion(details.region);
+  if (column === "country") return formatCountry(details.countryCode);
   if (column === "status") return details.isActiveRoster ? "现役" : "退役";
-  if (column === "primaryRole") return details.primaryRole;
-  if (column === "currentOrLastTeam") return details.currentOrLastTeam;
+  if (column === "primaryRole") return formatRole(details.primaryRole);
+  if (column === "currentOrLastTeam") return formatTeam(details.currentOrLastTeam);
   if (column === "championsTitles") return details.championsTitles;
   if (column === "mastersTitles") return details.mastersTitles;
+  if (column === "championsAppearances") return details.championsAppearances;
   return "—";
 }
 
@@ -194,52 +209,59 @@ export default function SoloPage() {
 
   return (
     <main className="game-shell solo-page">
-      <header className="game-header">
-        <a href="/">康一把</a>
-        {displayName ? (
-          <a href="/account">{displayName}</a>
-        ) : (
-          <a href="/login">登录或注册</a>
-        )}
-      </header>
-      <section className="game-intro">
-        <p className="eyebrow">SOLO ALPHA</p>
-        <h1>单人对战</h1>
-        <p>根据职业选手资料缩小范围。每局最多 8 次猜测。</p>
-      </section>
-      {!attempt && (
-        <section className="difficulty-grid">
-          {(["beginner", "easy", "full"] as Difficulty[]).map((difficulty) => (
-            <button
-              key={difficulty}
-              disabled={busy}
-              onClick={() => start(difficulty)}
-            >
-              <strong>
-                {{ beginner: "入门", easy: "简单", full: "完整" }[difficulty]}
+      <header className="game-header solo-nav">
+        <div className="solo-nav-left">
+          <a href="/">康一把</a>
+          <span className="solo-nav-mode">SOLO ALPHA</span>
+        </div>
+        <div className="solo-nav-right">
+          {attempt && (
+            <>
+              <span className="solo-nav-difficulty">
+                {difficultyLabels[attempt.difficulty]}
+              </span>
+              <strong className="solo-nav-count">
+                {attempt.guessCount} / 8 次猜测
               </strong>
-              <span>开始随机对局</span>
-            </button>
-          ))}
-        </section>
+              {attempt.status === "active" && (
+                <button className="text-button" onClick={abandon}>
+                  放弃
+                </button>
+              )}
+            </>
+          )}
+          {displayName ? (
+            <a href="/account">{displayName}</a>
+          ) : (
+            <a href="/login">登录或注册</a>
+          )}
+        </div>
+      </header>
+      {!attempt && (
+        <>
+          <section className="game-intro">
+            <p className="eyebrow">SOLO ALPHA</p>
+            <h1>单人对战</h1>
+            <p>根据职业选手资料缩小范围。每局最多 8 次猜测。</p>
+          </section>
+          <section className="difficulty-grid">
+            {(["beginner", "easy", "full"] as Difficulty[]).map(
+              (difficulty) => (
+                <button
+                  key={difficulty}
+                  disabled={busy}
+                  onClick={() => start(difficulty)}
+                >
+                  <strong>{difficultyLabels[difficulty]}</strong>
+                  <span>开始随机对局</span>
+                </button>
+              ),
+            )}
+          </section>
+        </>
       )}
       {attempt && (
         <section className="game-board">
-          <div className="game-meta">
-            <span>
-              {attempt.difficulty === "beginner"
-                ? "入门"
-                : attempt.difficulty === "easy"
-                  ? "简单"
-                  : "完整"}
-            </span>
-            <strong>{attempt.guessCount} / 8 次猜测</strong>
-            {attempt.status === "active" && (
-              <button className="text-button" onClick={abandon}>
-                放弃
-              </button>
-            )}
-          </div>
           <div className="guess-table-wrap" aria-label="猜测信息表">
             <div className="guess-table guess-table-header">
               <span>猜测</span>
@@ -276,6 +298,28 @@ export default function SoloPage() {
               </p>
             )}
           </div>
+          {result && (
+            <section className="result-panel">
+              <p>
+                {attempt.status === "won"
+                  ? "猜中了"
+                  : attempt.status === "abandoned"
+                    ? "本局已放弃"
+                    : "本局结束"}
+              </p>
+              <h2>答案：{result.target.canonicalName}</h2>
+              <strong>{result.score} 分</strong>
+              <button
+                onClick={() => {
+                  setAttempt(null);
+                  setGuesses([]);
+                  setResult(null);
+                }}
+              >
+                再来一局
+              </button>
+            </section>
+          )}
           {attempt.status === "active" && (
             <div className="guess-box guess-composer">
               <label>
@@ -301,7 +345,7 @@ export default function SoloPage() {
                       }}
                     >
                       {player.canonicalName}
-                      <small>{player.currentOrLastTeam}</small>
+                      <small>{formatTeam(player.currentOrLastTeam)}</small>
                     </button>
                   ))}
                 </div>
@@ -316,28 +360,6 @@ export default function SoloPage() {
                 </button>
               )}
             </div>
-          )}
-          {result && (
-            <section className="result-panel">
-              <p>
-                {attempt.status === "won"
-                  ? "猜对了"
-                  : attempt.status === "abandoned"
-                    ? "本局已放弃"
-                    : "本局结束"}
-              </p>
-              <h2>答案：{result.target.canonicalName}</h2>
-              <strong>{result.score} 分</strong>
-              <button
-                onClick={() => {
-                  setAttempt(null);
-                  setGuesses([]);
-                  setResult(null);
-                }}
-              >
-                再来一局
-              </button>
-            </section>
           )}
         </section>
       )}
