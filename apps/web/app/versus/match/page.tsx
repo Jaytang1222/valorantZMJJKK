@@ -9,6 +9,7 @@ import {
   formatRole,
   formatTeam,
 } from "../../lib/display";
+import { searchPlayers } from "../../lib/player-search";
 
 type Member = {
   userId: string;
@@ -321,17 +322,10 @@ function MatchPageContent() {
       setProfileLoading(false);
     }
   };
-  const candidates = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    if (!normalizedQuery) return [];
-    return players
-      .filter((player) =>
-        `${player.canonicalName} ${(player.aliases ?? []).join(" ")}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
-      )
-      .slice(0, 8);
-  }, [players, query]);
+  const candidates = useMemo(
+    () => searchPlayers(players, query, 8),
+    [players, query],
+  );
   const remainingSeconds = (member: Member) =>
     member.disconnectedAt === undefined
       ? 0

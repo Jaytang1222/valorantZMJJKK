@@ -7,6 +7,7 @@ import {
   formatRole,
   formatTeam,
 } from "../lib/display";
+import { searchPlayers } from "../lib/player-search";
 
 type Difficulty = "beginner" | "easy" | "full";
 type Player = {
@@ -132,15 +133,8 @@ export default function SoloPage() {
   }, []);
 
   const candidates = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    if (!normalizedQuery || selected) return [];
-    return players
-      .filter((player) =>
-        `${player.canonicalName} ${(player.aliases ?? []).join(" ")}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
-      )
-      .slice(0, 8);
+    if (!query.trim() || selected) return [];
+    return searchPlayers(players, query, 8);
   }, [players, query, selected]);
 
   async function start(difficulty: Difficulty) {

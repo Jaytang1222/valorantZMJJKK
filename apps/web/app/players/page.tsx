@@ -7,6 +7,7 @@ import {
   formatRole,
   formatTeam,
 } from "../lib/display";
+import { searchPlayers } from "../lib/player-search";
 
 type Player = {
   id: string;
@@ -30,10 +31,8 @@ export default function PlayersPage() {
   }, []);
   const results = useMemo(
     () =>
-      players.filter((player) =>
-        `${player.canonicalName} ${(player.aliases ?? []).join(" ")} ${player.countryCode} ${player.region} ${player.primaryRole} ${player.currentOrLastTeam}`
-          .toLowerCase()
-          .includes(query.trim().toLowerCase()),
+      searchPlayers(players, query, 250, (player) =>
+        [player.countryCode, player.region, player.primaryRole, player.currentOrLastTeam].join(" "),
       ),
     [players, query],
   );
