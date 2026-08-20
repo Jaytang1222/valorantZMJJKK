@@ -6,6 +6,7 @@ import {
   formatRegion,
   formatRole,
   formatTeam,
+  teamNames,
 } from "../lib/display";
 import { searchPlayers } from "../lib/player-search";
 
@@ -36,6 +37,7 @@ export default function PlayersPage() {
         player.region,
         player.primaryRole,
         player.currentOrLastTeam,
+        teamNames[player.currentOrLastTeam]?.short ?? "",
       ]),
     [players, query],
   );
