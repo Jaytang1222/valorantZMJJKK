@@ -83,7 +83,6 @@ export const teamNames: Record<string, { full: string; short: string }> = {
   "JD Mall JDG Esports": { full: "JD Mall JDG Esports", short: "JDG" },
   Joblife: { full: "Joblife", short: "JL" },
   "KeepBest Gaming": { full: "KeepBest Gaming", short: "KBG" },
-  "KIWOOM DRX": { full: "KIWOOM DRX", short: "DRX" },
   "KRÜ Esports": { full: "KRÜ Esports", short: "KRÜ" },
   "LEVIATÁN": { full: "LEVIATÁN", short: "LEV" },
   LOUD: { full: "LOUD", short: "LOUD" },

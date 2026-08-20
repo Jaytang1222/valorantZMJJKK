@@ -25,6 +25,6 @@
 
 本次名单选择、快照范围和无法可靠导入的例外见 `roster-eligibility.2026-08-03.md`。
 
-国籍“相近”规则见 `country-groups.v1.md`。新增国家时必须先分配版本化分区，再录入选手快照。
+国籍“相近”规则见 `country-groups.v2.md`。新增国家时必须先分配版本化分区，再录入选手快照。
 
 验证 CSV：`pnpm --filter @valo-yiba/api players:validate ../../data/players.seed.csv`

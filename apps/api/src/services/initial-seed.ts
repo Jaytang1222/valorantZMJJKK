@@ -13,15 +13,17 @@ import { normalizeAlias } from "../lib/normalization.js";
 type CsvRow = Record<string, string>;
 
 const initialCountryGroups = [
+  ["east_asia", "East Asia"],
+  ["southeast_asia", "Southeast Asia"],
+  ["south_asia", "South Asia"],
+  ["middle_east", "Middle East"],
   ["north_america", "North America"],
   ["south_america", "South America"],
   ["western_europe", "Western Europe"],
+  ["northern_europe", "Northern Europe"],
+  ["southern_europe", "Southern Europe"],
   ["eastern_europe", "Eastern Europe"],
-  ["east_asia", "East Asia"],
-  ["southeast_asia", "Southeast Asia"],
-  ["greater_china", "Greater China"],
   ["oceania", "Oceania"],
-  ["middle_east", "Middle East"],
   ["north_africa", "North Africa"],
 ] as const;
 
@@ -64,7 +66,7 @@ export async function seedInitialPlayerData(
   for (const [code, displayName] of initialCountryGroups) {
     await db
       .insert(countryGroups)
-      .values({ code, displayName, version: 1 })
+      .values({ code, displayName, version: 2 })
       .onConflictDoNothing();
   }
 
