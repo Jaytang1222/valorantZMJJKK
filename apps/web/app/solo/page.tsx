@@ -134,7 +134,7 @@ export default function SoloPage() {
 
   const candidates = useMemo(() => {
     if (!query.trim() || selected) return [];
-    return searchPlayers(players, query, 8);
+    return searchPlayers(players, query, 8, undefined, 2);
   }, [players, query, selected]);
 
   async function start(difficulty: Difficulty) {

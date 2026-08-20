@@ -31,9 +31,12 @@ export default function PlayersPage() {
   }, []);
   const results = useMemo(
     () =>
-      searchPlayers(players, query, 250, (player) =>
-        [player.countryCode, player.region, player.primaryRole, player.currentOrLastTeam].join(" "),
-      ),
+      searchPlayers(players, query, 250, (player) => [
+        player.countryCode,
+        player.region,
+        player.primaryRole,
+        player.currentOrLastTeam,
+      ]),
     [players, query],
   );
   return (

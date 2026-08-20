@@ -323,7 +323,7 @@ function MatchPageContent() {
     }
   };
   const candidates = useMemo(
-    () => searchPlayers(players, query, 8),
+    () => searchPlayers(players, query, 8, undefined, 2),
     [players, query],
   );
   const remainingSeconds = (member: Member) =>

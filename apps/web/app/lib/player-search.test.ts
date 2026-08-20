@@ -21,14 +21,16 @@ describe("rankPlayer", () => {
 
   it("alias prefix ranks 2", () => {
     expect(rankPlayer(players[0], "s0m")).toBe(2);
+    expect(rankPlayer(players[2], "kk")).toBe(2);
   });
 
-  it("substring ranks 3", () => {
-    expect(rankPlayer(players[4], "ster")).toBe(3);
+  it("extra field prefix ranks 3", () => {
+    expect(rankPlayer(players[0], "Sentinels", ["Sentinels"])).toBe(3);
   });
 
-  it("extra text match ranks 4", () => {
-    expect(rankPlayer(players[0], "Sentinels", "SentinelS")).toBe(4);
+  it("non-prefix substring does not match", () => {
+    expect(rankPlayer(players[4], "ster")).toBe(Infinity);
+    expect(rankPlayer(players[2], "jkk")).toBe(Infinity);
   });
 
   it("no match ranks Infinity", () => {
@@ -57,9 +59,17 @@ describe("searchPlayers", () => {
     expect(searchPlayers(players, "  ", 8)).toEqual([]);
   });
 
-  it("matches extra text with limit", () => {
-    const results = searchPlayers(players, "sentinels", 8, (p) =>
-      p.canonicalName === "TenZ" ? "Sentinels" : "",
+  it("supports minLength for single-letter queries", () => {
+    expect(searchPlayers(players, "z", 8, undefined, 2)).toEqual([]);
+    expect(searchPlayers(players, "ze", 8, undefined, 2).length).toBe(1);
+  });
+
+  it("matches extra fields by prefix", () => {
+    const results = searchPlayers(
+      players,
+      "sentinels",
+      8,
+      (p) => (p.canonicalName === "TenZ" ? ["Sentinels"] : []),
     );
     expect(results.map((p) => p.canonicalName)).toEqual(["TenZ"]);
   });
