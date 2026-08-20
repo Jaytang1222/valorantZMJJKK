@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
+import { t, tWith } from "../lib/i18n";
+import { useLocale } from "../components/ui-provider";
 
 type Member = {
   userId: string;
@@ -31,12 +33,13 @@ async function getRealtimeTicket() {
   const response = await fetch("/api/auth/realtime-ticket", { method: "POST" });
   const data = await response.json();
   if (!response.ok || !data.ticket?.token)
-    throw new Error(data.error ?? "无法获取实时连接凭据。");
+    throw new Error(data.error ?? "Could not get real-time credentials.");
   return data.ticket.token as string;
 }
 
 export default function VersusPage() {
   const router = useRouter();
+  const { locale } = useLocale();
   const socketRef = useRef<Socket | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [me, setMe] = useState<string | null>(null);
@@ -58,7 +61,7 @@ export default function VersusPage() {
     fetch("/api/auth/me")
       .then((response) => response.json())
       .then(async (data) => {
-        if (!data.user) throw new Error("联机对战需要登录账户。");
+        if (!data.user) throw new Error(t(locale, "match.needAccount"));
         setMe(data.user.id);
         const ticket = await getRealtimeTicket();
         if (cancelled) return;
@@ -81,7 +84,9 @@ export default function VersusPage() {
         client.on("disconnect", () => setConnected(false));
         client.on("connect_error", async (event) => {
           setConnected(false);
-          setError(`实时连接失败：${event.message}`);
+          setError(
+            tWith(locale, "match.connectError", { message: event.message }),
+          );
           try {
             client.auth = { ticket: await getRealtimeTicket() };
           } catch {
@@ -99,7 +104,7 @@ export default function VersusPage() {
           localStorage.removeItem("valo_versus_room");
           setRecoverCode("");
           setRoom(null);
-          setError("房间已关闭。");
+          setError(t(locale, "match.roomClosed"));
         });
         client.on("match:found", ({ room: matchedRoom }: { room: Room }) => {
           setWaiting(false);
@@ -109,14 +114,14 @@ export default function VersusPage() {
         });
       })
       .catch((cause) =>
-        setError(cause instanceof Error ? cause.message : "无法建立实时连接。"),
+        setError(cause instanceof Error ? cause.message : t(locale, "match.reconnectError")),
       );
     return () => {
       cancelled = true;
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (room?.phase === "playing")
@@ -127,14 +132,14 @@ export default function VersusPage() {
     new Promise<any>((resolve) => {
       const client = socketRef.current;
       if (!client?.connected) {
-        resolve({ error: "实时连接尚未就绪，请稍后重试。" });
+        resolve({ error: t(locale, "match.notReady") });
         return;
       }
       client
         .timeout(8_000)
         .emit(event, payload, (requestError: Error | null, reply: unknown) =>
           resolve(
-            requestError ? { error: "请求超时，请检查实时连接。" } : reply,
+            requestError ? { error: t(locale, "match.timeout") } : reply,
           ),
         );
     });
@@ -194,7 +199,7 @@ export default function VersusPage() {
     return (
       <main className="game-shell">
         <p className="form-error">{error}</p>
-        <a href="/login">前往登录</a>
+        <a href="/login">{t(locale, "versus.toLogin")}</a>
       </main>
     );
 
@@ -205,15 +210,17 @@ export default function VersusPage() {
           className="text-button header-link"
           onClick={() => leaveLobby("/")}
         >
-          康一把
+          {t(locale, "nav.brand")}
         </button>
-        <a href="/solo">单人对战</a>
+        <a href="/solo">{t(locale, "home.entrySolo")}</a>
       </header>
       <section className="game-intro">
         <p className="eyebrow">VERSUS BETA</p>
-        <h1>联机对战</h1>
+        <h1>{t(locale, "home.entryVersus")}</h1>
         <p className={connected ? "success-message" : "form-error"}>
-          {connected ? "实时连接已就绪" : "正在连接实时服务"}
+          {connected
+            ? t(locale, "versus.connected")
+            : t(locale, "versus.connecting")}
         </p>
         {error && <p className="form-error">{error}</p>}
       </section>
@@ -230,7 +237,7 @@ export default function VersusPage() {
                   )
                 }
               >
-                恢复对局
+                {t(locale, "versus.resume")}
               </button>
               <button
                 className="text-button"
@@ -239,19 +246,19 @@ export default function VersusPage() {
                   setRecoverCode("");
                 }}
               >
-                放弃恢复
+                {t(locale, "versus.discardRecovery")}
               </button>
             </div>
           )}
           {waiting ? (
-            <button onClick={cancelMatch}>取消匹配</button>
+            <button onClick={cancelMatch}>{t(locale, "versus.cancelMatch")}</button>
           ) : (
             <button
               className="entry-button"
               disabled={!connected}
               onClick={match}
             >
-              在线匹配
+              {t(locale, "versus.matchmake")}
             </button>
           )}
           <button
@@ -259,23 +266,23 @@ export default function VersusPage() {
             disabled={!connected}
             onClick={create}
           >
-            创建私密房间
+            {t(locale, "versus.createRoom")}
           </button>
           <div className="join-room-row">
             <input
-              aria-label="房间邀请码"
+              aria-label={t(locale, "versus.joinCodeLabel")}
               value={joinCode}
               maxLength={6}
               onChange={(event) =>
                 setJoinCode(event.target.value.toUpperCase())
               }
-              placeholder="输入 6 位邀请码"
+              placeholder={t(locale, "versus.joinCodePlaceholder")}
             />
             <button
               disabled={!connected || joinCode.length !== 6}
               onClick={join}
             >
-              加入房间
+              {t(locale, "versus.joinRoom")}
             </button>
           </div>
         </section>
@@ -284,7 +291,7 @@ export default function VersusPage() {
       {room?.phase === "lobby" && (
         <section className="game-board">
           <div className="game-meta">
-            <strong>房间 {room.code}</strong>
+            <strong>{tWith(locale, "match.roomCode", { code: room.code })}</strong>
             <span>BO1</span>
           </div>
           <div className="member-list">
@@ -295,19 +302,24 @@ export default function VersusPage() {
                   <span>
                     <strong>
                       {member.displayName}
-                      {member.userId === room.hostId ? "（房主）" : ""}
+                      {member.userId === room.hostId
+                        ? t(locale, "versus.hostTag")
+                        : ""}
                     </strong>
                     {member.status === "disconnected" && (
                       <b className="disconnect-warning">
-                        断线，{remainingSeconds(member)} 秒内可重连
+                        {tWith(locale, "versus.disconnected", {
+                          seconds: remainingSeconds(member),
+                        })}
                       </b>
                     )}
                     {member.status === "forfeited" && (
-                      <b className="disconnect-warning">已离开房间</b>
+                      <b className="disconnect-warning">{t(locale, "versus.left")}</b>
                     )}
                   </span>
                   <span>
-                    {member.ready ? "已准备" : "未准备"} · {member.score} 分
+                    {member.ready ? t(locale, "versus.ready") : t(locale, "versus.notReady")} ·{" "}
+                    {tWith(locale, "match.points", { score: member.score })}
                   </span>
                 </div>
               ))}
@@ -322,18 +334,20 @@ export default function VersusPage() {
                 })
               }
             >
-              {currentMember?.ready ? "取消准备" : "准备"}
+              {currentMember?.ready
+                ? t(locale, "versus.unready")
+                : t(locale, "versus.ready")}
             </button>
             {room.hostId === me && (
               <button
                 disabled={!connected}
                 onClick={() => run("room:start", { code: room.code })}
               >
-                开始 BO1
+                {t(locale, "versus.start")}
               </button>
             )}
             <button className="secondary-action" onClick={() => leaveLobby()}>
-              退出房间
+              {t(locale, "versus.exitRoom")}
             </button>
           </div>
         </section>

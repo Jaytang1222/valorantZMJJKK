@@ -39,6 +39,47 @@ export const countryNames: Record<string, string> = {
   IN: "印度",
 };
 
+export const countryNamesEn: Record<string, string> = {
+  CN: "China",
+  KR: "South Korea",
+  US: "United States",
+  TR: "Türkiye",
+  BR: "Brazil",
+  RU: "Russia",
+  CA: "Canada",
+  JP: "Japan",
+  PL: "Poland",
+  TW: "Taiwan",
+  PH: "Philippines",
+  ID: "Indonesia",
+  TH: "Thailand",
+  CL: "Chile",
+  CZ: "Czechia",
+  GB: "United Kingdom",
+  DE: "Germany",
+  SG: "Singapore",
+  AR: "Argentina",
+  FI: "Finland",
+  PT: "Portugal",
+  RO: "Romania",
+  FR: "France",
+  LT: "Lithuania",
+  VN: "Vietnam",
+  MY: "Malaysia",
+  BE: "Belgium",
+  MA: "Morocco",
+  AU: "Australia",
+  HR: "Croatia",
+  CH: "Switzerland",
+  MX: "Mexico",
+  HK: "Hong Kong",
+  MD: "Moldova",
+  CO: "Colombia",
+  RS: "Serbia",
+  IT: "Italy",
+  IN: "India",
+};
+
 export const regionNames: Record<string, string> = {
   china: "VCT-CN",
   pacific: "VCT-PACIFIC",
@@ -53,6 +94,15 @@ export const roleNames: Record<string, string> = {
   sentinel: "哨位",
   flex: "灵活位",
   coach: "教练",
+};
+
+export const roleNamesEn: Record<string, string> = {
+  duelist: "Duelist",
+  initiator: "Initiator",
+  controller: "Controller",
+  sentinel: "Sentinel",
+  flex: "Flex",
+  coach: "Coach",
 };
 
 export const teamNames: Record<string, { full: string; short: string }> = {
@@ -110,16 +160,20 @@ export const teamNames: Record<string, { full: string; short: string }> = {
   "ZETA DIVISION": { full: "ZETA DIVISION", short: "ZETA" },
 };
 
-export function formatCountry(code: string): string {
-  return countryNames[code.toUpperCase()] ?? code.toUpperCase();
+export type Locale = "zh" | "en";
+
+export function formatCountry(code: string, locale: Locale = "zh"): string {
+  const table = locale === "en" ? countryNamesEn : countryNames;
+  return table[code.toUpperCase()] ?? code.toUpperCase();
 }
 
 export function formatRegion(region: string): string {
   return regionNames[region] ?? region;
 }
 
-export function formatRole(role: string): string {
-  return roleNames[role] ?? role;
+export function formatRole(role: string, locale: Locale = "zh"): string {
+  const table = locale === "en" ? roleNamesEn : roleNames;
+  return table[role] ?? role;
 }
 
 export function formatTeam(team: string): string {

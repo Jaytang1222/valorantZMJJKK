@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies, headers } from "next/headers";
 import { getPlayerDetails } from "../../../../lib/admin-api";
 import { requireAdminCapability } from "../../../../lib/admin-operator";
 import {
@@ -7,16 +8,23 @@ import {
   removeAliasAction,
   setPlayerStatus,
 } from "../../actions";
+import { LOCALE_COOKIE, detectLocale, t } from "../../../lib/i18n";
 
 type PageProps = { params: Promise<{ playerId: string }> };
 
 export default async function PlayerPage({ params }: PageProps) {
   await requireAdminCapability("content");
+  const cookieStore = await cookies();
+  const acceptLanguage = (await headers()).get("accept-language");
+  const locale = detectLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    acceptLanguage,
+  );
   const player = await getPlayerDetails((await params).playerId);
   return (
     <main className="admin-shell">
       <Link href="/admin" className="back-link">
-        返回选手列表
+        {t(locale, "admin.backToList")}
       </Link>
       <header className="admin-header">
         <div>
@@ -31,34 +39,40 @@ export default async function PlayerPage({ params }: PageProps) {
             value={player.status === "active" ? "disabled" : "active"}
           />
           <button className="secondary">
-            {player.status === "active" ? "禁用" : "恢复"}
+            {player.status === "active"
+              ? t(locale, "admin.disable")
+              : t(locale, "admin.enable")}
           </button>
         </form>
       </header>
       <section className="admin-create">
-        <h2>别名</h2>
+        <h2>{t(locale, "admin.aliases")}</h2>
         <div className="alias-list">
           {player.aliases.map((alias) => (
             <form action={removeAliasAction} key={alias.id}>
               <span>{alias.alias}</span>
               <input type="hidden" name="playerId" value={player.id} />
               <input type="hidden" name="aliasId" value={alias.id} />
-              <button className="danger">删除</button>
+              <button className="danger">{t(locale, "admin.deleteAlias")}</button>
             </form>
           ))}
         </div>
         <form action={addAliasAction} className="inline-form">
           <input type="hidden" name="playerId" value={player.id} />
-          <input name="alias" placeholder="新增别名" required />
-          <button>添加别名</button>
+          <input
+            name="alias"
+            placeholder={t(locale, "admin.addAliasPlaceholder")}
+            required
+          />
+          <button>{t(locale, "admin.addAliasBtn")}</button>
         </form>
       </section>
       <section className="admin-create">
-        <h2>创建新资料快照</h2>
-        <p className="admin-summary">提交后会保留旧快照并创建新的公开版本。</p>
+        <h2>{t(locale, "admin.newSnapshot")}</h2>
+        <p className="admin-summary">{t(locale, "admin.snapshotKeepHistory")}</p>
         <form action={createPlayerAction} className="player-form">
           <label>
-            标准名
+            {t(locale, "admin.canonicalName")}
             <input
               name="canonicalName"
               defaultValue={player.canonicalName}
@@ -66,7 +80,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            别名（以 | 分隔）
+            {t(locale, "admin.aliasesLabel")}
             <input
               name="aliases"
               defaultValue={player.aliases
@@ -76,7 +90,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            国籍 ISO 代码
+            {t(locale, "admin.countryCode")}
             <input
               name="countryCode"
               defaultValue={player.countryCode}
@@ -84,7 +98,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            国籍分区
+            {t(locale, "admin.countryGroup")}
             <input
               name="countryGroup"
               defaultValue={player.countryGroup}
@@ -92,11 +106,11 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            赛区
+            {t(locale, "admin.regionLabel")}
             <input name="region" defaultValue={player.region} required />
           </label>
           <label>
-            主位置
+            {t(locale, "admin.roleLabel")}
             <input
               name="primaryRole"
               defaultValue={player.primaryRole}
@@ -104,7 +118,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            当前或最近战队
+            {t(locale, "admin.teamLabel")}
             <input
               name="team"
               defaultValue={player.currentOrLastTeam}
@@ -112,7 +126,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            冠军赛夺冠次数
+            {t(locale, "admin.championsTitles")}
             <input
               name="championsTitles"
               type="number"
@@ -122,7 +136,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            大师赛夺冠次数
+            {t(locale, "admin.mastersTitles")}
             <input
               name="mastersTitles"
               type="number"
@@ -132,7 +146,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            冠军赛入围次数
+            {t(locale, "admin.championsAppearances")}
             <input
               name="championsAppearances"
               type="number"
@@ -142,17 +156,17 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            选手状态
+            {t(locale, "admin.statusLabel")}
             <select
               name="isActiveRoster"
               defaultValue={player.isActiveRoster === false ? "false" : "true"}
             >
-              <option value="true">现役</option>
-              <option value="false">退役</option>
+              <option value="true">{t(locale, "status.active")}</option>
+              <option value="false">{t(locale, "status.retired")}</option>
             </select>
           </label>
           <label>
-            资料快照日
+            {t(locale, "admin.dataAsOf")}
             <input
               name="dataAsOf"
               type="date"
@@ -161,7 +175,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
           </label>
           <label>
-            来源 URL
+            {t(locale, "admin.sourceUrl")}
             <input
               name="sourceUrl"
               type="url"
@@ -169,7 +183,7 @@ export default async function PlayerPage({ params }: PageProps) {
               required
             />
           </label>
-          <button>创建新快照</button>
+          <button>{t(locale, "admin.createNewSnapshot")}</button>
         </form>
       </section>
     </main>

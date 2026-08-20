@@ -2,9 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { t } from "../lib/i18n";
+import { useLocale } from "../components/ui-provider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { locale } = useLocale();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +22,7 @@ export default function LoginPage() {
     });
     if (!response.ok) {
       const data = await response.json();
-      setError(data.error ?? "操作失败，请稍后重试。");
+      setError(data.error ?? t(locale, "login.fail"));
       return;
     }
     router.push("/account");
@@ -29,13 +32,13 @@ export default function LoginPage() {
     <main className="auth-page">
       <section className="auth-panel">
         <a href="/" className="back-link">
-          返回首页
+          {t(locale, "lb.back")}
         </a>
-        <h1>{mode === "login" ? "登录" : "注册"}</h1>
-        <p>注册后将获得唯一默认昵称，并可在后续修改。</p>
+        <h1>{mode === "login" ? t(locale, "login.submit") : t(locale, "login.registerSubmit")}</h1>
+        <p>{t(locale, "login.registerNote")}</p>
         <form onSubmit={submit} className="auth-form">
           <label>
-            邮箱
+            {t(locale, "login.email")}
             <input
               type="email"
               autoComplete="email"
@@ -45,7 +48,7 @@ export default function LoginPage() {
             />
           </label>
           <label>
-            密码
+            {t(locale, "login.password")}
             <input
               type="password"
               autoComplete={
@@ -59,7 +62,7 @@ export default function LoginPage() {
           </label>
           {error && <p className="form-error">{error}</p>}
           <button type="submit">
-            {mode === "login" ? "登录" : "创建账号"}
+            {mode === "login" ? t(locale, "login.submit") : t(locale, "login.createAccount")}
           </button>
         </form>
         <button
@@ -70,7 +73,9 @@ export default function LoginPage() {
             setError("");
           }}
         >
-          {mode === "login" ? "没有账号？注册" : "已有账号？登录"}
+          {mode === "login"
+            ? t(locale, "login.noAccount")
+            : t(locale, "login.haveAccount")}
         </button>
       </section>
     </main>
