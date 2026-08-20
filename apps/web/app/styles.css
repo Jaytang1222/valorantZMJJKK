@@ -263,7 +263,11 @@ button {
   margin-top: 8px;
   border: 1px solid #3a476c;
   border-radius: 6px;
-  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.candidate-list > .candidate {
+  margin-top: 0;
 }
 .candidate-list button {
   width: 100%;

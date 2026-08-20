@@ -323,7 +323,7 @@ function MatchPageContent() {
     }
   };
   const candidates = useMemo(
-    () => searchPlayers(players, query, 8, undefined, 2),
+    () => searchPlayers(players, query, 250),
     [players, query],
   );
   const remainingSeconds = (member: Member) =>
@@ -411,22 +411,24 @@ function MatchPageContent() {
                         onChange={(event) => setQuery(event.target.value)}
                         placeholder="搜索选手"
                       />
-                      {candidates.map((player) => (
-                        <button
-                          className="candidate"
-                          key={player.id}
-                          onClick={async () => {
-                            const reply = await run("room:guess", {
-                              code: room.code,
-                              playerId: player.id,
-                            });
-                            if (reply) setQuery("");
-                          }}
-                        >
-                          {player.canonicalName}
-                          <small>{player.currentOrLastTeam}</small>
-                        </button>
-                      ))}
+                      <div className="candidate-list">
+                        {candidates.map((player) => (
+                          <button
+                            className="candidate"
+                            key={player.id}
+                            onClick={async () => {
+                              const reply = await run("room:guess", {
+                                code: room.code,
+                                playerId: player.id,
+                              });
+                              if (reply) setQuery("");
+                            }}
+                          >
+                            {player.canonicalName}
+                            <small>{player.currentOrLastTeam}</small>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <button
                       className="surrender-button"

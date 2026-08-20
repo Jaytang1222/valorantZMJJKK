@@ -134,7 +134,7 @@ export default function SoloPage() {
 
   const candidates = useMemo(() => {
     if (!query.trim() || selected) return [];
-    return searchPlayers(players, query, 8, undefined, 2);
+    return searchPlayers(players, query, 250);
   }, [players, query, selected]);
 
   async function start(difficulty: Difficulty) {
@@ -325,7 +325,7 @@ export default function SoloPage() {
                     setQuery(event.target.value);
                     setSelected(null);
                   }}
-                  placeholder="输入选手 ID 或姓名"
+                  placeholder="输入选手 ID"
                 />
               </label>
               {query && !selected && (

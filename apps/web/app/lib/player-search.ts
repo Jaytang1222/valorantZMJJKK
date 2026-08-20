@@ -11,14 +11,10 @@ export function rankPlayer(
   const q = query.trim().toLocaleLowerCase();
   if (!q) return Infinity;
   const name = player.canonicalName.toLocaleLowerCase();
-  const aliases = (player.aliases ?? []).map((alias) =>
-    alias.toLocaleLowerCase(),
-  );
   if (name === q) return 0;
   if (name.startsWith(q)) return 1;
-  if (aliases.some((alias) => alias.startsWith(q))) return 2;
   if (extraFields.some((field) => field.toLocaleLowerCase().startsWith(q)))
-    return 3;
+    return 2;
   return Infinity;
 }
 
@@ -27,10 +23,9 @@ export function searchPlayers<T extends SearchablePlayer>(
   query: string,
   limit: number,
   extraFields?: (player: T) => string[],
-  minLength = 1,
 ): T[] {
   const q = query.trim().toLocaleLowerCase();
-  if (!q || q.length < minLength) return [];
+  if (!q) return [];
   return players
     .map((player) => ({
       player,

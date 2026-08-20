@@ -7,6 +7,9 @@ const players = [
   { canonicalName: "ZmjjKK", aliases: ["zmjjkk", "kk"] },
   { canonicalName: "Jinggg", aliases: ["jing", "jinggg"] },
   { canonicalName: "yay", aliases: ["yayster"] },
+  { canonicalName: "f0rsakeN", aliases: ["forsaken", "Jason Susanto"] },
+  { canonicalName: "valyn", aliases: ["valyn", "Jacob Batio"] },
+  { canonicalName: "Lime", aliases: ["lime", "Jacob Foster"] },
 ];
 
 describe("rankPlayer", () => {
@@ -19,13 +22,14 @@ describe("rankPlayer", () => {
     expect(rankPlayer(players[3], "jing")).toBe(1);
   });
 
-  it("alias prefix ranks 2", () => {
-    expect(rankPlayer(players[0], "s0m")).toBe(2);
-    expect(rankPlayer(players[2], "kk")).toBe(2);
+  it("extra field prefix ranks 2", () => {
+    expect(rankPlayer(players[0], "Sentinels", ["Sentinels"])).toBe(2);
   });
 
-  it("extra field prefix ranks 3", () => {
-    expect(rankPlayer(players[0], "Sentinels", ["Sentinels"])).toBe(3);
+  it("aliases and real names are ignored", () => {
+    expect(rankPlayer(players[0], "s0m")).toBe(Infinity);
+    expect(rankPlayer(players[5], "jason")).toBe(Infinity);
+    expect(rankPlayer(players[6], "jacob")).toBe(Infinity);
   });
 
   it("non-prefix substring does not match", () => {
@@ -45,9 +49,14 @@ describe("rankPlayer", () => {
 });
 
 describe("searchPlayers", () => {
-  it("orders by rank and limits results", () => {
-    const results = searchPlayers(players, "jing", 8);
-    expect(results.map((p) => p.canonicalName)).toEqual(["Jinggg"]);
+  it("matches ID prefix only, ignoring aliases and real names", () => {
+    const results = searchPlayers(players, "ja", 250);
+    expect(results).toEqual([]);
+  });
+
+  it("orders exact before prefix", () => {
+    const results = searchPlayers(players, "tenz", 8);
+    expect(results.map((p) => p.canonicalName)).toEqual(["TenZ"]);
   });
 
   it("limits to top N", () => {
@@ -57,11 +66,6 @@ describe("searchPlayers", () => {
 
   it("returns empty for blank query", () => {
     expect(searchPlayers(players, "  ", 8)).toEqual([]);
-  });
-
-  it("supports minLength for single-letter queries", () => {
-    expect(searchPlayers(players, "z", 8, undefined, 2)).toEqual([]);
-    expect(searchPlayers(players, "ze", 8, undefined, 2).length).toBe(1);
   });
 
   it("matches extra fields by prefix", () => {
