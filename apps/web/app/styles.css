@@ -1923,24 +1923,57 @@ article p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 20px;
+  gap: 16px;
+  padding: 12px 14px;
+}
+
+.snapshot > div:first-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .snapshot h2 {
-  margin: 0 0 8px;
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 1rem;
 }
 
 .snapshot p {
+  min-height: 0;
+  line-height: 1.35;
   color: var(--text-sec);
-  margin: 6px 0;
+  margin: 2px 0;
+  font-size: 0.82rem;
+}
+
+.snapshot small {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  color: var(--text-sec);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.snapshot > div:first-child > a {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
 }
 
 .review-actions {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.review-actions button {
+  padding: 7px 10px;
+  font-size: 0.78rem;
 }
 
 .review-actions .danger,
