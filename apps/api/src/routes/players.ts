@@ -67,6 +67,7 @@ export async function registerPlayerRoutes(
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
         dataAsOf: playerSnapshots.dataAsOf,
         aliases: sql<
@@ -93,6 +94,7 @@ export async function registerPlayerRoutes(
         playerSnapshots.region,
         playerSnapshots.primaryRole,
         playerSnapshots.currentOrLastTeam,
+        playerSnapshots.rosterStatus,
         playerSnapshots.isActiveRoster,
         playerSnapshots.dataAsOf,
       )
@@ -124,6 +126,7 @@ export async function registerPlayerRoutes(
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
         championsAppearances: playerSnapshots.championsAppearances,

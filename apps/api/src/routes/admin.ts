@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { playerImportSchema } from "@valo-yiba/contracts";
 import { parse } from "csv-parse/sync";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "../config.js";
 import {
@@ -28,6 +28,12 @@ const listSchema = z.object({
   reviewStatus: z
     .enum(["pending_review", "approved", "rejected", "all"])
     .default("pending_review"),
+  region: z.enum(["americas", "emea", "pacific", "china"]).optional(),
+  team: z.string().trim().min(1).max(128).optional(),
+  q: z.string().trim().min(1).max(64).optional(),
+  rosterStatus: z
+    .enum(["active", "benched", "transferred", "retired", "inactive"])
+    .optional(),
 });
 
 const aliasSchema = z.object({ alias: z.string().trim().min(1).max(64) });
@@ -74,6 +80,9 @@ function parseCsvPlayers(csv: string) {
       region: row.region,
       primaryRole: row.primary_role,
       currentOrLastTeam: row.current_or_last_team,
+      rosterStatus:
+        row.roster_status ??
+        (row.is_active_roster === "false" ? "retired" : "active"),
       isActiveRoster:
         row.is_active_roster === undefined
           ? true
@@ -148,15 +157,18 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       row.data.success ? [row.data.data] : [],
     );
     const names = valid.map((row) => row.canonicalName);
-    const existing = names.length
+    const normalizedNames = [
+      ...new Set(names.map((name) => name.toLowerCase())),
+    ];
+    const existing = normalizedNames.length
       ? await db
           .select({ canonicalName: players.canonicalName })
           .from(players)
-          .where(inArray(players.canonicalName, names))
+          .where(inArray(sql`lower(${players.canonicalName})`, normalizedNames))
       : [];
     const conflicts = existing.map((row) => ({
       canonicalName: row.canonicalName,
-      resolution: "将创建新的资料快照",
+      resolution: "updates the player with a new pending snapshot",
     }));
     if (!input.apply || errors.length > 0) {
       return { preview: true, validRows: valid.length, errors, conflicts };
@@ -197,10 +209,34 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get("/v1/admin/snapshots", async (request) => {
-    const { reviewStatus } = listSchema.parse(request.query);
+    const { reviewStatus, region, team, q, rosterStatus } = listSchema.parse(
+      request.query,
+    );
+    const latestSnapshots = db
+      .select({
+        playerId: playerSnapshots.playerId,
+        dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+          "latest_data_version",
+        ),
+      })
+      .from(playerSnapshots)
+      .groupBy(playerSnapshots.playerId)
+      .as("latest_player_snapshots");
     const conditions = [];
     if (reviewStatus !== "all")
       conditions.push(eq(playerSnapshots.reviewStatus, reviewStatus));
+    if (region) conditions.push(eq(playerSnapshots.region, region));
+    if (team)
+      conditions.push(ilike(playerSnapshots.currentOrLastTeam, `%${team}%`));
+    if (rosterStatus)
+      conditions.push(eq(playerSnapshots.rosterStatus, rosterStatus));
+    if (q)
+      conditions.push(
+        or(
+          ilike(players.canonicalName, `%${q}%`),
+          ilike(playerAliases.alias, `%${q}%`),
+        )!,
+      );
     return db
       .select({
         snapshotId: playerSnapshots.id,
@@ -212,6 +248,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         countryCode: playerSnapshots.countryCode,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
@@ -222,9 +259,36 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       })
       .from(playerSnapshots)
       .innerJoin(players, eq(players.id, playerSnapshots.playerId))
+      .innerJoin(
+        latestSnapshots,
+        and(
+          eq(latestSnapshots.playerId, playerSnapshots.playerId),
+          eq(latestSnapshots.dataVersion, playerSnapshots.dataVersion),
+        ),
+      )
+      .leftJoin(playerAliases, eq(playerAliases.playerId, players.id))
       .where(and(...conditions))
+      .groupBy(
+        playerSnapshots.id,
+        players.id,
+        players.canonicalName,
+        players.status,
+        playerSnapshots.reviewStatus,
+        playerSnapshots.region,
+        playerSnapshots.countryCode,
+        playerSnapshots.primaryRole,
+        playerSnapshots.currentOrLastTeam,
+        playerSnapshots.rosterStatus,
+        playerSnapshots.isActiveRoster,
+        playerSnapshots.championsTitles,
+        playerSnapshots.mastersTitles,
+        playerSnapshots.championsAppearances,
+        playerSnapshots.dataAsOf,
+        playerSnapshots.sourceUrl,
+        playerSnapshots.sourceCheckedAt,
+      )
       .orderBy(asc(players.canonicalName))
-      .limit(100);
+      .limit(500);
   });
 
   app.get("/v1/admin/players/:playerId", async (request, reply) => {
@@ -242,6 +306,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
@@ -262,7 +327,21 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .from(playerAliases)
       .where(eq(playerAliases.playerId, playerId))
       .orderBy(asc(playerAliases.alias));
-    return { ...player, aliases };
+    const history = await db
+      .select({
+        id: playerSnapshots.id,
+        dataVersion: playerSnapshots.dataVersion,
+        currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
+        isActiveRoster: playerSnapshots.isActiveRoster,
+        reviewStatus: playerSnapshots.reviewStatus,
+        dataAsOf: playerSnapshots.dataAsOf,
+        sourceUrl: playerSnapshots.sourceUrl,
+      })
+      .from(playerSnapshots)
+      .where(eq(playerSnapshots.playerId, playerId))
+      .orderBy(desc(playerSnapshots.dataVersion));
+    return { ...player, aliases, history };
   });
 
   app.patch(

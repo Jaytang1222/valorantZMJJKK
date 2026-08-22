@@ -25,6 +25,13 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "rejected",
 ]);
 export const playerStatusEnum = pgEnum("player_status", ["active", "disabled"]);
+export const rosterStatusEnum = pgEnum("roster_status", [
+  "active",
+  "benched",
+  "transferred",
+  "retired",
+  "inactive",
+]);
 export const regionEnum = pgEnum("region", [
   "americas",
   "emea",
@@ -177,15 +184,14 @@ export const playerSnapshots = pgTable(
     currentOrLastTeam: varchar("current_or_last_team", {
       length: 128,
     }).notNull(),
+    rosterStatus: rosterStatusEnum("roster_status").notNull().default("active"),
     isActiveRoster: boolean("is_active_roster").notNull().default(true),
     isCoach: boolean("is_coach").notNull().default(false),
     isFeaturedTeam: boolean("is_featured_team").notNull().default(false),
     isVctCnTeam: boolean("is_vct_cn_team").notNull().default(false),
     championsTitles: integer("champions_titles").notNull().default(0),
     mastersTitles: integer("masters_titles").notNull().default(0),
-    championsAppearances: integer("champions_appearances")
-      .notNull()
-      .default(0),
+    championsAppearances: integer("champions_appearances").notNull().default(0),
     dataAsOf: timestamp("data_as_of", { withTimezone: true }).notNull(),
     sourceUrl: text("source_url").notNull(),
     sourceCheckedAt: timestamp("source_checked_at", {

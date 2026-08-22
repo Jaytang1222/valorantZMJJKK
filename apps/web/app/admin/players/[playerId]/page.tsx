@@ -53,7 +53,9 @@ export default async function PlayerPage({ params }: PageProps) {
               <span>{alias.alias}</span>
               <input type="hidden" name="playerId" value={player.id} />
               <input type="hidden" name="aliasId" value={alias.id} />
-              <button className="danger">{t(locale, "admin.deleteAlias")}</button>
+              <button className="danger">
+                {t(locale, "admin.deleteAlias")}
+              </button>
             </form>
           ))}
         </div>
@@ -69,7 +71,9 @@ export default async function PlayerPage({ params }: PageProps) {
       </section>
       <section className="admin-create">
         <h2>{t(locale, "admin.newSnapshot")}</h2>
-        <p className="admin-summary">{t(locale, "admin.snapshotKeepHistory")}</p>
+        <p className="admin-summary">
+          {t(locale, "admin.snapshotKeepHistory")}
+        </p>
         <form action={createPlayerAction} className="player-form">
           <label>
             {t(locale, "admin.canonicalName")}
@@ -166,6 +170,16 @@ export default async function PlayerPage({ params }: PageProps) {
             </select>
           </label>
           <label>
+            Roster state
+            <select name="rosterStatus" defaultValue={player.rosterStatus}>
+              <option value="active">Active</option>
+              <option value="benched">Benched / substitute</option>
+              <option value="inactive">Inactive</option>
+              <option value="transferred">Transferred</option>
+              <option value="retired">Retired</option>
+            </select>
+          </label>
+          <label>
             {t(locale, "admin.dataAsOf")}
             <input
               name="dataAsOf"
@@ -183,8 +197,30 @@ export default async function PlayerPage({ params }: PageProps) {
               required
             />
           </label>
+          <input
+            type="hidden"
+            name="returnTo"
+            value={`/admin/players/${player.id}`}
+          />
           <button>{t(locale, "admin.createNewSnapshot")}</button>
         </form>
+      </section>
+      <section className="admin-create">
+        <h2>Snapshot history</h2>
+        <div className="snapshot-history">
+          {player.history.map((snapshot) => (
+            <article key={snapshot.id}>
+              <strong>v{snapshot.dataVersion}</strong>
+              <span>{snapshot.dataAsOf.slice(0, 10)}</span>
+              <span>{snapshot.currentOrLastTeam}</span>
+              <span>{snapshot.rosterStatus}</span>
+              <span>{snapshot.reviewStatus}</span>
+              <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">
+                Source
+              </a>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   );

@@ -29,6 +29,9 @@ export const playerImportSchema = z.object({
     "coach",
   ]),
   currentOrLastTeam: z.string().trim().min(1).max(128),
+  rosterStatus: z
+    .enum(["active", "benched", "transferred", "retired", "inactive"])
+    .default("active"),
   isActiveRoster: z.boolean().default(true),
   isCoach: z.boolean().default(false),
   isFeaturedTeam: z.boolean().default(false),

@@ -1,21 +1,15 @@
 import type { PlayerImport } from "@valo-yiba/contracts";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { playerAliases, players, playerSnapshots } from "../db/schema.js";
+import { playerAliases, playerSnapshots } from "../db/schema.js";
 import { normalizeAlias } from "../lib/normalization.js";
+import { resolvePlayer } from "./player-identity.js";
 
 export async function upsertPlayerSnapshot(
   data: PlayerImport,
 ): Promise<{ playerId: string; snapshotId: string }> {
   return db.transaction(async (tx) => {
-    const [player] = await tx
-      .insert(players)
-      .values({ canonicalName: data.canonicalName })
-      .onConflictDoUpdate({
-        target: players.canonicalName,
-        set: { status: "active", updatedAt: new Date() },
-      })
-      .returning({ id: players.id });
+    const player = await resolvePlayer(tx, data.canonicalName);
 
     for (const alias of new Set([data.canonicalName, ...data.aliases])) {
       await tx
@@ -45,6 +39,7 @@ export async function upsertPlayerSnapshot(
         region: data.region,
         primaryRole: data.primaryRole,
         currentOrLastTeam: data.currentOrLastTeam,
+        rosterStatus: data.rosterStatus,
         isActiveRoster: data.isActiveRoster,
         isCoach: data.isCoach,
         isFeaturedTeam: data.isFeaturedTeam,

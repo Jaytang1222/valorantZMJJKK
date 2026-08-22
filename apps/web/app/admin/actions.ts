@@ -60,6 +60,8 @@ function list(value: FormDataEntryValue | null): string[] {
 
 export async function createPlayerAction(formData: FormData): Promise<void> {
   await requireAdminCapability("content");
+  const rosterStatus = String(formData.get("rosterStatus") ?? "active") as
+    "active" | "benched" | "transferred" | "retired" | "inactive";
   await createPlayer({
     canonicalName: String(formData.get("canonicalName") ?? ""),
     aliases: list(formData.get("aliases")),
@@ -70,16 +72,17 @@ export async function createPlayerAction(formData: FormData): Promise<void> {
     primaryRole: String(formData.get("primaryRole")) as
       "duelist" | "initiator" | "controller" | "sentinel" | "flex",
     currentOrLastTeam: String(formData.get("team") ?? ""),
+    rosterStatus,
     championsTitles: Number(formData.get("championsTitles")),
     mastersTitles: Number(formData.get("mastersTitles")),
     championsAppearances: Number(formData.get("championsAppearances")),
-    isActiveRoster: formData.get("isActiveRoster") === "true",
+    isActiveRoster: rosterStatus === "active" || rosterStatus === "benched",
     dataAsOf: String(formData.get("dataAsOf") ?? ""),
     sourceUrl: String(formData.get("sourceUrl") ?? ""),
     sourceCheckedAt: new Date().toISOString(),
-    reviewStatus: "approved",
+    reviewStatus: "pending_review",
   });
-  redirect("/admin?created=1");
+  redirect(String(formData.get("returnTo") ?? "/admin?created=1"));
 }
 
 export async function setPlayerStatus(formData: FormData): Promise<void> {

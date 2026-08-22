@@ -1,3 +1,5 @@
+import "./load-env";
+
 function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
   const apiBaseUrl =
     process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -17,12 +19,18 @@ function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
 export function getAdminConfigurationStatus(): {
   apiBaseUrlConfigured: boolean;
   internalApiSecretConfigured: boolean;
+  adminAuthConfigured: boolean;
 } {
   return {
     apiBaseUrlConfigured: Boolean(
       process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL,
     ),
     internalApiSecretConfigured: Boolean(process.env.INTERNAL_API_SECRET),
+    adminAuthConfigured: Boolean(
+      process.env.ADMIN_USERNAME &&
+        process.env.ADMIN_PASSWORD &&
+        process.env.ADMIN_SESSION_SECRET,
+    ),
   };
 }
 
@@ -36,6 +44,7 @@ export type AdminSnapshot = {
   countryCode: string;
   primaryRole: string;
   currentOrLastTeam: string;
+  rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
   championsAppearances: number;
@@ -52,6 +61,7 @@ export type PlayerInput = {
   region: "americas" | "emea" | "pacific" | "china";
   primaryRole: "duelist" | "initiator" | "controller" | "sentinel" | "flex";
   currentOrLastTeam: string;
+  rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
   championsAppearances: number;
@@ -67,14 +77,35 @@ export type PlayerDetails = Omit<PlayerInput, "aliases"> & {
   snapshotId: string;
   status: "active" | "disabled";
   aliases: { id: string; alias: string }[];
+  history: {
+    id: string;
+    dataVersion: number;
+    currentOrLastTeam: string;
+    rosterStatus: PlayerDetails["rosterStatus"];
+    isActiveRoster: boolean;
+    reviewStatus: "pending_review" | "approved" | "rejected";
+    dataAsOf: string;
+    sourceUrl: string;
+  }[];
 };
 
 export async function getSnapshots(
   status: AdminSnapshot["reviewStatus"] | "all",
+  filters: {
+    region?: string;
+    team?: string;
+    rosterStatus?: string;
+    q?: string;
+  } = {},
 ): Promise<AdminSnapshot[]> {
   const { apiBaseUrl, internalApiSecret } = getConfig();
   const response = await fetch(
-    `${apiBaseUrl}/internal/v1/admin/snapshots?reviewStatus=${status}`,
+    `${apiBaseUrl}/internal/v1/admin/snapshots?${new URLSearchParams({
+      reviewStatus: status,
+      ...Object.fromEntries(
+        Object.entries(filters).filter(([, value]) => value),
+      ),
+    })}`,
     {
       headers: { "x-internal-api-secret": internalApiSecret },
       cache: "no-store",

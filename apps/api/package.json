@@ -16,6 +16,8 @@
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",
     "players:validate": "tsx src/scripts/validate-player-csv.ts",
+    "players:sync-vct": "tsx src/scripts/sync-vct-rosters.ts",
+    "players:sync-vct-history": "tsx src/scripts/sync-vct-history.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "load:versus": "tsx src/scripts/load-versus.ts"
   },

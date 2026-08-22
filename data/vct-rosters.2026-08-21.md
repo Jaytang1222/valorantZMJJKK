@@ -1,0 +1,68 @@
+# VCT four-region roster audit baseline
+
+Snapshot date: 2026-08-20/21. Primary source: VLR.gg team Current Roster pages. The list below is the baseline used by `pnpm --filter @valo-yiba/api players:sync-vct`.
+
+The baseline contains 47 teams. `SLT Seongnam` (`team/12446`) and `ULF Esports` (`team/18019`) are included even when their current roster page has limited roster metadata. Historical match participation is collected with `pnpm --filter @valo-yiba/api players:sync-vct-history`; the generated review report is `data/vct-history-added.2026-08-22.csv`.
+
+## Americas
+
+- Cloud9
+- M80
+- MIBR
+- Evil Geniuses
+- ENVY
+- FURIA
+- G2 Esports
+- Sentinels
+- KRÜ Esports
+- Fluxo W7M
+- BESTIA
+- 2GAME Esports
+
+## EMEA
+
+- BBL Esports
+- Team Vitality
+- Karmine Corp
+- Team Liquid
+- FUT Esports
+- Enterprise Esports
+- Eintracht Frankfurt
+- Fire Flux Esports
+- FNATIC
+- ULF Esports
+
+FNATIC is included explicitly because its current roster page lists `crashies` even though it is not present in the Stage 2 event-team extraction.
+
+## Pacific
+
+- Team Secret
+- Rex Regum Qeon
+- QTDIG
+- XIPTO Esports
+- ZETA DIVISION
+- Nongshim RedForce
+- FULL SENSE
+- T1
+- DetonatioN FocusMe
+- Kiwoom DRX
+- Onside Gaming
+- Sharper Esports
+- SLT Seongnam
+
+## China
+
+- EDward Gaming
+- Bilibili Gaming
+- TYLOO
+- Xi Lai Gaming
+- Nova Esports
+- FunPlus Phoenix
+- JD Gaming
+- All Gamers
+- Trace Esports
+- Titan Esports Club
+- Wolves Esports
+- Dragon Ranger Gaming
+
+The CSV keeps previous VCT records that are absent from this baseline as `transferred` or `retired`; current pages may also expose `inactive` players. No historical row is deleted during synchronization.

@@ -20,6 +20,9 @@ for (const [index, row] of rows.entries()) {
     region: row.region,
     primaryRole: row.primary_role,
     currentOrLastTeam: row.current_or_last_team,
+    rosterStatus:
+      row.roster_status ??
+      (row.is_active_roster === "false" ? "retired" : "active"),
     isActiveRoster:
       row.is_active_roster === undefined
         ? true

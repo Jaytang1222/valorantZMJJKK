@@ -100,11 +100,11 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     "/v1/auth/register",
     { config: { rateLimit: { max: 5, timeWindow: "1 hour" } } },
     async (request, reply) => {
+      const input = credentialsSchema.parse(request.body);
       if (!env.PASSWORD_PEPPER)
         return reply.serviceUnavailable(
           "Password registration is not configured",
         );
-      const input = credentialsSchema.parse(request.body);
       const email = normalize(input.email);
       const [existing] = await db
         .select({ id: users.id })
@@ -135,9 +135,9 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     "/v1/auth/login",
     { config: { rateLimit: { max: 10, timeWindow: "15 minutes" } } },
     async (request, reply) => {
+      const input = credentialsSchema.parse(request.body);
       if (!env.PASSWORD_PEPPER)
         return reply.serviceUnavailable("Password login is not configured");
-      const input = credentialsSchema.parse(request.body);
       const [user] = await db
         .select({
           id: users.id,

@@ -69,8 +69,16 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 84% -14%, rgba(255, 70, 85, 0.1), transparent 30rem),
-    radial-gradient(circle at 2% 92%, rgba(127, 231, 220, 0.07), transparent 26rem),
+    radial-gradient(
+      circle at 84% -14%,
+      rgba(255, 70, 85, 0.1),
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at 2% 92%,
+      rgba(127, 231, 220, 0.07),
+      transparent 26rem
+    ),
     var(--bg);
   color: var(--text);
   font-family: Arial, "Microsoft YaHei", sans-serif;
@@ -193,7 +201,14 @@ main > :nth-child(4),
   font-size: 0.8rem;
   font-style: normal;
   font-weight: 900;
-  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 5px) 0,
+    100% 5px,
+    100% 100%,
+    5px 100%,
+    0 calc(100% - 5px)
+  );
 }
 
 .site-nav-tools {
@@ -240,7 +255,10 @@ main > :nth-child(4),
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
-  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    color 0.16s ease,
+    background 0.16s ease;
 }
 
 .nav-icon-btn:hover,
@@ -330,7 +348,14 @@ button {
 .player-form button {
   position: relative;
   overflow: hidden;
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 9px,
+    100% 100%,
+    9px 100%,
+    0 calc(100% - 9px)
+  );
   box-shadow: 0 8px 20px rgb(255 70 85 / 18%);
 }
 
@@ -352,7 +377,12 @@ button {
   width: 42%;
   content: "";
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.32),
+    transparent
+  );
   transform: skewX(-18deg);
   transition: left 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -398,7 +428,11 @@ button {
   cursor: pointer;
   font-weight: 700;
   text-decoration: none;
-  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
 }
 
 .entry-button,
@@ -412,7 +446,14 @@ button {
 .admin-login button,
 .admin-create button,
 .player-form button {
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 9px,
+    100% 100%,
+    9px 100%,
+    0 calc(100% - 9px)
+  );
   box-shadow: 0 8px 20px rgb(255 70 85 / 18%);
 }
 
@@ -526,10 +567,12 @@ article,
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background:
-    linear-gradient(145deg, var(--bg-elev), var(--bg-elev));
+  background: linear-gradient(145deg, var(--bg-elev), var(--bg-elev));
   box-shadow: var(--shadow);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 article::before,
@@ -745,7 +788,10 @@ article p {
   color: var(--text);
   text-decoration: none;
   overflow: hidden;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .entry-card::before {
@@ -994,7 +1040,9 @@ article p {
   padding: 11px;
   caret-color: var(--primary);
   font: inherit;
-  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .guess-box input::placeholder,
@@ -1064,7 +1112,9 @@ article p {
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
 }
 
 .candidate-list button + button,
@@ -1660,8 +1710,7 @@ article p {
 }
 
 .own-panel {
-  background:
-    linear-gradient(145deg, var(--bg-elev), var(--bg-elev));
+  background: linear-gradient(145deg, var(--bg-elev), var(--bg-elev));
 }
 
 .opponent-panel {
@@ -1843,6 +1892,28 @@ article p {
   color: var(--text-sec);
 }
 
+.admin-filters {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr repeat(3, minmax(130px, 0.8fr)) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.admin-filters input,
+.admin-filters select {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 12px;
+}
+
+.admin-filters .back-link {
+  white-space: nowrap;
+}
+
 .snapshot-list {
   display: grid;
   gap: 12px;
@@ -1932,6 +2003,27 @@ article p {
 
 .inline-form input {
   flex: 1;
+}
+
+.snapshot-history {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.snapshot-history article {
+  display: grid;
+  grid-template-columns: 52px 110px minmax(130px, 1fr) 100px 110px auto;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  color: var(--text-sec);
+  font-size: 0.9rem;
+}
+
+.snapshot-history strong {
+  color: var(--text);
 }
 
 .header-link {
@@ -2060,6 +2152,14 @@ article p {
 
   .player-form {
     grid-template-columns: 1fr;
+  }
+
+  .admin-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .snapshot-history article {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .match-shell {

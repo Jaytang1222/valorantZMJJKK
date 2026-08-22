@@ -14,7 +14,15 @@ import { LOCALE_COOKIE, detectLocale, t, tWith } from "../lib/i18n";
 
 export const dynamic = "force-dynamic";
 type PageProps = {
-  searchParams: Promise<{ error?: string; created?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    created?: string;
+    q?: string;
+    team?: string;
+    region?: string;
+    rosterStatus?: string;
+    reviewStatus?: "pending_review" | "approved" | "rejected" | "all";
+  }>;
 };
 
 function NewPlayerForm({ locale }: { locale: "zh" | "en" }) {
@@ -99,6 +107,16 @@ function NewPlayerForm({ locale }: { locale: "zh" | "en" }) {
           </select>
         </label>
         <label>
+          Roster state
+          <select name="rosterStatus" defaultValue="active">
+            <option value="active">Active</option>
+            <option value="benched">Benched / substitute</option>
+            <option value="inactive">Inactive</option>
+            <option value="transferred">Transferred</option>
+            <option value="retired">Retired</option>
+          </select>
+        </label>
+        <label>
           {t(locale, "admin.dataAsOf")}
           <input name="dataAsOf" type="date" required />
         </label>
@@ -120,6 +138,17 @@ export default async function AdminPage({ searchParams }: PageProps) {
     cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage,
   );
+  const config = getAdminConfigurationStatus();
+  if (
+    !config.apiBaseUrlConfigured ||
+    !config.internalApiSecretConfigured ||
+    !config.adminAuthConfigured
+  )
+    return (
+      <main className="admin-shell">
+        <h1>{t(locale, "admin.configNotReady")}</h1>
+      </main>
+    );
   const operator = await getAdminOperator();
   if (!operator)
     return (
@@ -135,19 +164,19 @@ export default async function AdminPage({ searchParams }: PageProps) {
             {t(locale, "admin.password")}
             <input name="password" type="password" required />
           </label>
-          {params.error && <p className="form-error">{t(locale, "admin.loginBad")}</p>}
+          {params.error && (
+            <p className="form-error">{t(locale, "admin.loginBad")}</p>
+          )}
           <button type="submit">{t(locale, "admin.loginBtn")}</button>
         </form>
       </main>
     );
-  const config = getAdminConfigurationStatus();
-  if (!config.apiBaseUrlConfigured || !config.internalApiSecretConfigured)
-    return (
-      <main className="admin-shell">
-        <h1>{t(locale, "admin.configNotReady")}</h1>
-      </main>
-    );
-  const snapshots = await getSnapshots("all");
+  const snapshots = await getSnapshots(params.reviewStatus ?? "all", {
+    q: params.q,
+    team: params.team,
+    region: params.region,
+    rosterStatus: params.rosterStatus,
+  });
   const pending = snapshots.filter(
     (item) => item.reviewStatus === "pending_review",
   ).length;
@@ -179,6 +208,35 @@ export default async function AdminPage({ searchParams }: PageProps) {
       )}
       <NewPlayerForm locale={locale} />
       <CsvImport />
+      <form method="get" className="admin-filters">
+        <input name="q" defaultValue={params.q} placeholder="Player name" />
+        <input name="team" defaultValue={params.team} placeholder="Team" />
+        <select name="region" defaultValue={params.region ?? ""}>
+          <option value="">All regions</option>
+          <option value="americas">Americas</option>
+          <option value="emea">EMEA</option>
+          <option value="pacific">Pacific</option>
+          <option value="china">China</option>
+        </select>
+        <select name="rosterStatus" defaultValue={params.rosterStatus ?? ""}>
+          <option value="">All roster states</option>
+          <option value="active">Active</option>
+          <option value="benched">Benched / substitute</option>
+          <option value="inactive">Inactive</option>
+          <option value="transferred">Transferred</option>
+          <option value="retired">Retired</option>
+        </select>
+        <select name="reviewStatus" defaultValue={params.reviewStatus ?? "all"}>
+          <option value="all">All review states</option>
+          <option value="pending_review">Pending review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button type="submit">Filter</button>
+        <Link href="/admin" className="back-link">
+          Clear
+        </Link>
+      </form>
       <section className="snapshot-list">
         {snapshots.map((snapshot) => (
           <article className="snapshot" key={snapshot.snapshotId}>
@@ -194,11 +252,12 @@ export default async function AdminPage({ searchParams }: PageProps) {
                 {snapshot.primaryRole} · {snapshot.currentOrLastTeam}
               </p>
               <p>
-                {t(locale, "admin.championsTitles")} {snapshot.championsTitles} ·{" "}
-                {t(locale, "admin.mastersTitles")} {snapshot.mastersTitles} ·{" "}
+                {t(locale, "admin.championsTitles")} {snapshot.championsTitles}{" "}
+                · {t(locale, "admin.mastersTitles")} {snapshot.mastersTitles} ·{" "}
                 {t(locale, "admin.championsAppearances")}{" "}
                 {snapshot.championsAppearances}
               </p>
+              <p>Roster state: {snapshot.rosterStatus}</p>
               <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">
                 {t(locale, "admin.viewSource")}
               </a>
@@ -222,7 +281,9 @@ export default async function AdminPage({ searchParams }: PageProps) {
                       value={snapshot.snapshotId}
                     />
                     <input type="hidden" name="reviewStatus" value="rejected" />
-                    <button className="danger">{t(locale, "admin.reject")}</button>
+                    <button className="danger">
+                      {t(locale, "admin.reject")}
+                    </button>
                   </form>
                 </>
               )}
@@ -233,7 +294,9 @@ export default async function AdminPage({ searchParams }: PageProps) {
                   value={snapshot.playerId}
                 />
                 <input type="hidden" name="status" value="disabled" />
-                <button className="secondary">{t(locale, "admin.disable")}</button>
+                <button className="secondary">
+                  {t(locale, "admin.disable")}
+                </button>
               </form>
             </div>
           </article>
