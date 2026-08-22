@@ -18,7 +18,12 @@ import {
 import { db } from "../db/client.js";
 import { normalizeAlias } from "../lib/normalization.js";
 import { invalidateLeaderboard } from "../services/leaderboard.js";
-import { upsertPlayerSnapshot } from "../services/player-import.js";
+import {
+  PlayerCanonicalNameConflictError,
+  PlayerSnapshotNotFoundError,
+  updateLatestPlayerSnapshot,
+  upsertPlayerSnapshot,
+} from "../services/player-import.js";
 
 const reviewSchema = z.object({
   reviewStatus: z.enum(["approved", "rejected"]),
@@ -138,6 +143,29 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       metadata: { snapshotId: result.snapshotId },
     });
     return reply.code(201).send(result);
+  });
+
+  app.patch("/v1/admin/players/:playerId", async (request, reply) => {
+    const { playerId } = z
+      .object({ playerId: z.string().uuid() })
+      .parse(request.params);
+    const player = playerImportSchema.parse(request.body);
+    try {
+      const result = await updateLatestPlayerSnapshot(playerId, player);
+      await audit({
+        action: "player_snapshot_updated",
+        entityType: "player",
+        entityId: result.playerId,
+        metadata: { snapshotId: result.snapshotId },
+      });
+      return result;
+    } catch (error) {
+      if (error instanceof PlayerCanonicalNameConflictError)
+        return reply.conflict(error.message);
+      if (error instanceof PlayerSnapshotNotFoundError)
+        return reply.notFound(error.message);
+      throw error;
+    }
   });
 
   app.post("/v1/admin/players/import", async (request, reply) => {
@@ -311,6 +339,9 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
         championsAppearances: playerSnapshots.championsAppearances,
+        isCoach: playerSnapshots.isCoach,
+        isFeaturedTeam: playerSnapshots.isFeaturedTeam,
+        isVctCnTeam: playerSnapshots.isVctCnTeam,
         dataAsOf: playerSnapshots.dataAsOf,
         sourceUrl: playerSnapshots.sourceUrl,
         sourceCheckedAt: playerSnapshots.sourceCheckedAt,
@@ -327,21 +358,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .from(playerAliases)
       .where(eq(playerAliases.playerId, playerId))
       .orderBy(asc(playerAliases.alias));
-    const history = await db
-      .select({
-        id: playerSnapshots.id,
-        dataVersion: playerSnapshots.dataVersion,
-        currentOrLastTeam: playerSnapshots.currentOrLastTeam,
-        rosterStatus: playerSnapshots.rosterStatus,
-        isActiveRoster: playerSnapshots.isActiveRoster,
-        reviewStatus: playerSnapshots.reviewStatus,
-        dataAsOf: playerSnapshots.dataAsOf,
-        sourceUrl: playerSnapshots.sourceUrl,
-      })
-      .from(playerSnapshots)
-      .where(eq(playerSnapshots.playerId, playerId))
-      .orderBy(desc(playerSnapshots.dataVersion));
-    return { ...player, aliases, history };
+    return { ...player, aliases };
   });
 
   app.patch(

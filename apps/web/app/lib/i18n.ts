@@ -165,11 +165,15 @@ const zh = {
   "account.abandoned": "放弃",
   "account.guesses": "{count} 次猜测",
   "admin.eyebrow": "CONTENT OPERATIONS",
+  "admin.editCurrent": "修改当前资料",
+  "admin.snapshotUpdatePending": "修改后会进入待审核状态，批准后更新公开资料。",
+  "admin.updated": "资料已更新，待审核通过后生效。",
+  "admin.saveChanges": "保存修改",
   "admin.title": "管理后台",
   "admin.identity": "当前身份",
   "admin.playersHeading": "选手资料管理",
   "admin.create": "录入选手",
-  "admin.publish": "创建并公开",
+  "admin.publish": "创建待审核资料",
   "admin.approve": "批准",
   "admin.reject": "拒绝",
   "admin.disable": "禁用",
@@ -198,8 +202,9 @@ const zh = {
   "admin.dataAsOf": "资料快照日",
   "admin.sourceUrl": "来源 URL",
   "admin.summary": "当前身份：{name}（{role}）",
-  "admin.snapshotSummary": "共 {total} 条快照，其中 {pending} 条待审核。编辑选手会创建新快照，历史版本不会被覆盖。",
-  "admin.created": "选手快照已创建并公开。",
+  "admin.snapshotSummary":
+    "共 {total} 条快照，其中 {pending} 条待审核。编辑当前资料会更新最新版本，旧快照保留但不在页面展示。",
+  "admin.created": "选手资料已创建，待审核后公开。",
   "admin.viewSource": "查看来源",
   "admin.deleteAlias": "删除",
   "admin.addAliasPlaceholder": "新增别名",
@@ -218,31 +223,43 @@ const zh = {
   "privacy.deletion": "删除与联系",
   "privacy.scope": "适用范围",
   "privacy.updated": "运营方：{brand}。最后更新：2026 年 8 月。",
-  "privacy.dataText": "注册时收集邮箱地址和密码哈希。游戏过程中记录已结算的猜测、成绩、房间结算信息及必要的安全日志，用于提供排行榜、战绩、内容审核和防滥用能力。",
-  "privacy.usageText": "数据仅用于运营本服务、处理安全事件与履行法律义务。账户与审计数据默认保留 90 天；法律另有要求或存在未处理安全事件时，可在必要范围内延长。",
-  "privacy.deletionText": "你可请求访问、更正或删除个人数据。请使用注册邮箱发送请求至 {email}，并说明账户邮箱与请求类型。",
-  "privacy.scopeText": "本政策适用于中国大陆地区的本服务用户。继续使用服务即表示你理解本政策所述的数据处理方式。",
+  "privacy.dataText":
+    "注册时收集邮箱地址和密码哈希。游戏过程中记录已结算的猜测、成绩、房间结算信息及必要的安全日志，用于提供排行榜、战绩、内容审核和防滥用能力。",
+  "privacy.usageText":
+    "数据仅用于运营本服务、处理安全事件与履行法律义务。账户与审计数据默认保留 90 天；法律另有要求或存在未处理安全事件时，可在必要范围内延长。",
+  "privacy.deletionText":
+    "你可请求访问、更正或删除个人数据。请使用注册邮箱发送请求至 {email}，并说明账户邮箱与请求类型。",
+  "privacy.scopeText":
+    "本政策适用于中国大陆地区的本服务用户。继续使用服务即表示你理解本政策所述的数据处理方式。",
   "terms.title": "服务条款",
   "terms.nature": "服务性质",
   "terms.responsibility": "用户责任",
   "terms.account": "账户与内容",
   "terms.region": "适用地区：中国大陆",
-  "terms.updated": "运营方：{brand}。最后更新：2026 年 8 月。适用地区：中国大陆。",
-  "terms.natureText": "本服务是面向 VALORANT 社区的职业选手猜测游戏，仅供娱乐与社区交流。服务不提供现金、虚拟币、抽奖或任何可兑换奖励。",
-  "terms.responsibilityText": "你不得使用自动化脚本、批量注册、漏洞利用、干扰实时房间或其他破坏公平性的方式使用服务。违反规则的成绩可被隐藏或作废，账户可被限制访问。",
-  "terms.accountText": "请妥善保管账户凭据。选手资料来自公开来源并可能随赛事与转会更新；运营方会尽力更正已确认的错误，但不保证资料始终完整或无误。",
+  "terms.updated":
+    "运营方：{brand}。最后更新：2026 年 8 月。适用地区：中国大陆。",
+  "terms.natureText":
+    "本服务是面向 VALORANT 社区的职业选手猜测游戏，仅供娱乐与社区交流。服务不提供现金、虚拟币、抽奖或任何可兑换奖励。",
+  "terms.responsibilityText":
+    "你不得使用自动化脚本、批量注册、漏洞利用、干扰实时房间或其他破坏公平性的方式使用服务。违反规则的成绩可被隐藏或作废，账户可被限制访问。",
+  "terms.accountText":
+    "请妥善保管账户凭据。选手资料来自公开来源并可能随赛事与转会更新；运营方会尽力更正已确认的错误，但不保证资料始终完整或无误。",
   "terms.contact": "联系",
   "terms.contactText": "服务、账户或条款问题请联系 {email}。",
   "dataSources.title": "数据与商标声明",
   "dataSources.notOfficial": "非官方社区项目",
   "dataSources.riot": "Riot Games",
-  "dataSources.collectedText": "选手资料由运营人员依据公开赛事记录、战队公告和其他许可清晰的公开资料人工整理。每个公开选手快照均保留来源链接与核验日期。",
-  "dataSources.riotText": "VALORANT、Riot Games、VCT、赛事名称、选手名称及战队相关商标归各自权利人所有。{brand} 为非官方社区项目，不代表、不隶属于且未获 Riot Games 或任何赛事主办方背书。",
+  "dataSources.collectedText":
+    "选手资料由运营人员依据公开赛事记录、战队公告和其他许可清晰的公开资料人工整理。每个公开选手快照均保留来源链接与核验日期。",
+  "dataSources.riotText":
+    "VALORANT、Riot Games、VCT、赛事名称、选手名称及战队相关商标归各自权利人所有。{brand} 为非官方社区项目，不代表、不隶属于且未获 Riot Games 或任何赛事主办方背书。",
   "dataSources.contactText": "资料来源或商标使用问题请联系 {email}。",
   "corrections.title": "资料更正",
   "corrections.intro": "请提供选手名称、问题说明及可公开核验的来源链接。",
-  "corrections.bodyText": "若发现选手资料、别名、赛事成绩或来源存在错误，请发送邮件至 {email}。",
-  "corrections.verifyText": "请提供选手名称、问题说明及可公开核验的来源链接。运营方会在核验后更新公开资料或停用错误题目。",
+  "corrections.bodyText":
+    "若发现选手资料、别名、赛事成绩或来源存在错误，请发送邮件至 {email}。",
+  "corrections.verifyText":
+    "请提供选手名称、问题说明及可公开核验的来源链接。运营方会在核验后更新公开资料或停用错误题目。",
   "error.pageUnavailable": "页面暂时不可用",
   "error.retry": "请稍后重试。",
 } as const;
@@ -355,7 +372,8 @@ const en: Record<keyof typeof zh, string> = {
   "match.roundOver": "Round over",
   "match.points": "{score} pts",
   "match.disconnected": "Connection lost. Reconnect within {seconds}s.",
-  "match.opponentDisconnected": "Opponent disconnected. {seconds}s to reconnect.",
+  "match.opponentDisconnected":
+    "Opponent disconnected. {seconds}s to reconnect.",
   "match.opponentSurrendered": "Opponent surrendered.",
   "match.opponentForfeited": "Opponent lost to timeout.",
   "match.progress": "Guess progress",
@@ -392,7 +410,8 @@ const en: Record<keyof typeof zh, string> = {
   "login.noAccount": "No account? Sign up",
   "login.submit": "Log In",
   "login.registerSubmit": "Sign Up",
-  "login.registerNote": "You'll get a unique default nickname after signing up, and can change it later.",
+  "login.registerNote":
+    "You'll get a unique default nickname after signing up, and can change it later.",
   "login.createAccount": "Create Account",
   "login.haveAccount": "Have an account? Log in",
   "login.fail": "Something went wrong. Try again later.",
@@ -416,7 +435,7 @@ const en: Record<keyof typeof zh, string> = {
   "admin.identity": "Current Identity",
   "admin.playersHeading": "Player Profiles",
   "admin.create": "Add Player",
-  "admin.publish": "Create & Publish",
+  "admin.publish": "Create for Review",
   "admin.approve": "Approve",
   "admin.reject": "Reject",
   "admin.disable": "Disable",
@@ -425,6 +444,11 @@ const en: Record<keyof typeof zh, string> = {
   "admin.aliases": "Aliases",
   "admin.addAlias": "Add Alias",
   "admin.newSnapshot": "Create New Snapshot",
+  "admin.editCurrent": "Edit Current Profile",
+  "admin.snapshotUpdatePending":
+    "Changes enter review and update the public profile after approval.",
+  "admin.updated": "Profile updated and waiting for review.",
+  "admin.saveChanges": "Save Changes",
   "admin.configNotReady": "Admin not configured",
   "admin.loginBad": "Invalid credentials.",
   "admin.username": "Username",
@@ -445,18 +469,21 @@ const en: Record<keyof typeof zh, string> = {
   "admin.dataAsOf": "Data as of",
   "admin.sourceUrl": "Source URL",
   "admin.summary": "Identity: {name} ({role})",
-  "admin.snapshotSummary": "{total} snapshots, {pending} pending review. Editing a player creates a new snapshot; history is never overwritten.",
-  "admin.created": "Player snapshot created and published.",
+  "admin.snapshotSummary":
+    "{total} snapshots, {pending} pending review. Editing updates the latest version; older snapshots are retained but hidden.",
+  "admin.created": "Player profile created and waiting for review.",
   "admin.viewSource": "View source",
   "admin.deleteAlias": "Delete",
   "admin.addAliasPlaceholder": "Add alias…",
   "admin.addAliasBtn": "Add Alias",
-  "admin.snapshotKeepHistory": "Old snapshots are kept and a new public version is created.",
+  "admin.snapshotKeepHistory":
+    "Old snapshots are kept and a new public version is created.",
   "admin.createNewSnapshot": "Create New Snapshot",
   "admin.csvImport": "CSV Import",
   "admin.csvPreview": "Preview CSV",
   "admin.csvApply": "Import",
-  "admin.csvSummary": "Valid rows: {valid}; conflicts: {conflicts}; errors: {errors}",
+  "admin.csvSummary":
+    "Valid rows: {valid}; conflicts: {conflicts}; errors: {errors}",
   "admin.csvErrorRow": "Row {row}: {detail}",
   "privacy.title": "Privacy Policy",
   "privacy.operator": "Operator: VALO YIBA",
@@ -465,32 +492,46 @@ const en: Record<keyof typeof zh, string> = {
   "privacy.deletion": "Deletion & Contact",
   "privacy.scope": "Scope",
   "privacy.updated": "Operator: {brand}. Last updated: August 2026.",
-  "privacy.dataText": "On registration we collect your email address and a password hash. During gameplay we record settled guesses, scores, room results, and necessary security logs to power leaderboards, stats, content review, and anti-abuse measures.",
-  "privacy.usageText": "Data is used only to operate this service, handle security incidents, and meet legal obligations. Account and audit data is retained for 90 days by default; retention may be extended where required by law or while an incident is open.",
-  "privacy.deletionText": "You may request access, correction, or deletion of your personal data. Send a request from your registered email to {email}, stating your account email and the request type.",
-  "privacy.scopeText": "This policy applies to users of this service in Mainland China. By continuing to use the service you acknowledge the data practices described here.",
+  "privacy.dataText":
+    "On registration we collect your email address and a password hash. During gameplay we record settled guesses, scores, room results, and necessary security logs to power leaderboards, stats, content review, and anti-abuse measures.",
+  "privacy.usageText":
+    "Data is used only to operate this service, handle security incidents, and meet legal obligations. Account and audit data is retained for 90 days by default; retention may be extended where required by law or while an incident is open.",
+  "privacy.deletionText":
+    "You may request access, correction, or deletion of your personal data. Send a request from your registered email to {email}, stating your account email and the request type.",
+  "privacy.scopeText":
+    "This policy applies to users of this service in Mainland China. By continuing to use the service you acknowledge the data practices described here.",
   "terms.title": "Terms of Service",
   "terms.nature": "Service Nature",
   "terms.responsibility": "User Responsibility",
   "terms.account": "Account & Content",
   "terms.region": "Applicable region: Mainland China",
-  "terms.updated": "Operator: {brand}. Last updated: August 2026. Applicable region: Mainland China.",
-  "terms.natureText": "This service is a pro-player guessing game for the VALORANT community, for entertainment and community purposes only. The service offers no cash, virtual currency, giveaways, or any exchangeable rewards.",
-  "terms.responsibilityText": "You may not use automated scripts, bulk registrations, exploits, interference with real-time rooms, or other means that undermine fairness. Violating results may be hidden or voided, and accounts may be restricted.",
-  "terms.accountText": "Keep your account credentials safe. Player profiles come from public sources and may change with events and transfers; the operator makes reasonable efforts to correct confirmed errors but does not guarantee the data is always complete or accurate.",
+  "terms.updated":
+    "Operator: {brand}. Last updated: August 2026. Applicable region: Mainland China.",
+  "terms.natureText":
+    "This service is a pro-player guessing game for the VALORANT community, for entertainment and community purposes only. The service offers no cash, virtual currency, giveaways, or any exchangeable rewards.",
+  "terms.responsibilityText":
+    "You may not use automated scripts, bulk registrations, exploits, interference with real-time rooms, or other means that undermine fairness. Violating results may be hidden or voided, and accounts may be restricted.",
+  "terms.accountText":
+    "Keep your account credentials safe. Player profiles come from public sources and may change with events and transfers; the operator makes reasonable efforts to correct confirmed errors but does not guarantee the data is always complete or accurate.",
   "terms.contact": "Contact",
-  "terms.contactText": "For service, account, or terms questions, contact {email}.",
+  "terms.contactText":
+    "For service, account, or terms questions, contact {email}.",
   "dataSources.title": "Data & Trademarks",
   "dataSources.notOfficial": "Unofficial community project",
   "dataSources.riot": "Riot Games",
-  "dataSources.collectedText": "Player profiles are curated by staff from public event records, team announcements, and other clearly licensed public sources. Every public player snapshot keeps a source link and verification date.",
-  "dataSources.riotText": "VALORANT, Riot Games, VCT, event names, player names, and team-related trademarks belong to their respective owners. {brand} is an unofficial community project, not affiliated with or endorsed by Riot Games or any event organizer.",
-  "dataSources.contactText": "For data-source or trademark questions, contact {email}.",
+  "dataSources.collectedText":
+    "Player profiles are curated by staff from public event records, team announcements, and other clearly licensed public sources. Every public player snapshot keeps a source link and verification date.",
+  "dataSources.riotText":
+    "VALORANT, Riot Games, VCT, event names, player names, and team-related trademarks belong to their respective owners. {brand} is an unofficial community project, not affiliated with or endorsed by Riot Games or any event organizer.",
+  "dataSources.contactText":
+    "For data-source or trademark questions, contact {email}.",
   "corrections.title": "Corrections",
   "corrections.intro":
     "Provide the player name, issue description, and a publicly verifiable source link.",
-  "corrections.bodyText": "If you spot an error in player profiles, aliases, tournament results, or sources, email {email}.",
-  "corrections.verifyText": "Provide the player name, issue description, and a publicly verifiable source link. The operator will update public data or retire incorrect questions after verification.",
+  "corrections.bodyText":
+    "If you spot an error in player profiles, aliases, tournament results, or sources, email {email}.",
+  "corrections.verifyText":
+    "Provide the player name, issue description, and a publicly verifiable source link. The operator will update public data or retire incorrect questions after verification.",
   "error.pageUnavailable": "Page temporarily unavailable",
   "error.retry": "Please try again later.",
 };

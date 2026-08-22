@@ -4,15 +4,18 @@ import { getPlayerDetails } from "../../../../lib/admin-api";
 import { requireAdminCapability } from "../../../../lib/admin-operator";
 import {
   addAliasAction,
-  createPlayerAction,
   removeAliasAction,
   setPlayerStatus,
+  updatePlayerAction,
 } from "../../actions";
 import { LOCALE_COOKIE, detectLocale, t } from "../../../lib/i18n";
 
-type PageProps = { params: Promise<{ playerId: string }> };
+type PageProps = {
+  params: Promise<{ playerId: string }>;
+  searchParams: Promise<{ updated?: string }>;
+};
 
-export default async function PlayerPage({ params }: PageProps) {
+export default async function PlayerPage({ params, searchParams }: PageProps) {
   await requireAdminCapability("content");
   const cookieStore = await cookies();
   const acceptLanguage = (await headers()).get("accept-language");
@@ -21,6 +24,7 @@ export default async function PlayerPage({ params }: PageProps) {
     acceptLanguage,
   );
   const player = await getPlayerDetails((await params).playerId);
+  const query = await searchParams;
   return (
     <main className="admin-shell">
       <Link href="/admin" className="back-link">
@@ -70,11 +74,30 @@ export default async function PlayerPage({ params }: PageProps) {
         </form>
       </section>
       <section className="admin-create">
-        <h2>{t(locale, "admin.newSnapshot")}</h2>
+        <h2>{t(locale, "admin.editCurrent")}</h2>
         <p className="admin-summary">
-          {t(locale, "admin.snapshotKeepHistory")}
+          {t(locale, "admin.snapshotUpdatePending")}
         </p>
-        <form action={createPlayerAction} className="player-form">
+        {query.updated && (
+          <p className="success-message">{t(locale, "admin.updated")}</p>
+        )}
+        <form action={updatePlayerAction} className="player-form">
+          <input type="hidden" name="playerId" value={player.id} />
+          <input
+            type="hidden"
+            name="isCoach"
+            value={String(player.isCoach ?? false)}
+          />
+          <input
+            type="hidden"
+            name="isFeaturedTeam"
+            value={String(player.isFeaturedTeam ?? false)}
+          />
+          <input
+            type="hidden"
+            name="isVctCnTeam"
+            value={String(player.isVctCnTeam ?? false)}
+          />
           <label>
             {t(locale, "admin.canonicalName")}
             <input
@@ -197,30 +220,8 @@ export default async function PlayerPage({ params }: PageProps) {
               required
             />
           </label>
-          <input
-            type="hidden"
-            name="returnTo"
-            value={`/admin/players/${player.id}`}
-          />
-          <button>{t(locale, "admin.createNewSnapshot")}</button>
+          <button>{t(locale, "admin.saveChanges")}</button>
         </form>
-      </section>
-      <section className="admin-create">
-        <h2>Snapshot history</h2>
-        <div className="snapshot-history">
-          {player.history.map((snapshot) => (
-            <article key={snapshot.id}>
-              <strong>v{snapshot.dataVersion}</strong>
-              <span>{snapshot.dataAsOf.slice(0, 10)}</span>
-              <span>{snapshot.currentOrLastTeam}</span>
-              <span>{snapshot.rosterStatus}</span>
-              <span>{snapshot.reviewStatus}</span>
-              <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">
-                Source
-              </a>
-            </article>
-          ))}
-        </div>
       </section>
     </main>
   );

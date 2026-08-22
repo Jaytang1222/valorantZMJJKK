@@ -346,6 +346,7 @@ async function fetchRoster(team: Team): Promise<RosterPlayer[]> {
     const statusMatch = body.match(
       /team-roster-item-name-role">\s*([^<]+?)\s*<\/div>/i,
     );
+    const rosterLabel = statusMatch?.[1].trim().toLowerCase();
     if (!aliasMatch || !countryMatch) continue;
     players.push({
       id: match[1],
@@ -355,9 +356,11 @@ async function fetchRoster(team: Team): Promise<RosterPlayer[]> {
       countryCode: countryMatch[1].toUpperCase(),
       rosterStatus:
         manuallyVerifiedStatuses[match[1]] ??
-        (statusMatch?.[1].trim().toLowerCase() === "inactive"
+        (rosterLabel === "inactive"
           ? "inactive"
-          : "active"),
+          : rosterLabel === "sub"
+            ? "benched"
+            : "active"),
     });
   }
   return players;

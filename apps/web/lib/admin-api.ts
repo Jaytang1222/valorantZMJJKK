@@ -28,8 +28,8 @@ export function getAdminConfigurationStatus(): {
     internalApiSecretConfigured: Boolean(process.env.INTERNAL_API_SECRET),
     adminAuthConfigured: Boolean(
       process.env.ADMIN_USERNAME &&
-        process.env.ADMIN_PASSWORD &&
-        process.env.ADMIN_SESSION_SECRET,
+      process.env.ADMIN_PASSWORD &&
+      process.env.ADMIN_SESSION_SECRET,
     ),
   };
 }
@@ -65,6 +65,9 @@ export type PlayerInput = {
   championsTitles: number;
   mastersTitles: number;
   championsAppearances: number;
+  isCoach?: boolean;
+  isFeaturedTeam?: boolean;
+  isVctCnTeam?: boolean;
   isActiveRoster?: boolean;
   dataAsOf: string;
   sourceUrl: string;
@@ -77,16 +80,6 @@ export type PlayerDetails = Omit<PlayerInput, "aliases"> & {
   snapshotId: string;
   status: "active" | "disabled";
   aliases: { id: string; alias: string }[];
-  history: {
-    id: string;
-    dataVersion: number;
-    currentOrLastTeam: string;
-    rosterStatus: PlayerDetails["rosterStatus"];
-    isActiveRoster: boolean;
-    reviewStatus: "pending_review" | "approved" | "rejected";
-    dataAsOf: string;
-    sourceUrl: string;
-  }[];
 };
 
 export async function getSnapshots(
@@ -148,6 +141,30 @@ export async function createPlayer(data: PlayerInput): Promise<void> {
   });
   if (!response.ok)
     throw new Error(`Unable to create player: ${response.status}`);
+}
+
+export async function updatePlayer(
+  playerId: string,
+  data: PlayerInput,
+): Promise<void> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/players/${playerId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-api-secret": internalApiSecret,
+      },
+      body: JSON.stringify(data),
+    },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(
+      `Unable to update player: ${response.status}${detail ? ` ${detail}` : ""}`,
+    );
+  }
 }
 
 export async function updatePlayerStatus(

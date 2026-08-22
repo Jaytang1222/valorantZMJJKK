@@ -12,6 +12,7 @@ import {
   addAlias,
   createPlayer,
   removeAlias,
+  updatePlayer,
   updatePlayerStatus,
   updateReview,
 } from "../../lib/admin-api";
@@ -83,6 +84,38 @@ export async function createPlayerAction(formData: FormData): Promise<void> {
     reviewStatus: "pending_review",
   });
   redirect(String(formData.get("returnTo") ?? "/admin?created=1"));
+}
+
+export async function updatePlayerAction(formData: FormData): Promise<void> {
+  await requireAdminCapability("content");
+  const playerId = String(formData.get("playerId") ?? "");
+  if (!playerId) throw new Error("Player id is required");
+  const rosterStatus = String(formData.get("rosterStatus") ?? "active") as
+    "active" | "benched" | "transferred" | "retired" | "inactive";
+  await updatePlayer(playerId, {
+    isCoach: formData.get("isCoach") === "true",
+    isFeaturedTeam: formData.get("isFeaturedTeam") === "true",
+    isVctCnTeam: formData.get("isVctCnTeam") === "true",
+    canonicalName: String(formData.get("canonicalName") ?? ""),
+    aliases: list(formData.get("aliases")),
+    countryCode: String(formData.get("countryCode") ?? "").toUpperCase(),
+    countryGroup: String(formData.get("countryGroup") ?? ""),
+    region: String(formData.get("region")) as
+      "americas" | "emea" | "pacific" | "china",
+    primaryRole: String(formData.get("primaryRole")) as
+      "duelist" | "initiator" | "controller" | "sentinel" | "flex",
+    currentOrLastTeam: String(formData.get("team") ?? ""),
+    rosterStatus,
+    championsTitles: Number(formData.get("championsTitles")),
+    mastersTitles: Number(formData.get("mastersTitles")),
+    championsAppearances: Number(formData.get("championsAppearances")),
+    isActiveRoster: rosterStatus === "active" || rosterStatus === "benched",
+    dataAsOf: String(formData.get("dataAsOf") ?? ""),
+    sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    sourceCheckedAt: new Date().toISOString(),
+    reviewStatus: "pending_review",
+  });
+  redirect(`/admin/players/${playerId}?updated=1`);
 }
 
 export async function setPlayerStatus(formData: FormData): Promise<void> {
