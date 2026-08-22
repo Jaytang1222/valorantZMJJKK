@@ -2,12 +2,14 @@
 
 Snapshot date: 2026-08-20/21. Primary source: VLR.gg team Current Roster pages. The list below is the baseline used by `pnpm --filter @valo-yiba/api players:sync-vct`.
 
-The baseline contains 47 teams. `SLT Seongnam` (`team/12446`) and `ULF Esports` (`team/18019`) are included even when their current roster page has limited roster metadata. Historical match participation is collected with `pnpm --filter @valo-yiba/api players:sync-vct-history`; the generated review report is `data/vct-history-added.2026-08-22.csv`.
+The baseline contains 55 teams. `SLT Seongnam` (`team/12446`) and `ULF Esports` (`team/18019`) are included even when their current roster page has limited roster metadata. Historical match participation is collected with `pnpm --filter @valo-yiba/api players:sync-vct-history`; the generated review report is `data/vct-history-added.2026-08-22.csv`.
 
 ## Americas
 
 - Cloud9
 - M80
+- NRG
+- LEVIATÁN
 - MIBR
 - Evil Geniuses
 - ENVY
@@ -30,6 +32,10 @@ The baseline contains 47 teams. `SLT Seongnam` (`team/12446`) and `ULF Esports` 
 - Eintracht Frankfurt
 - Fire Flux Esports
 - FNATIC
+- GIANTX
+- Natus Vincere
+- Team Heretics
+- Gentle Mates
 - ULF Esports
 
 FNATIC is included explicitly because its current roster page lists `crashies` even though it is not present in the Stage 2 event-team extraction.
@@ -46,6 +52,8 @@ FNATIC is included explicitly because its current roster page lists `crashies` e
 - T1
 - DetonatioN FocusMe
 - Kiwoom DRX
+- Gen.G
+- Paper Rex
 - Onside Gaming
 - Sharper Esports
 - SLT Seongnam
@@ -66,6 +74,17 @@ FNATIC is included explicitly because its current roster page lists `crashies` e
 - Dragon Ranger Gaming
 
 The CSV keeps previous VCT records that are absent from this baseline as `transferred` or `retired`; current pages may also expose `inactive` players. No historical row is deleted during synchronization.
+
+For beginner difficulty, China uses all current VCT CN rosters. In the other
+regions, the configured traffic-team set is:
+
+- Americas: ENVY, G2 Esports, KRÜ Esports, LEVIATÁN, MIBR, NRG, Sentinels
+- EMEA: BBL Esports, FNATIC, Gentle Mates, GIANTX, Natus Vincere, Team Heretics, Team Liquid, Team Vitality
+- Pacific: Gen.G, Kiwoom DRX, Paper Rex, Rex Regum Qeon, T1
+
+The synchronizer applies the marker to every current roster member of a
+traffic team so a team cannot be partially included because of an old
+row-level flag.
 
 ## Historical player supplement
 

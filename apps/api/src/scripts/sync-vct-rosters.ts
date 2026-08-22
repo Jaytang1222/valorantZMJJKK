@@ -37,9 +37,29 @@ const manuallyVerifiedStatuses: Record<string, "benched" | "inactive"> = {
   "4705": "inactive", // Dragon Ranger Gaming: Flex1n
 };
 
+const beginnerFeaturedTeams = new Set([
+  "NRG",
+  "LEVIATÁN",
+  "MIBR",
+  "Kiwoom DRX",
+  "GIANTX",
+  "Natus Vincere",
+  "Team Heretics",
+  "Gentle Mates",
+  "Gen.G",
+  "Paper Rex",
+]);
+
 // The CN list includes the 2026 VCT CN teams not all shown in the current
 // Stage 2 bracket, including BLG, which was missing from the previous seed.
 const teams: Team[] = [
+  { region: "americas", id: 1034, slug: "nrg", name: "NRG" },
+  {
+    region: "americas",
+    id: 2359,
+    slug: "leviatan",
+    name: "LEVIATÁN",
+  },
   { region: "americas", id: 188, slug: "cloud9", name: "Cloud9" },
   { region: "americas", id: 11001, slug: "m80", name: "M80" },
   { region: "americas", id: 7386, slug: "mibr", name: "MIBR" },
@@ -63,6 +83,25 @@ const teams: Team[] = [
     name: "2GAME Esports",
   },
   { region: "emea", id: 397, slug: "bbl-esports", name: "BBL Esports" },
+  { region: "emea", id: 14419, slug: "giantx", name: "GIANTX" },
+  {
+    region: "emea",
+    id: 4915,
+    slug: "natus-vincere",
+    name: "Natus Vincere",
+  },
+  {
+    region: "emea",
+    id: 1001,
+    slug: "team-heretics",
+    name: "Team Heretics",
+  },
+  {
+    region: "emea",
+    id: 12694,
+    slug: "gentle-mates",
+    name: "Gentle Mates",
+  },
   { region: "emea", id: 2059, slug: "team-vitality", name: "Team Vitality" },
   { region: "emea", id: 8877, slug: "karmine-corp", name: "Karmine Corp" },
   { region: "emea", id: 474, slug: "team-liquid", name: "Team Liquid" },
@@ -122,6 +161,8 @@ const teams: Team[] = [
     name: "DetonatioN FocusMe",
   },
   { region: "pacific", id: 8185, slug: "kiwoom-drx", name: "Kiwoom DRX" },
+  { region: "pacific", id: 17, slug: "gen-g", name: "Gen.G" },
+  { region: "pacific", id: 624, slug: "paper-rex", name: "Paper Rex" },
   {
     region: "pacific",
     id: 19189,
@@ -277,6 +318,7 @@ function toRow(
   row: CsvRow | undefined,
   player: RosterPlayer,
   team: Team,
+  featuredTeamNames: Set<string>,
 ): CsvRow {
   const existing = row ?? {};
   const current =
@@ -303,7 +345,10 @@ function toRow(
     roster_status: player.rosterStatus,
     is_active_roster: String(current),
     is_coach: "false",
-    is_featured_team: existing.is_featured_team ?? "false",
+    is_featured_team:
+      featuredTeamNames.has(team.name) || existing.is_featured_team === "true"
+        ? "true"
+        : "false",
     is_vct_cn_team: String(team.region === "china"),
     champions_titles: existing.champions_titles || "0",
     masters_titles: existing.masters_titles || "0",
@@ -375,12 +420,22 @@ const rows = parse(input, {
 const originalRows = [...rows];
 const currentKeys = new Set<string>();
 const outputRows = [...rows];
+// A traffic-team flag is a team-level property. Older seed rows sometimes
+// marked only one member, so carry any existing team marker to every roster
+// member and add the explicitly configured beginner teams above.
+const featuredTeamNames = new Set([
+  ...beginnerFeaturedTeams,
+  ...originalRows
+    .filter((row) => row.is_featured_team === "true")
+    .map((row) => row.current_or_last_team)
+    .filter(Boolean),
+]);
 
 for (const team of teams) {
   const roster = await fetchRoster(team);
   for (const player of roster) {
     const existing = knownPlayer(originalRows, player);
-    const next = toRow(existing, player, team);
+    const next = toRow(existing, player, team, featuredTeamNames);
     const index = existing ? outputRows.indexOf(existing) : -1;
     if (index >= 0) outputRows[index] = next;
     else outputRows.push(next);
