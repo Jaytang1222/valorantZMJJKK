@@ -22,10 +22,10 @@ VCT CN 全部已取得公开选手名单的队伍使用 `is_vct_cn_team=true`：
 
 ## 规则落地
 
-- 单人入门：`is_active_roster=true`、非教练，且 `is_featured_team=true` 或 `is_vct_cn_team=true`。
+- 单人入门：`is_active_roster=true`、非教练；中国赛区要求 `is_vct_cn_team=true`，其他赛区要求 `is_featured_team=true`。
 - 单人简单：`is_active_roster=true`、非教练。
 - 单人完整：所有具备已批准最新快照的选手。
-- 联机：服务端以 30% 入门、50% 简单、20% 完整的权重抽题；若某候选集合为空，按确定性回退保证可开局。
+- 联机：服务端以 60% 入门、30% 简单、10% 完整的权重抽题；若某候选集合为空，按确定性回退保证可开局。
 
 除入门名单外，已补充 VCT 2026 Stage 2 的 Americas、EMEA 与 Pacific 公开赛事名单中的现役选手，因此简单题库与入门题库已实际分层。
 

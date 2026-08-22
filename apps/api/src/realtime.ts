@@ -195,6 +195,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         .where(
           and(
             eq(puzzles.snapshotId, target.snapshotId),
+            eq(puzzles.difficulty, target.difficulty),
             eq(puzzles.status, "approved"),
           ),
         )

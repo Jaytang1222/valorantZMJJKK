@@ -28,20 +28,22 @@ export default function PlayersPage() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
-    fetch("/api/players")
+    fetch("/api/players?limit=1000")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then(setPlayers)
       .catch(() => setError(t(locale, "players.error")));
   }, [locale]);
   const results = useMemo(
     () =>
-      searchPlayers(players, query, 250, (player) => [
-        player.countryCode,
-        player.region,
-        player.primaryRole,
-        player.currentOrLastTeam,
-        teamNames[player.currentOrLastTeam]?.short ?? "",
-      ]),
+      query.trim()
+        ? searchPlayers(players, query, players.length, (player) => [
+            player.countryCode,
+            player.region,
+            player.primaryRole,
+            player.currentOrLastTeam,
+            teamNames[player.currentOrLastTeam]?.short ?? "",
+          ])
+        : players,
     [players, query],
   );
   return (

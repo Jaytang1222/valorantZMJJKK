@@ -17,7 +17,7 @@ const playerSearchSchema = z.object({
     .enum(["duelist", "initiator", "controller", "sentinel", "flex"])
     .optional(),
   team: z.string().trim().min(1).max(128).optional(),
-  limit: z.coerce.number().int().min(1).max(250).default(250),
+  limit: z.coerce.number().int().min(1).max(1000).default(250),
 });
 
 export async function registerPlayerRoutes(
