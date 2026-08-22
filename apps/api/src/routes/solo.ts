@@ -160,6 +160,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
           and(
             eq(players.id, input.playerId),
             eq(playerSnapshots.reviewStatus, "approved"),
+            eq(playerSnapshots.isCoach, false),
           ),
         )
         .limit(1);

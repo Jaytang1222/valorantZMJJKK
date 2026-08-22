@@ -28,7 +28,7 @@ export default function PlayersPage() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
-    fetch("/api/players?limit=1000")
+    fetch("/api/players?limit=5000")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then(setPlayers)
       .catch(() => setError(t(locale, "players.error")));
