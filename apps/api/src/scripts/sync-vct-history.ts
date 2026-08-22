@@ -44,6 +44,7 @@ const maxAttempts = Math.max(
 );
 const userAgent =
   process.env.VCT_HISTORY_USER_AGENT ?? "KangYiBa roster audit/1.0";
+const vlrProxyPrefix = process.env.VLR_PROXY_URL?.trim() ?? "";
 
 const headers = [
   "canonical_name",
@@ -83,7 +84,7 @@ function decodeHtml(value: string): string {
 }
 
 function csvValue(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  return `"${value.replace(/"/g, '""')}"`;
 }
 
 function groupForCountry(code: string): string {
@@ -134,7 +135,10 @@ function groupForCountry(code: string): string {
 async function fetchText(url: string): Promise<string> {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const response = await fetch(url, {
+      const requestUrl = vlrProxyPrefix
+        ? `${vlrProxyPrefix}${encodeURIComponent(url)}`
+        : url;
+      const response = await fetch(requestUrl, {
         headers: { "user-agent": userAgent },
       });
       if (response.ok) {
@@ -428,7 +432,7 @@ for (const player of enrichedAdditions) {
 }
 
 const output =
-  [headers.join(",")]
+  [headers.map(csvValue).join(",")]
     .concat(
       rows.map((row) =>
         headers.map((header) => csvValue(row[header] ?? "")).join(","),

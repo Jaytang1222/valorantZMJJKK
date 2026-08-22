@@ -66,3 +66,22 @@ FNATIC is included explicitly because its current roster page lists `crashies` e
 - Dragon Ranger Gaming
 
 The CSV keeps previous VCT records that are absent from this baseline as `transferred` or `retired`; current pages may also expose `inactive` players. No historical row is deleted during synchronization.
+
+## Historical player supplement
+
+On 2026-08-22, historical player rosters were supplemented from the public
+THESPIKE team `Past Players` pages. The supplement covers all 47 teams above
+and adds 595 previously absent player records. The audit list, including the
+source player ID and team, is `data/vct-history-thespike-added.2026-08-22.csv`.
+
+Only player rows are imported; staff and coaches are excluded and every
+supplemented row has `is_coach=false`, `is_active_roster=false`, and
+`roster_status=transferred`. Source labels that are not ISO-3166 two-letter
+country codes are stored as `UN` in the seed CSV rather than guessed.
+
+Repeatable commands:
+
+```text
+pnpm --filter @valo-yiba/api players:sync-vct-history:thespike
+pnpm --filter @valo-yiba/api players:validate
+```

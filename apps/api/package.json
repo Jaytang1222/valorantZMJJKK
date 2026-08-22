@@ -18,6 +18,8 @@
     "players:validate": "tsx src/scripts/validate-player-csv.ts",
     "players:sync-vct": "tsx src/scripts/sync-vct-rosters.ts",
     "players:sync-vct-history": "tsx src/scripts/sync-vct-history.ts",
+    "players:sync-vct-history:liquipedia": "tsx src/scripts/sync-liquipedia-history.ts",
+    "players:sync-vct-history:thespike": "tsx src/scripts/sync-thespike-history.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "load:versus": "tsx src/scripts/load-versus.ts"
   },

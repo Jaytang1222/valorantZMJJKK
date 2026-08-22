@@ -213,7 +213,7 @@ function decodeHtml(value: string): string {
 }
 
 function csvValue(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  return `"${value.replace(/"/g, '""')}"`;
 }
 
 function groupForCountry(code: string): string {
@@ -408,7 +408,7 @@ for (const row of outputRows) {
 }
 
 const csv =
-  [headers.join(",")]
+  [headers.map(csvValue).join(",")]
     .concat(
       outputRows.map((row) =>
         headers.map((header) => csvValue(row[header] ?? "")).join(","),
