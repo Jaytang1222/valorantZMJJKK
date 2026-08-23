@@ -64,9 +64,13 @@ function valueFor(column: string, guess: Guess, locale: "zh" | "en") {
   if (column === "region") return formatRegion(details.region);
   if (column === "country") return formatCountry(details.countryCode, locale);
   if (column === "status")
-    return t(locale, details.isActiveRoster ? "status.active" : "status.retired");
+    return t(
+      locale,
+      details.isActiveRoster ? "status.active" : "status.retired",
+    );
   if (column === "primaryRole") return formatRole(details.primaryRole, locale);
-  if (column === "currentOrLastTeam") return formatTeam(details.currentOrLastTeam);
+  if (column === "currentOrLastTeam")
+    return formatTeam(details.currentOrLastTeam);
   if (column === "championsTitles") return details.championsTitles;
   if (column === "mastersTitles") return details.mastersTitles;
   if (column === "championsAppearances") return details.championsAppearances;
@@ -112,7 +116,9 @@ export default function SoloPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/players?limit=250", { signal: controller.signal })
+    // Search against the complete approved directory. A 250-row prefix
+    // misses valid IDs such as ZmjjKK because the API sorts by canonical name.
+    fetch("/api/players?limit=5000", { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : []))
       .then(setPlayers)
       .catch(() => undefined);
@@ -157,7 +163,9 @@ export default function SoloPage() {
       setSelected(null);
       setQuery("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t(locale, "solo.errorStart"));
+      setError(
+        cause instanceof Error ? cause.message : t(locale, "solo.errorStart"),
+      );
     } finally {
       setBusy(false);
     }
@@ -182,7 +190,9 @@ export default function SoloPage() {
       setSelected(null);
       setQuery("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t(locale, "solo.errorSubmit"));
+      setError(
+        cause instanceof Error ? cause.message : t(locale, "solo.errorSubmit"),
+      );
     } finally {
       setBusy(false);
     }
@@ -223,7 +233,9 @@ export default function SoloPage() {
                 {difficultyLabels[attempt.difficulty]}
               </span>
               <strong className="solo-nav-count">
-                {tWith(locale, "solo.guessesLeft", { used: attempt.guessCount })}
+                {tWith(locale, "solo.guessesLeft", {
+                  used: attempt.guessCount,
+                })}
               </strong>
               {attempt.status === "active" && (
                 <button className="text-button" onClick={abandon}>
@@ -264,7 +276,10 @@ export default function SoloPage() {
       )}
       {attempt && (
         <section className="game-board">
-          <div className="guess-table-wrap" aria-label={t(locale, "solo.tableLabel")}>
+          <div
+            className="guess-table-wrap"
+            aria-label={t(locale, "solo.tableLabel")}
+          >
             <div className="guess-table guess-table-header">
               <span>{t(locale, "col.guess")}</span>
               {columns.map(([, label]) => (
@@ -311,7 +326,9 @@ export default function SoloPage() {
                 {t(locale, "solo.answer")}
                 {result.target.canonicalName}
               </h2>
-              <strong>{tWith(locale, "solo.points", { score: result.score })}</strong>
+              <strong>
+                {tWith(locale, "solo.points", { score: result.score })}
+              </strong>
               <button
                 onClick={() => {
                   setAttempt(null);

@@ -82,7 +82,10 @@ function guessValue(field: string, guess: GuessResult, locale: "zh" | "en") {
   if (field === "region") return formatRegion(details.region);
   if (field === "country") return formatCountry(details.countryCode, locale);
   if (field === "status")
-    return t(locale, details.isActiveRoster ? "status.active" : "status.retired");
+    return t(
+      locale,
+      details.isActiveRoster ? "status.active" : "status.retired",
+    );
   if (field === "primaryRole") return formatRole(details.primaryRole, locale);
   if (field === "currentOrLastTeam")
     return formatTeam(details.currentOrLastTeam);
@@ -147,7 +150,8 @@ function MatchPageContent() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/players?limit=250", { signal: controller.signal })
+    // Keep versus search consistent with solo search and the full directory.
+    fetch("/api/players?limit=5000", { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : []))
       .then(setPlayers)
       .catch(() => undefined);
@@ -232,7 +236,11 @@ function MatchPageContent() {
         });
       })
       .catch((cause) =>
-        setError(cause instanceof Error ? cause.message : t(locale, "match.reconnectError")),
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : t(locale, "match.reconnectError"),
+        ),
       );
     return () => {
       cancelled = true;
@@ -263,9 +271,7 @@ function MatchPageContent() {
       client
         .timeout(8_000)
         .emit(event, payload, (requestError: Error | null, reply: unknown) =>
-          resolve(
-            requestError ? { error: t(locale, "match.timeout") } : reply,
-          ),
+          resolve(requestError ? { error: t(locale, "match.timeout") } : reply),
         );
     });
 
@@ -308,7 +314,8 @@ function MatchPageContent() {
       const data = (await response.json()) as OpponentProfile & {
         error?: string;
       };
-      if (!response.ok) throw new Error(data.error ?? t(locale, "match.viewHistory"));
+      if (!response.ok)
+        throw new Error(data.error ?? t(locale, "match.viewHistory"));
       setOpponentProfile(data);
     } catch (cause) {
       setProfileError(
@@ -374,13 +381,17 @@ function MatchPageContent() {
           {t(locale, "match.leave")}
         </button>
         <span>
-          {connected ? t(locale, "match.connected") : t(locale, "match.reconnecting")}
+          {connected
+            ? t(locale, "match.connected")
+            : t(locale, "match.reconnecting")}
         </span>
       </header>
       {room && (
         <>
           <section className="match-meta">
-            <strong>{tWith(locale, "match.roomCode", { code: room.code })}</strong>
+            <strong>
+              {tWith(locale, "match.roomCode", { code: room.code })}
+            </strong>
             <span>
               BO1 ·{" "}
               {room.phase === "playing"
@@ -397,7 +408,9 @@ function MatchPageContent() {
                   <h1>{currentMember?.displayName}</h1>
                 </div>
                 <strong>
-                  {tWith(locale, "match.points", { score: currentMember?.score ?? 0 })}
+                  {tWith(locale, "match.points", {
+                    score: currentMember?.score ?? 0,
+                  })}
                 </strong>
               </div>
               {currentMember?.status === "disconnected" && (
@@ -473,7 +486,10 @@ function MatchPageContent() {
               <div className="match-player-heading">
                 <div>
                   <p>{t(locale, "match.opponent")}</p>
-                  <h1>{opponent?.displayName ?? t(locale, "match.awaitingOpponent")}</h1>
+                  <h1>
+                    {opponent?.displayName ??
+                      t(locale, "match.awaitingOpponent")}
+                  </h1>
                   {opponent && (
                     <button
                       className="opponent-profile-toggle"
@@ -496,7 +512,9 @@ function MatchPageContent() {
                   )}
                 </div>
                 <strong>
-                  {tWith(locale, "match.points", { score: opponent?.score ?? 0 })}
+                  {tWith(locale, "match.points", {
+                    score: opponent?.score ?? 0,
+                  })}
                 </strong>
               </div>
               {profileError && <p className="form-error">{profileError}</p>}
@@ -515,7 +533,9 @@ function MatchPageContent() {
                   </div>
                   <div>
                     <p>{t(locale, "match.profileWinRate")}</p>
-                    <strong>{Math.round(opponentProfile.winRate * 100)}%</strong>
+                    <strong>
+                      {Math.round(opponentProfile.winRate * 100)}%
+                    </strong>
                   </div>
                   <div>
                     <p>{t(locale, "match.profileAvgGuesses")}</p>
@@ -537,7 +557,9 @@ function MatchPageContent() {
                     : t(locale, "match.opponentForfeited")}
                 </p>
               )}
-              <p className="opponent-progress-label">{t(locale, "match.progress")}</p>
+              <p className="opponent-progress-label">
+                {t(locale, "match.progress")}
+              </p>
               <div className="opponent-feedback">
                 {opponent?.feedback.map((tones, index) => (
                   <div className="feedback-row" key={index}>
@@ -563,7 +585,9 @@ function MatchPageContent() {
                 {answer || room.answerName || t(locale, "match.answerReveal")}
               </h2>
               <strong>
-                {tWith(locale, "match.points", { score: currentMember?.score ?? 0 })}
+                {tWith(locale, "match.points", {
+                  score: currentMember?.score ?? 0,
+                })}
               </strong>
               <p>
                 {room.finishReason === "surrender"
