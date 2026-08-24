@@ -1,3 +1,5 @@
+import "./load-env";
+
 function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
   const apiBaseUrl =
     process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -17,12 +19,18 @@ function getConfig(): { apiBaseUrl: string; internalApiSecret: string } {
 export function getAdminConfigurationStatus(): {
   apiBaseUrlConfigured: boolean;
   internalApiSecretConfigured: boolean;
+  adminAuthConfigured: boolean;
 } {
   return {
     apiBaseUrlConfigured: Boolean(
       process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL,
     ),
     internalApiSecretConfigured: Boolean(process.env.INTERNAL_API_SECRET),
+    adminAuthConfigured: Boolean(
+      process.env.ADMIN_USERNAME &&
+      process.env.ADMIN_PASSWORD &&
+      process.env.ADMIN_SESSION_SECRET,
+    ),
   };
 }
 
@@ -36,9 +44,11 @@ export type AdminSnapshot = {
   countryCode: string;
   primaryRole: string;
   currentOrLastTeam: string;
+  rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
-  heroTop3: [string, string, string];
+  leagueTitles: number;
+  isActiveRoster: boolean;
   dataAsOf: string;
   sourceUrl: string;
 };
@@ -51,9 +61,14 @@ export type PlayerInput = {
   region: "americas" | "emea" | "pacific" | "china";
   primaryRole: "duelist" | "initiator" | "controller" | "sentinel" | "flex";
   currentOrLastTeam: string;
+  rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
-  heroTop3: [string, string, string];
+  leagueTitles: number;
+  isCoach?: boolean;
+  isFeaturedTeam?: boolean;
+  isVctCnTeam?: boolean;
+  isActiveRoster?: boolean;
   dataAsOf: string;
   sourceUrl: string;
   sourceCheckedAt: string;
@@ -69,10 +84,29 @@ export type PlayerDetails = Omit<PlayerInput, "aliases"> & {
 
 export async function getSnapshots(
   status: AdminSnapshot["reviewStatus"] | "all",
-): Promise<AdminSnapshot[]> {
+  filters: {
+    region?: string;
+    team?: string;
+    rosterStatus?: string;
+    q?: string;
+    page?: number;
+    limit?: number;
+  } = {},
+): Promise<{
+  items: AdminSnapshot[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> {
   const { apiBaseUrl, internalApiSecret } = getConfig();
   const response = await fetch(
-    `${apiBaseUrl}/internal/v1/admin/snapshots?reviewStatus=${status}`,
+    `${apiBaseUrl}/internal/v1/admin/snapshots?${new URLSearchParams({
+      reviewStatus: status,
+      ...Object.fromEntries(
+        Object.entries(filters).filter(([, value]) => value),
+      ),
+    })}`,
     {
       headers: { "x-internal-api-secret": internalApiSecret },
       cache: "no-store",
@@ -115,6 +149,30 @@ export async function createPlayer(data: PlayerInput): Promise<void> {
   });
   if (!response.ok)
     throw new Error(`Unable to create player: ${response.status}`);
+}
+
+export async function updatePlayer(
+  playerId: string,
+  data: PlayerInput,
+): Promise<void> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/players/${playerId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-api-secret": internalApiSecret,
+      },
+      body: JSON.stringify(data),
+    },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(
+      `Unable to update player: ${response.status}${detail ? ` ${detail}` : ""}`,
+    );
+  }
 }
 
 export async function updatePlayerStatus(

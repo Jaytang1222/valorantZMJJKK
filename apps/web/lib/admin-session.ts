@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import "./load-env";
 
 const cookieName = "valo_admin_session";
 const sessionDurationSeconds = 8 * 60 * 60;

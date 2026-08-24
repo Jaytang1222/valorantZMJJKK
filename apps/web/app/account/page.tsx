@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { t, tWith } from "../lib/i18n";
+import { useLocale } from "../components/ui-provider";
 
 type RankingSummary = {
   rank: number;
@@ -23,6 +25,7 @@ type RecentGame = {
 
 export default function AccountPage() {
   const router = useRouter();
+  const { locale } = useLocale();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [solo, setSolo] = useState<RankingSummary | null>(null);
@@ -59,42 +62,66 @@ export default function AccountPage() {
     <main className="auth-page">
       <section className="account-panel">
         <a href="/" className="back-link">
-          返回首页
+          {t(locale, "lb.back")}
         </a>
-        <h1>账户</h1>
+        <h1>{t(locale, "account.title")}</h1>
         <p>{displayName}</p>
         <p>{email}</p>
         <a className="text-link" href="/leaderboards">
-          联机排行榜后续开放
+          {t(locale, "account.leaderboardSoon")}
         </a>
-        <div className="account-stats" aria-label="对局统计">
-          <StatsCard title="单人" value={solo} />
-          <StatsCard title="联机" value={versus} />
+        <div
+          className="account-stats"
+          aria-label={t(locale, "account.statsLabel")}
+        >
+          <StatsCard
+            title={t(locale, "account.solo")}
+            value={solo}
+            locale={locale}
+          />
+          <StatsCard
+            title={t(locale, "account.versus")}
+            value={versus}
+            locale={locale}
+          />
         </div>
-        <section className="recent-games" aria-label="最近三局">
-          <h2>最近三局</h2>
+        <section
+          className="recent-games"
+          aria-label={t(locale, "account.recent")}
+        >
+          <h2>{t(locale, "account.recent")}</h2>
           {recentGames.length === 0 ? (
-            <p>暂无已完成对局。</p>
+            <p>{t(locale, "account.noGames")}</p>
           ) : (
             recentGames.map((game) => (
               <div key={`${game.mode}-${game.id}`} className="recent-game">
-                <strong>{game.mode === "solo" ? "单人" : "联机"}</strong>
+                <strong>
+                  {game.mode === "solo"
+                    ? t(locale, "account.solo")
+                    : t(locale, "account.versus")}
+                </strong>
                 <span>
                   {game.result === "won"
-                    ? "胜利"
+                    ? t(locale, "account.won")
                     : game.result === "lost"
-                      ? "失败"
-                      : "放弃"}
+                      ? t(locale, "account.lost")
+                      : t(locale, "account.abandoned")}
                 </span>
                 <span>{game.targetName}</span>
-                <span>{game.guessCount} 次猜测</span>
-                <time>{new Date(game.finishedAt).toLocaleString("zh-CN")}</time>
+                <span>
+                  {tWith(locale, "account.guesses", { count: game.guessCount })}
+                </span>
+                <time>
+                  {new Date(game.finishedAt).toLocaleString(
+                    locale === "zh" ? "zh-CN" : "en-US",
+                  )}
+                </time>
               </div>
             ))
           )}
         </section>
         <button className="text-button" onClick={logout}>
-          退出登录
+          {t(locale, "account.logout")}
         </button>
       </section>
     </main>
@@ -104,9 +131,11 @@ export default function AccountPage() {
 function StatsCard({
   title,
   value,
+  locale,
 }: {
   title: string;
   value: RankingSummary | null;
+  locale: "zh" | "en";
 }) {
   return (
     <section>
@@ -114,20 +143,20 @@ function StatsCard({
       {value ? (
         <dl>
           <div>
-            <dt>局数</dt>
+            <dt>{t(locale, "account.rounds")}</dt>
             <dd>{value.gamesPlayed}</dd>
           </div>
           <div>
-            <dt>胜率</dt>
+            <dt>{t(locale, "account.winRate")}</dt>
             <dd>{Math.round(value.winRate * 100)}%</dd>
           </div>
           <div>
-            <dt>平均猜测</dt>
+            <dt>{t(locale, "account.avgGuesses")}</dt>
             <dd>{value.averageGuesses}</dd>
           </div>
         </dl>
       ) : (
-        <p>暂无已结算对局。</p>
+        <p>{t(locale, "account.noGames")}</p>
       )}
     </section>
   );

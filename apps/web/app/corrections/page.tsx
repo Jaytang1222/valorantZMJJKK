@@ -1,20 +1,36 @@
-export const metadata = { title: "资料更正 | 康一把" };
+import { cookies, headers } from "next/headers";
+import { LOCALE_COOKIE, detectLocale, t, tWith } from "../lib/i18n";
 
-export default function CorrectionsPage() {
+const EMAIL = "jaytang12221@outlook.com";
+
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const acceptLanguage = (await headers()).get("accept-language");
+  const locale = detectLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    acceptLanguage,
+  );
+  return {
+    title: `${t(locale, "corrections.title")} | ${t(locale, "nav.brand")}`,
+  };
+}
+
+export default async function CorrectionsPage() {
+  const cookieStore = await cookies();
+  const acceptLanguage = (await headers()).get("accept-language");
+  const locale = detectLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    acceptLanguage,
+  );
   return (
     <main className="legal-page">
       <a href="/" className="back-link">
-        返回首页
+        {t(locale, "lb.back")}
       </a>
       <p className="eyebrow">CORRECTIONS</p>
-      <h1>资料更正</h1>
-      <p>
-        若发现选手资料、别名、赛事成绩或来源存在错误，请发送邮件至{" "}
-        <a href="mailto:jaytang12221@outlook.com">jaytang12221@outlook.com</a>。
-      </p>
-      <p>
-        请提供选手名称、问题说明及可公开核验的来源链接。运营方会在核验后更新公开资料或停用错误题目。
-      </p>
+      <h1>{t(locale, "corrections.title")}</h1>
+      <p>{tWith(locale, "corrections.bodyText", { email: EMAIL })}</p>
+      <p>{t(locale, "corrections.verifyText")}</p>
     </main>
   );
 }

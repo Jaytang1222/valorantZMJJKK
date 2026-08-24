@@ -20,6 +20,9 @@ for (const [index, row] of rows.entries()) {
     region: row.region,
     primaryRole: row.primary_role,
     currentOrLastTeam: row.current_or_last_team,
+    rosterStatus:
+      row.roster_status ??
+      (row.is_active_roster === "false" ? "retired" : "active"),
     isActiveRoster:
       row.is_active_roster === undefined
         ? true
@@ -29,7 +32,7 @@ for (const [index, row] of rows.entries()) {
     isVctCnTeam: row.is_vct_cn_team === "true",
     championsTitles: Number(row.champions_titles),
     mastersTitles: Number(row.masters_titles),
-    heroTop3: row.hero_top_3.split("|") as [string, string, string],
+    leagueTitles: Number(row.league_titles),
     dataAsOf: row.data_as_of,
     sourceUrl: row.source_url,
     sourceCheckedAt: row.source_checked_at,

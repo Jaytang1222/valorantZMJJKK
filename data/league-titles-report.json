@@ -1,0 +1,177 @@
+{
+  "asOf": "2026-08-23",
+  "source": "VLR event archive and completed final match pages",
+  "definition": "Official VCT Americas, EMEA, Pacific, and China Kickoff/Stage 1/Stage 2/League champions; excludes Masters, Champions, Challengers, Ascension, and OFF//SEASON.",
+  "events": [
+    {
+      "eventPath": "/event/2978/vct-2026-china-stage-2",
+      "eventTitle": "VCT 2026: China Stage 2",
+      "finalPath": "/724651/bilibili-gaming-vs-tyloo-vct-2026-china-stage-2-lbf",
+      "winnerTeam": "TYLOO",
+      "players": ["slowly", "erv", "scales", "splash", "siufatbb"]
+    },
+    {
+      "eventPath": "/event/2976/vct-2026-emea-stage-2",
+      "eventTitle": "VCT 2026: EMEA Stage 2",
+      "finalPath": "/731403/team-vitality-vs-fire-flux-esports-vct-2026-emea-stage-2-lr1",
+      "winnerTeam": "Fire Flux Esports",
+      "players": ["kachoww", "batujnax", "reazy", "deadink", "hezacoil"]
+    },
+    {
+      "eventPath": "/event/2776/vct-2026-pacific-stage-2",
+      "eventTitle": "VCT 2026: Pacific Stage 2",
+      "finalPath": "/730550/detonation-focusme-vs-zeta-division-vct-2026-pacific-stage-2-lr2",
+      "winnerTeam": "DetonatioN FocusMe",
+      "players": ["meiy", "akame", "ssees", "caedye", "yatsuka"]
+    },
+    {
+      "eventPath": "/event/2977/vct-2026-americas-stage-2",
+      "eventTitle": "VCT 2026: Americas Stage 2",
+      "finalPath": "/729757/sentinels-vs-kr-esports-vct-2026-americas-stage-2-lr2",
+      "winnerTeam": "KRÜ Esports",
+      "players": ["less", "mwzera", "heat", "dantedeu5", "saadhak"]
+    },
+    {
+      "eventPath": "/event/2860/vct-2026-americas-stage-1",
+      "eventTitle": "VCT 2026: Americas Stage 1",
+      "finalPath": "/660380/g2-esports-vs-nrg-vct-2026-americas-stage-1-lbf",
+      "winnerTeam": "G2 Esports",
+      "players": ["trent", "babybay", "leaf", "valyn", "jawgemo"]
+    },
+    {
+      "eventPath": "/event/2863/vct-2026-emea-stage-1",
+      "eventTitle": "VCT 2026: EMEA Stage 1",
+      "finalPath": "/660392/fut-esports-vs-team-heretics-vct-2026-emea-stage-1-lbf",
+      "winnerTeam": "Team Heretics",
+      "players": ["koshmaras", "riens", "wo0t", "boo", "benjyfishy"]
+    },
+    {
+      "eventPath": "/event/2775/vct-2026-pacific-stage-1",
+      "eventTitle": "VCT 2026: Pacific Stage 1",
+      "finalPath": "/666499/global-esports-vs-paper-rex-vct-2026-pacific-stage-1-lbf",
+      "winnerTeam": "Paper Rex",
+      "players": ["invy", "something", "f0rsaken", "jinggg", "d4v41"]
+    },
+    {
+      "eventPath": "/event/2864/vct-2026-china-stage-1",
+      "eventTitle": "VCT 2026: China Stage 1",
+      "finalPath": "/659487/xi-lai-gaming-vs-dragon-ranger-gaming-vct-2026-china-stage-1-lbf",
+      "winnerTeam": "Xi Lai Gaming",
+      "players": ["wsleo", "rarga", "happywei", "noman", "lysoar"]
+    },
+    {
+      "eventPath": "/event/2682/vct-2026-americas-kickoff",
+      "eventTitle": "VCT 2026: Americas Kickoff",
+      "finalPath": "/596427/mibr-vs-nrg-vct-2026-americas-kickoff-lbf",
+      "winnerTeam": "NRG",
+      "players": ["skuba", "mada", "keiko", "brawk", "ethan"]
+    },
+    {
+      "eventPath": "/event/2684/vct-2026-emea-kickoff",
+      "eventTitle": "VCT 2026: EMEA Kickoff",
+      "finalPath": "/594769/fnatic-vs-team-liquid-vct-2026-emea-kickoff-lbf",
+      "winnerTeam": "Team Liquid",
+      "players": ["nats", "miniboo", "wayne", "purp0", "kamo"]
+    },
+    {
+      "eventPath": "/event/2683/vct-2026-pacific-kickoff",
+      "eventTitle": "VCT 2026: Pacific Kickoff",
+      "finalPath": "/595659/rex-regum-qeon-vs-paper-rex-vct-2026-pacific-kickoff-lbf",
+      "winnerTeam": "Paper Rex",
+      "players": ["f0rsaken", "jinggg", "invy", "d4v41", "something"]
+    },
+    {
+      "eventPath": "/event/2685/vct-2026-china-kickoff",
+      "eventTitle": "VCT 2026: China Kickoff",
+      "finalPath": "/598950/bilibili-gaming-vs-edward-gaming-vct-2026-china-kickoff-lbf",
+      "winnerTeam": "EDward Gaming",
+      "players": ["zmjjkk", "chichoo", "cb", "smoggy", "nobody"]
+    },
+    {
+      "eventPath": "/event/2501/vct-2025-americas-stage-2",
+      "eventTitle": "VCT 2025: Americas Stage 2",
+      "finalPath": "/530912/sentinels-vs-nrg-vct-2025-americas-stage-2-lbf",
+      "winnerTeam": "NRG",
+      "players": ["brawk", "ethan", "skuba", "s0m", "mada"]
+    },
+    {
+      "eventPath": "/event/2498/vct-2025-emea-stage-2",
+      "eventTitle": "VCT 2025: EMEA Stage 2",
+      "finalPath": "/530934/bbl-esports-vs-giantx-vct-2025-emea-stage-2-lbf",
+      "winnerTeam": "GIANTX",
+      "players": ["flickless", "westside", "grubinho", "ara", "cloud"]
+    },
+    {
+      "eventPath": "/event/2500/vct-2025-pacific-stage-2",
+      "eventTitle": "VCT 2025: Pacific Stage 2",
+      "finalPath": "/530364/talon-vs-rex-regum-qeon-vct-2025-pacific-stage-2-lf",
+      "winnerTeam": "Rex Regum Qeon",
+      "players": ["xffero", "monyet", "crazyguy", "jemkin", "kushy"]
+    },
+    {
+      "eventPath": "/event/2499/vct-2025-china-stage-2",
+      "eventTitle": "VCT 2025: China Stage 2",
+      "finalPath": "/527588/bilibili-gaming-vs-edward-gaming-vct-2025-china-stage-2-lbf",
+      "winnerTeam": "Bilibili Gaming",
+      "players": ["nephh", "whzy", "knight", "rushia", "levius"]
+    },
+    {
+      "eventPath": "/event/2380/vct-2025-emea-stage-1",
+      "eventTitle": "VCT 2025: EMEA Stage 1",
+      "finalPath": "/482512/team-heretics-vs-team-liquid-champions-tour-2025-emea-stage-1-playoffs-lbf",
+      "winnerTeam": "Team Heretics",
+      "players": ["benjyfishy", "miniboo", "boo", "wo0t", "riens"]
+    },
+    {
+      "eventPath": "/event/2379/vct-2025-pacific-stage-1",
+      "eventTitle": "VCT 2025: Pacific Stage 1",
+      "finalPath": "/473843/rex-regum-qeon-vs-paper-rex-champions-tour-2025-pacific-stage-1-lbf",
+      "winnerTeam": "Rex Regum Qeon",
+      "players": ["jemkin", "crazyguy", "xffero", "kushy", "monyet"]
+    },
+    {
+      "eventPath": "/event/2359/vct-2025-china-stage-1",
+      "eventTitle": "VCT 2025: China Stage 1",
+      "finalPath": "/473243/wolves-esports-vs-bilibili-gaming-champions-tour-2025-china-stage-1-lbf",
+      "winnerTeam": "Bilibili Gaming",
+      "players": ["rushia", "nephh", "levius", "whzy", "knight"]
+    },
+    {
+      "eventPath": "/event/2347/vct-2025-americas-stage-1",
+      "eventTitle": "VCT 2025: Americas Stage 1",
+      "finalPath": "/475908/mibr-vs-g2-esports-champions-tour-2025-americas-stage-1-lbf",
+      "winnerTeam": "G2 Esports",
+      "players": ["leaf", "valyn", "jawgemo", "trent", "jonahp"]
+    },
+    {
+      "eventPath": "/event/2276/vct-2025-emea-kickoff",
+      "eventTitle": "VCT 2025: EMEA Kickoff",
+      "finalPath": "/429401/team-heretics-vs-team-liquid-champions-tour-2025-emea-kickoff-lbf",
+      "winnerTeam": "Team Liquid",
+      "players": ["keiko", "kamo", "kamyk", "nats", "patitek"]
+    },
+    {
+      "eventPath": "/event/2277/vct-2025-pacific-kickoff",
+      "eventTitle": "VCT 2025: Pacific Kickoff",
+      "finalPath": "/430535/t1-vs-gen-g-champions-tour-2025-pacific-kickoff-lbf",
+      "winnerTeam": "T1",
+      "players": ["carpe", "meteor", "stax", "izu", "buzz"]
+    },
+    {
+      "eventPath": "/event/2274/vct-2025-americas-kickoff",
+      "eventTitle": "VCT 2025: Americas Kickoff",
+      "finalPath": "/428012/sentinels-vs-mibr-champions-tour-2025-americas-kickoff-lbf",
+      "winnerTeam": "Sentinels",
+      "players": ["n4rrate", "zellsis", "johnqt", "bang", "zekken"]
+    },
+    {
+      "eventPath": "/event/2275/vct-2025-china-kickoff",
+      "eventTitle": "VCT 2025: China Kickoff",
+      "finalPath": "/430860/bilibili-gaming-vs-edward-gaming-champions-tour-2025-china-kickoff-lbf",
+      "winnerTeam": "EDward Gaming",
+      "players": ["zmjjkk", "smoggy", "nobody", "chichoo", "s1mon"]
+    }
+  ],
+  "failures": [],
+  "matchedPlayers": 84
+}

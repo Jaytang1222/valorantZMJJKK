@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { guesses, roomParticipants, roomRounds, rooms } from "../db/schema.js";
 import { redis } from "../redis.js";
@@ -38,6 +39,7 @@ async function auditRoom(room: LiveRoom) {
         roundCount: room.roundCount,
         roundDurationSeconds: room.roundDurationSeconds,
         currentRound: room.roundNumber,
+        liveState: room,
         startedAt: asDate(room.roundStartedAt),
         finishedAt: asDate(room.roundFinishedAt),
         winnerUserId: room.winnerId,
@@ -51,6 +53,7 @@ async function auditRoom(room: LiveRoom) {
           isMatchmade: room.isMatchmade,
           rankedEligible,
           currentRound: room.roundNumber,
+          liveState: room,
           startedAt: asDate(room.roundStartedAt),
           finishedAt: asDate(room.roundFinishedAt),
           winnerUserId: room.winnerId,
@@ -142,21 +145,38 @@ export async function archiveFinishedRoom(room: LiveRoom) {
   await deleteRoom(room.code);
 }
 
-export async function loadRoom(code: string) {
-  const value = await redis.get(roomKey(code));
-  if (!value) return null;
-  const room = JSON.parse(value) as LiveRoom;
+function normalizeRoom(room: LiveRoom): LiveRoom {
   room.isPublic = false;
   room.isMatchmade = room.isMatchmade ?? false;
   room.maxPlayers = 2;
   room.roundCount = 1;
   if ((room.phase as string) === "round_result") room.phase = "finished";
-  room.members = room.members.map((member) => ({
+  room.members = (room.members ?? []).map((member) => ({
     ...member,
     feedback: member.feedback ?? [],
     guesses: member.guesses ?? [],
     rematchReady: member.rematchReady ?? false,
   }));
+  return room;
+}
+
+export async function loadRoom(code: string) {
+  const value = await redis.get(roomKey(code));
+  if (value) return normalizeRoom(JSON.parse(value) as LiveRoom);
+  const [persisted] = await db
+    .select({ liveState: rooms.liveState })
+    .from(rooms)
+    .where(
+      and(
+        eq(rooms.code, code),
+        inArray(rooms.state, ["lobby", "countdown", "playing"]),
+      ),
+    )
+    .limit(1);
+  if (!persisted?.liveState || typeof persisted.liveState !== "object")
+    return null;
+  const room = normalizeRoom(persisted.liveState as LiveRoom);
+  await redis.set(roomKey(room.code), JSON.stringify(room), "EX", 60 * 60 * 6);
   return room;
 }
 

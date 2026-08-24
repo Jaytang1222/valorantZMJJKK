@@ -7,9 +7,10 @@ const target = {
   countryGroupCode: "east_asia",
   primaryRole: "duelist",
   currentOrLastTeam: "GEN",
+  isActiveRoster: true,
   championsTitles: 1,
   mastersTitles: 2,
-  heroTop3: ["Jett", "Raze", "Yoru"] as [string, string, string],
+  leagueTitles: 3,
 };
 
 describe("compareSoloGuess", () => {
@@ -21,7 +22,8 @@ describe("compareSoloGuess", () => {
           countryCode: "JP",
           championsTitles: 0,
           mastersTitles: 3,
-          heroTop3: ["Jett", "Sova", "Omen"],
+          leagueTitles: 5,
+          isActiveRoster: false,
         },
         target,
       ),
@@ -30,7 +32,8 @@ describe("compareSoloGuess", () => {
       country: "nearby",
       championsTitles: "higher",
       mastersTitles: "lower",
-      heroTop3: "partial",
+      leagueTitles: "lower",
+      status: "mismatch",
     });
   });
 });

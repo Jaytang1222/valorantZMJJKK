@@ -1,21 +1,38 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  formatCountry,
+  formatRegion,
+  formatRole,
+  formatTeam,
+} from "../lib/display";
+import { searchPlayers } from "../lib/player-search";
+import { t, tWith } from "../lib/i18n";
+import { useLocale } from "../components/ui-provider";
 
 type Difficulty = "beginner" | "easy" | "full";
 type Player = {
   id: string;
   canonicalName: string;
-  countryCode: string;
-  region: string;
-  primaryRole: string;
   currentOrLastTeam: string;
   aliases?: string[];
+};
+type PlayerDetails = {
+  region: string;
+  countryCode: string;
+  primaryRole: string;
+  currentOrLastTeam: string;
+  isActiveRoster: boolean;
+  championsTitles: number;
+  mastersTitles: number;
+  leagueTitles: number;
 };
 type Guess = {
   canonicalName: string;
   isCorrect: boolean;
   comparison: Record<string, string>;
+  details?: PlayerDetails;
 };
 type Attempt = {
   id: string;
@@ -23,15 +40,6 @@ type Attempt = {
   status: "active" | "won" | "lost" | "abandoned";
   guessCount: number;
   score?: number | null;
-};
-const labels: Record<string, string> = {
-  region: "赛区",
-  country: "国籍",
-  primaryRole: "位置",
-  currentOrLastTeam: "队伍",
-  championsTitles: "冠军赛",
-  mastersTitles: "大师赛",
-  heroTop3: "英雄 Top 3",
 };
 
 function guestId() {
@@ -44,7 +52,33 @@ function guestId() {
   return value;
 }
 
+function matchSymbol(tone: string | undefined) {
+  if (tone === "higher") return "↑";
+  if (tone === "lower") return "↓";
+  return "";
+}
+
+function valueFor(column: string, guess: Guess, locale: "zh" | "en") {
+  const details = guess.details;
+  if (!details) return "—";
+  if (column === "region") return formatRegion(details.region);
+  if (column === "country") return formatCountry(details.countryCode, locale);
+  if (column === "status")
+    return t(
+      locale,
+      details.isActiveRoster ? "status.active" : "status.retired",
+    );
+  if (column === "primaryRole") return formatRole(details.primaryRole, locale);
+  if (column === "currentOrLastTeam")
+    return formatTeam(details.currentOrLastTeam);
+  if (column === "championsTitles") return details.championsTitles;
+  if (column === "mastersTitles") return details.mastersTitles;
+  if (column === "leagueTitles") return details.leagueTitles;
+  return "—";
+}
+
 export default function SoloPage() {
+  const { locale } = useLocale();
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [query, setQuery] = useState("");
@@ -57,6 +91,7 @@ export default function SoloPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+
   useEffect(() => {
     const savedAttemptId = localStorage.getItem("valo_solo_attempt_id");
     if (savedAttemptId)
@@ -71,31 +106,45 @@ export default function SoloPage() {
         })
         .catch(() => undefined);
   }, []);
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((response) => response.json())
       .then((data) => setDisplayName(data.user?.displayName ?? null))
       .catch(() => undefined);
   }, []);
+
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/players?limit=250", { signal: controller.signal })
+    // Search against the complete approved directory. A 250-row prefix
+    // misses valid IDs such as ZmjjKK because the API sorts by canonical name.
+    fetch("/api/players?limit=5000", { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : []))
       .then(setPlayers)
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
+
   const candidates = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    if (!normalizedQuery || selected) return [];
-    return players
-      .filter((player) =>
-        `${player.canonicalName} ${(player.aliases ?? []).join(" ")}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
-      )
-      .slice(0, 8);
+    if (!query.trim() || selected) return [];
+    return searchPlayers(players, query, 250);
   }, [players, query, selected]);
+
+  const columns = useMemo(
+    () =>
+      [
+        ["region", t(locale, "col.region")],
+        ["country", t(locale, "col.country")],
+        ["status", t(locale, "col.status")],
+        ["primaryRole", t(locale, "col.role")],
+        ["currentOrLastTeam", t(locale, "col.team")],
+        ["championsTitles", t(locale, "col.championsTitles")],
+        ["mastersTitles", t(locale, "col.mastersTitles")],
+        ["leagueTitles", t(locale, "col.leagueTitles")],
+      ] as const,
+    [locale],
+  );
+
   async function start(difficulty: Difficulty) {
     setBusy(true);
     setError("");
@@ -114,11 +163,14 @@ export default function SoloPage() {
       setSelected(null);
       setQuery("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "无法开始对局。");
+      setError(
+        cause instanceof Error ? cause.message : t(locale, "solo.errorStart"),
+      );
     } finally {
       setBusy(false);
     }
   }
+
   async function submit() {
     if (!attempt || !selected) return;
     setBusy(true);
@@ -138,13 +190,16 @@ export default function SoloPage() {
       setSelected(null);
       setQuery("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "提交失败。");
+      setError(
+        cause instanceof Error ? cause.message : t(locale, "solo.errorSubmit"),
+      );
     } finally {
       setBusy(false);
     }
   }
+
   async function abandon() {
-    if (!attempt || !confirm("确定要放弃本局吗？")) return;
+    if (!attempt || !confirm(t(locale, "solo.confirmAbandon"))) return;
     const response = await fetch(`/api/solo/attempts/${attempt.id}/abandon`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -155,60 +210,142 @@ export default function SoloPage() {
       localStorage.removeItem("valo_solo_attempt_id");
       setAttempt(data.attempt);
       setResult(data.result);
-    } else setError(data.error ?? "放弃失败。");
+    } else setError(data.error ?? t(locale, "solo.errorAbandon"));
   }
+
+  const difficultyLabels: Record<Difficulty, string> = {
+    beginner: t(locale, "solo.diffBeginner"),
+    easy: t(locale, "solo.diffEasy"),
+    full: t(locale, "solo.diffFull"),
+  };
+
   return (
-    <main className="game-shell">
-      <header className="game-header">
-        <a href="/">康一把</a>
-        {displayName ? (
-          <a href="/account">{displayName}</a>
-        ) : (
-          <a href="/login">登录或注册</a>
-        )}
-      </header>
-      <section className="game-intro">
-        <p className="eyebrow">SOLO ALPHA</p>
-        <h1>单人对战</h1>
-        <p>根据职业选手资料缩小范围。每局最多 8 次猜测。</p>
-      </section>
-      {!attempt && (
-        <section className="difficulty-grid">
-          {(["beginner", "easy", "full"] as Difficulty[]).map((difficulty) => (
-            <button
-              key={difficulty}
-              disabled={busy}
-              onClick={() => start(difficulty)}
-            >
-              <strong>
-                {{ beginner: "入门", easy: "简单", full: "完整" }[difficulty]}
+    <main className="game-shell solo-page">
+      <header className="game-header solo-nav">
+        <div className="solo-nav-left">
+          <a href="/">{t(locale, "nav.brand")}</a>
+          <span className="solo-nav-mode">SOLO ALPHA</span>
+        </div>
+        <div className="solo-nav-right">
+          {attempt && (
+            <>
+              <span className="solo-nav-difficulty">
+                {difficultyLabels[attempt.difficulty]}
+              </span>
+              <strong className="solo-nav-count">
+                {tWith(locale, "solo.guessesLeft", {
+                  used: attempt.guessCount,
+                })}
               </strong>
-              <span>开始随机对局</span>
-            </button>
-          ))}
-        </section>
+              {attempt.status === "active" && (
+                <button className="text-button" onClick={abandon}>
+                  {t(locale, "solo.abandon")}
+                </button>
+              )}
+            </>
+          )}
+          {displayName ? (
+            <a href="/account">{displayName}</a>
+          ) : (
+            <a href="/login">{t(locale, "login.title")}</a>
+          )}
+        </div>
+      </header>
+      {!attempt && (
+        <>
+          <section className="game-intro">
+            <p className="eyebrow">SOLO ALPHA</p>
+            <h1>{t(locale, "home.entrySolo")}</h1>
+            <p>{t(locale, "solo.lead")}</p>
+            <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
+          </section>
+          <section className="difficulty-grid">
+            {(["beginner", "easy", "full"] as Difficulty[]).map(
+              (difficulty) => (
+                <button
+                  key={difficulty}
+                  disabled={busy}
+                  onClick={() => start(difficulty)}
+                >
+                  <strong>{difficultyLabels[difficulty]}</strong>
+                  <span>{t(locale, "solo.start")}</span>
+                </button>
+              ),
+            )}
+          </section>
+        </>
       )}
       {attempt && (
         <section className="game-board">
-          <div className="game-meta">
-            <span>
-              {attempt.difficulty === "beginner"
-                ? "入门"
-                : attempt.difficulty === "easy"
-                  ? "简单"
-                  : "完整"}
-            </span>
-            <strong>{attempt.guessCount} / 8 次猜测</strong>
-            {attempt.status === "active" && (
-              <button className="text-button" onClick={abandon}>
-                放弃
-              </button>
+          <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
+          <div
+            className="guess-table-wrap"
+            aria-label={t(locale, "solo.tableLabel")}
+          >
+            <div className="guess-table guess-table-header">
+              <span>{t(locale, "col.guess")}</span>
+              {columns.map(([, label]) => (
+                <span key={label}>{label}</span>
+              ))}
+            </div>
+            {guesses.map((guess, index) => (
+              <div
+                className="guess-table"
+                key={`${guess.canonicalName}-${index}`}
+              >
+                <strong className="guess-name">
+                  {index + 1}. {guess.canonicalName}
+                </strong>
+                {columns.map(([key, label]) => {
+                  const tone = guess.comparison[key];
+                  return (
+                    <span
+                      key={key}
+                      data-match={tone}
+                      title={label}
+                      aria-label={`${label}: ${valueFor(key, guess, locale)}`}
+                    >
+                      {valueFor(key, guess, locale)} {matchSymbol(tone)}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
+            {guesses.length === 0 && (
+              <p className="guess-table-empty">{t(locale, "solo.noGuesses")}</p>
             )}
           </div>
+          {result && (
+            <section className="result-panel">
+              <p>
+                {attempt.status === "won"
+                  ? t(locale, "solo.won")
+                  : attempt.status === "abandoned"
+                    ? t(locale, "solo.abandoned")
+                    : t(locale, "solo.end")}
+              </p>
+              <h2>
+                {t(locale, "solo.answer")}
+                {result.target.canonicalName}
+              </h2>
+              <strong>
+                {tWith(locale, "solo.points", { score: result.score })}
+              </strong>
+              <button
+                onClick={() => {
+                  setAttempt(null);
+                  setGuesses([]);
+                  setResult(null);
+                }}
+              >
+                {t(locale, "solo.playAgain")}
+              </button>
+            </section>
+          )}
           {attempt.status === "active" && (
-            <div className="guess-box">
+            <div className="guess-box guess-composer">
               <label>
-                搜索选手
+                {t(locale, "solo.searchLabel")}
                 <input
                   autoFocus
                   value={query}
@@ -216,7 +353,7 @@ export default function SoloPage() {
                     setQuery(event.target.value);
                     setSelected(null);
                   }}
-                  placeholder="输入选手 ID 或姓名"
+                  placeholder={t(locale, "solo.guessPlaceholder")}
                 />
               </label>
               {query && !selected && (
@@ -230,7 +367,7 @@ export default function SoloPage() {
                       }}
                     >
                       {player.canonicalName}
-                      <small>{player.currentOrLastTeam}</small>
+                      <small>{formatTeam(player.currentOrLastTeam)}</small>
                     </button>
                   ))}
                 </div>
@@ -241,59 +378,10 @@ export default function SoloPage() {
                   disabled={busy}
                   onClick={submit}
                 >
-                  猜测 {selected.canonicalName}
+                  {t(locale, "solo.submit")} {selected.canonicalName}
                 </button>
               )}
             </div>
-          )}
-          {guesses.length > 0 && (
-            <div className="guess-history">
-              {guesses.map((guess, index) => (
-                <article key={`${guess.canonicalName}-${index}`}>
-                  <h2>
-                    {index + 1}. {guess.canonicalName}{" "}
-                    {guess.isCorrect ? "正确" : ""}
-                  </h2>
-                  <div className="comparison-grid">
-                    {Object.entries(guess.comparison).map(([key, value]) => (
-                      <span key={key} data-match={value}>
-                        {labels[key]}:{" "}
-                        {value === "exact" || value === "equal"
-                          ? "匹配"
-                          : value === "nearby" || value === "partial"
-                            ? "接近"
-                            : value === "higher"
-                              ? "更高"
-                              : value === "lower"
-                                ? "更低"
-                                : "不匹配"}
-                      </span>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-          {result && (
-            <section className="result-panel">
-              <p>
-                {attempt.status === "won"
-                  ? "猜对了"
-                  : attempt.status === "abandoned"
-                    ? "本局已放弃"
-                    : "本局结束"}
-              </p>
-              <h2>答案：{result.target.canonicalName}</h2>
-              <strong>{result.score} 分</strong>
-              <button
-                onClick={() => {
-                  setAttempt(null);
-                  setResult(null);
-                }}
-              >
-                再来一局
-              </button>
-            </section>
           )}
         </section>
       )}

@@ -4,6 +4,10 @@ import {
   sealUserSession,
   unsealUserSession,
 } from "../../../../lib/user-session";
+import {
+  getRateLimitProxy,
+  setRateLimitCookie,
+} from "../../../../lib/rate-limit-proxy";
 
 const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3001";
 const SESSION_COOKIE = "valo_user_session";
@@ -27,9 +31,11 @@ export async function POST(
     return response;
   }
   const token = unsealUserSession((await cookies()).get(SESSION_COOKIE)?.value);
+  const proxy = getRateLimitProxy(request);
   const upstream = await fetch(`${API_BASE_URL}/v1/auth/${action}`, {
     method: "POST",
     headers: {
+      ...proxy.headers,
       ...(action === "realtime-ticket"
         ? {}
         : { "content-type": "application/json" }),
@@ -41,9 +47,18 @@ export async function POST(
     cache: "no-store",
   });
   const data = await upstream.json();
-  if (!upstream.ok) return NextResponse.json(data, { status: upstream.status });
-  if (action === "realtime-ticket") return NextResponse.json(data);
+  if (!upstream.ok) {
+    const response = NextResponse.json(data, { status: upstream.status });
+    setRateLimitCookie(response, proxy.cookieValue);
+    return response;
+  }
+  if (action === "realtime-ticket") {
+    const response = NextResponse.json(data);
+    setRateLimitCookie(response, proxy.cookieValue);
+    return response;
+  }
   const response = NextResponse.json({ user: data.user });
+  setRateLimitCookie(response, proxy.cookieValue);
   response.cookies.set(SESSION_COOKIE, sealUserSession(data.session.token), {
     httpOnly: true,
     path: "/",
@@ -54,11 +69,14 @@ export async function POST(
   return response;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const token = unsealUserSession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!token) return NextResponse.json({ user: null });
   const upstream = await fetch(`${API_BASE_URL}/v1/auth/me`, {
-    headers: { authorization: `Bearer ${token}` },
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...getRateLimitProxy(request).headers,
+    },
     cache: "no-store",
   });
   if (!upstream.ok) return NextResponse.json({ user: null });

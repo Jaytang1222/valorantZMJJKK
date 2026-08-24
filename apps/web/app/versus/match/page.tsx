@@ -3,6 +3,15 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
+import {
+  formatCountry,
+  formatRegion,
+  formatRole,
+  formatTeam,
+} from "../../lib/display";
+import { searchPlayers } from "../../lib/player-search";
+import { t, tWith } from "../../lib/i18n";
+import { useLocale } from "../../components/ui-provider";
 
 type Member = {
   userId: string;
@@ -43,6 +52,16 @@ type GuessResult = {
   isCorrect: boolean;
   comparison: Record<string, string>;
   points: number;
+  details?: {
+    region: string;
+    countryCode: string;
+    primaryRole: string;
+    currentOrLastTeam: string;
+    isActiveRoster: boolean;
+    championsTitles: number;
+    mastersTitles: number;
+    leagueTitles: number;
+  };
 };
 type OpponentProfile = {
   displayName: string;
@@ -53,29 +72,34 @@ type OpponentProfile = {
 };
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
-const fields: Record<string, string> = {
-  region: "赛区",
-  country: "国籍",
-  primaryRole: "位置",
-  currentOrLastTeam: "队伍",
-  championsTitles: "冠军赛冠军",
-  mastersTitles: "大师赛冠军",
-  heroTop3: "英雄 Top 3",
-};
+function matchSymbol(tone: string) {
+  return tone === "higher" ? "↑" : tone === "lower" ? "↓" : "";
+}
 
-function matchLabel(tone: string) {
-  if (tone === "exact" || tone === "equal") return "匹配";
-  if (tone === "nearby" || tone === "partial") return "接近";
-  if (tone === "higher") return "更高";
-  if (tone === "lower") return "更低";
-  return "不匹配";
+function guessValue(field: string, guess: GuessResult, locale: "zh" | "en") {
+  const details = guess.details;
+  if (!details) return "—";
+  if (field === "region") return formatRegion(details.region);
+  if (field === "country") return formatCountry(details.countryCode, locale);
+  if (field === "status")
+    return t(
+      locale,
+      details.isActiveRoster ? "status.active" : "status.retired",
+    );
+  if (field === "primaryRole") return formatRole(details.primaryRole, locale);
+  if (field === "currentOrLastTeam")
+    return formatTeam(details.currentOrLastTeam);
+  if (field === "championsTitles") return details.championsTitles;
+  if (field === "mastersTitles") return details.mastersTitles;
+  if (field === "leagueTitles") return details.leagueTitles;
+  return "—";
 }
 
 async function getRealtimeTicket() {
   const response = await fetch("/api/auth/realtime-ticket", { method: "POST" });
   const data = await response.json();
   if (!response.ok || !data.ticket?.token)
-    throw new Error(data.error ?? "无法获取实时连接凭据。");
+    throw new Error(data.error ?? "Could not get real-time credentials.");
   return data.ticket.token as string;
 }
 
@@ -84,7 +108,7 @@ export default function MatchPage() {
     <Suspense
       fallback={
         <main className="game-shell">
-          <p>正在载入对局。</p>
+          <p>Loading match…</p>
         </main>
       }
     >
@@ -96,6 +120,7 @@ export default function MatchPage() {
 function MatchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale } = useLocale();
   const requestedCode = searchParams.get("code")?.toUpperCase() ?? "";
   const socketRef = useRef<Socket | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
@@ -125,7 +150,8 @@ function MatchPageContent() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/players?limit=250", { signal: controller.signal })
+    // Keep versus search consistent with solo search and the full directory.
+    fetch("/api/players?limit=5000", { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : []))
       .then(setPlayers)
       .catch(() => undefined);
@@ -138,7 +164,7 @@ function MatchPageContent() {
     fetch("/api/auth/me")
       .then((response) => response.json())
       .then(async (data) => {
-        if (!data.user) throw new Error("联机对战需要登录账户。");
+        if (!data.user) throw new Error(t(locale, "match.needAccount"));
         setMe(data.user.id);
         const ticket = await getRealtimeTicket();
         if (cancelled) return;
@@ -170,7 +196,7 @@ function MatchPageContent() {
             ) => {
               if (requestError || reply?.error) {
                 localStorage.removeItem("valo_versus_room");
-                setError(reply?.error ?? "无法恢复该对局。");
+                setError(reply?.error ?? t(locale, "match.roomUnavailable"));
                 return;
               }
               if (reply.room) setRoom(reply.room);
@@ -181,7 +207,9 @@ function MatchPageContent() {
         client.on("disconnect", () => setConnected(false));
         client.on("connect_error", async (event) => {
           setConnected(false);
-          setError(`实时连接失败：${event.message}`);
+          setError(
+            tWith(locale, "match.connectError", { message: event.message }),
+          );
           try {
             client.auth = { ticket: await getRealtimeTicket() };
           } catch {
@@ -208,14 +236,18 @@ function MatchPageContent() {
         });
       })
       .catch((cause) =>
-        setError(cause instanceof Error ? cause.message : "无法建立实时连接。"),
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : t(locale, "match.reconnectError"),
+        ),
       );
     return () => {
       cancelled = true;
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
-  }, [requestedCode]);
+  }, [requestedCode, locale]);
 
   useEffect(() => {
     if (room?.roundNumber === undefined) return;
@@ -233,15 +265,13 @@ function MatchPageContent() {
     new Promise<any>((resolve) => {
       const client = socketRef.current;
       if (!client?.connected) {
-        resolve({ error: "实时连接尚未就绪，请稍后重试。" });
+        resolve({ error: t(locale, "match.notReady") });
         return;
       }
       client
         .timeout(8_000)
         .emit(event, payload, (requestError: Error | null, reply: unknown) =>
-          resolve(
-            requestError ? { error: "请求超时，请检查实时连接。" } : reply,
-          ),
+          resolve(requestError ? { error: t(locale, "match.timeout") } : reply),
         );
     });
 
@@ -262,7 +292,7 @@ function MatchPageContent() {
     router.push("/versus");
   };
   const surrender = async () => {
-    if (!room || !window.confirm("确认投降并结束本局吗？")) return;
+    if (!room || !window.confirm(t(locale, "match.confirmSurrender"))) return;
     await run("room:surrender", { code: room.code });
   };
 
@@ -284,27 +314,21 @@ function MatchPageContent() {
       const data = (await response.json()) as OpponentProfile & {
         error?: string;
       };
-      if (!response.ok) throw new Error(data.error ?? "无法获取对手战绩。");
+      if (!response.ok)
+        throw new Error(data.error ?? t(locale, "match.viewHistory"));
       setOpponentProfile(data);
     } catch (cause) {
       setProfileError(
-        cause instanceof Error ? cause.message : "无法获取对手战绩。",
+        cause instanceof Error ? cause.message : t(locale, "match.viewHistory"),
       );
     } finally {
       setProfileLoading(false);
     }
   };
-  const candidates = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    if (!normalizedQuery) return [];
-    return players
-      .filter((player) =>
-        `${player.canonicalName} ${(player.aliases ?? []).join(" ")}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
-      )
-      .slice(0, 8);
-  }, [players, query]);
+  const candidates = useMemo(
+    () => searchPlayers(players, query, 250),
+    [players, query],
+  );
   const remainingSeconds = (member: Member) =>
     member.disconnectedAt === undefined
       ? 0
@@ -316,23 +340,25 @@ function MatchPageContent() {
     room?.members.filter((member) => member.status === "connected").length ===
     2;
   const resultTitle = !room
-    ? "对局不可用"
+    ? t(locale, "match.roomUnavailable")
     : currentMember?.status === "forfeited"
       ? room.finishReason === "surrender"
-        ? "你已投降"
-        : "你已判负"
+        ? t(locale, "match.youSurrendered")
+        : t(locale, "match.youForfeited")
       : room.winnerId === me
-        ? "你获胜"
+        ? t(locale, "match.youWin")
         : room.winnerId
-          ? "本局失败"
-          : "本局结束";
+          ? t(locale, "match.youLost")
+          : t(locale, "match.roundOver");
 
   if (closed)
     return (
       <main className="game-shell">
         <section className="result-panel">
-          <p>房间已关闭。</p>
-          <button onClick={() => router.push("/versus")}>返回联机主页</button>
+          <p>{t(locale, "match.roomClosed")}</p>
+          <button onClick={() => router.push("/versus")}>
+            {t(locale, "match.backToVersus")}
+          </button>
         </section>
       </main>
     );
@@ -341,7 +367,9 @@ function MatchPageContent() {
       <main className="game-shell">
         <section className="result-panel">
           <p className="form-error">{error}</p>
-          <button onClick={() => router.push("/versus")}>返回联机主页</button>
+          <button onClick={() => router.push("/versus")}>
+            {t(locale, "match.backToVersus")}
+          </button>
         </section>
       </main>
     );
@@ -350,69 +378,89 @@ function MatchPageContent() {
     <main className="match-shell">
       <header className="match-header">
         <button className="text-button header-link" onClick={leaveToMenu}>
-          退出到联机主页
+          {t(locale, "match.leave")}
         </button>
-        <span>{connected ? "已连接" : "正在重连"}</span>
+        <span>
+          {connected
+            ? t(locale, "match.connected")
+            : t(locale, "match.reconnecting")}
+        </span>
       </header>
       {room && (
         <>
           <section className="match-meta">
-            <strong>房间 {room.code}</strong>
+            <strong>
+              {tWith(locale, "match.roomCode", { code: room.code })}
+            </strong>
             <span>
               BO1 ·{" "}
-              {room.phase === "playing" ? `${roundSeconds} 秒` : "本局已结束"}
+              {room.phase === "playing"
+                ? tWith(locale, "match.seconds", { seconds: roundSeconds })
+                : t(locale, "match.roundOver")}
             </span>
           </section>
+          <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
           {error && <p className="form-error">{error}</p>}
           <section className="match-columns">
             <section className="match-player-panel own-panel">
               <div className="match-player-heading">
                 <div>
-                  <p>你</p>
+                  <p>{t(locale, "match.you")}</p>
                   <h1>{currentMember?.displayName}</h1>
                 </div>
-                <strong>{currentMember?.score ?? 0} 分</strong>
+                <strong>
+                  {tWith(locale, "match.points", {
+                    score: currentMember?.score ?? 0,
+                  })}
+                </strong>
               </div>
               {currentMember?.status === "disconnected" && (
                 <p className="disconnect-warning">
-                  你的连接已断开，请在 {remainingSeconds(currentMember)}{" "}
-                  秒内恢复。
+                  {tWith(locale, "match.disconnected", {
+                    seconds: remainingSeconds(currentMember),
+                  })}
                 </p>
               )}
               {room.phase === "playing" &&
                 currentMember?.status === "connected" && (
                   <>
                     <div className="match-guess-control">
-                      <span>已猜 {currentMember.guessCount} / 8 次</span>
+                      <span>
+                        {tWith(locale, "match.guessCount", {
+                          used: currentMember.guessCount,
+                        })}
+                      </span>
                       <input
                         autoFocus
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
-                        placeholder="搜索选手"
+                        placeholder={t(locale, "match.searchPlaceholder")}
                       />
-                      {candidates.map((player) => (
-                        <button
-                          className="candidate"
-                          key={player.id}
-                          onClick={async () => {
-                            const reply = await run("room:guess", {
-                              code: room.code,
-                              playerId: player.id,
-                            });
-                            if (reply) setQuery("");
-                          }}
-                        >
-                          {player.canonicalName}
-                          <small>{player.currentOrLastTeam}</small>
-                        </button>
-                      ))}
+                      <div className="candidate-list">
+                        {candidates.map((player) => (
+                          <button
+                            className="candidate"
+                            key={player.id}
+                            onClick={async () => {
+                              const reply = await run("room:guess", {
+                                code: room.code,
+                                playerId: player.id,
+                              });
+                              if (reply) setQuery("");
+                            }}
+                          >
+                            {player.canonicalName}
+                            <small>{player.currentOrLastTeam}</small>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <button
                       className="surrender-button"
                       disabled={!connected}
                       onClick={surrender}
                     >
-                      投降
+                      {t(locale, "match.surrender")}
                     </button>
                   </>
                 )}
@@ -423,12 +471,11 @@ function MatchPageContent() {
                       <strong>
                         {index + 1}. {guess.canonicalName}
                       </strong>
-                      {guess.isCorrect && <span>正确 +{guess.points}</span>}
                     </header>
                     <div className="comparison-grid">
                       {Object.entries(guess.comparison).map(([field, tone]) => (
                         <span key={field} data-match={tone}>
-                          {fields[field]}：{matchLabel(tone)}
+                          {guessValue(field, guess, locale)} {matchSymbol(tone)}
                         </span>
                       ))}
                     </div>
@@ -439,8 +486,11 @@ function MatchPageContent() {
             <section className="match-player-panel opponent-panel">
               <div className="match-player-heading">
                 <div>
-                  <p>对手</p>
-                  <h1>{opponent?.displayName ?? "等待对手"}</h1>
+                  <p>{t(locale, "match.opponent")}</p>
+                  <h1>
+                    {opponent?.displayName ??
+                      t(locale, "match.awaitingOpponent")}
+                  </h1>
                   {opponent && (
                     <button
                       className="opponent-profile-toggle"
@@ -455,53 +505,62 @@ function MatchPageContent() {
                       }}
                     >
                       {profileLoading
-                        ? "正在加载战绩"
+                        ? t(locale, "match.profileLoading")
                         : opponentProfile
-                          ? "收起联机战绩"
-                          : "查看联机战绩"}
+                          ? t(locale, "match.profileHide")
+                          : t(locale, "match.profileShow")}
                     </button>
                   )}
                 </div>
-                <strong>{opponent?.score ?? 0} 分</strong>
+                <strong>
+                  {tWith(locale, "match.points", {
+                    score: opponent?.score ?? 0,
+                  })}
+                </strong>
               </div>
               {profileError && <p className="form-error">{profileError}</p>}
               {opponentProfile && (
                 <section
                   className="opponent-profile-card"
-                  aria-label="对手联机战绩"
+                  aria-label={t(locale, "match.viewHistory")}
                 >
                   <div>
-                    <p>联机局数</p>
+                    <p>{t(locale, "match.profileGames")}</p>
                     <strong>{opponentProfile.gamesPlayed}</strong>
                   </div>
                   <div>
-                    <p>胜场</p>
+                    <p>{t(locale, "match.profileWins")}</p>
                     <strong>{opponentProfile.wins}</strong>
                   </div>
                   <div>
-                    <p>胜率</p>
+                    <p>{t(locale, "match.profileWinRate")}</p>
                     <strong>
                       {Math.round(opponentProfile.winRate * 100)}%
                     </strong>
                   </div>
                   <div>
-                    <p>平均猜测数</p>
+                    <p>{t(locale, "match.profileAvgGuesses")}</p>
                     <strong>{opponentProfile.averageGuesses}</strong>
                   </div>
                 </section>
               )}
               {opponent?.status === "disconnected" && (
                 <p className="disconnect-warning">
-                  对手断线，{remainingSeconds(opponent)} 秒内可重连。
+                  {tWith(locale, "match.opponentDisconnected", {
+                    seconds: remainingSeconds(opponent),
+                  })}
                 </p>
               )}
               {opponent?.status === "forfeited" && (
                 <p className="disconnect-warning">
-                  对手已
-                  {room.finishReason === "surrender" ? "投降" : "超时判负"}。
+                  {room.finishReason === "surrender"
+                    ? t(locale, "match.opponentSurrendered")
+                    : t(locale, "match.opponentForfeited")}
                 </p>
               )}
-              <p className="opponent-progress-label">猜测进度</p>
+              <p className="opponent-progress-label">
+                {t(locale, "match.progress")}
+              </p>
               <div className="opponent-feedback">
                 {opponent?.feedback.map((tones, index) => (
                   <div className="feedback-row" key={index}>
@@ -509,7 +568,9 @@ function MatchPageContent() {
                       <span
                         key={toneIndex}
                         data-match={tone}
-                        aria-label={`第 ${index + 1} 次猜测，第 ${toneIndex + 1} 项：${matchLabel(tone)}`}
+                        aria-label={tWith(locale, "match.guessPosition", {
+                          n: index + 1,
+                        })}
                       />
                     ))}
                   </div>
@@ -520,14 +581,21 @@ function MatchPageContent() {
           {room.phase === "finished" && (
             <section className="result-panel match-result">
               <p>{resultTitle}</p>
-              <h2>答案：{answer || room.answerName || "正在揭晓"}</h2>
-              <strong>{currentMember?.score ?? 0} 分</strong>
+              <h2>
+                {t(locale, "match.answer")}
+                {answer || room.answerName || t(locale, "match.answerReveal")}
+              </h2>
+              <strong>
+                {tWith(locale, "match.points", {
+                  score: currentMember?.score ?? 0,
+                })}
+              </strong>
               <p>
                 {room.finishReason === "surrender"
-                  ? "本局因投降结束。"
+                  ? t(locale, "match.finishSurrender")
                   : room.finishReason === "disconnect"
-                    ? "本局因断线超时结束。"
-                    : "本局结束。"}
+                    ? t(locale, "match.finishDisconnect")
+                    : t(locale, "match.finishRound")}
               </p>
               <div className="result-actions">
                 {canRematch && (
@@ -539,11 +607,13 @@ function MatchPageContent() {
                     }
                     onClick={() => run("room:rematch", { code: room.code })}
                   >
-                    {currentMember?.rematchReady ? "等待对手确认" : "再来一局"}
+                    {currentMember?.rematchReady
+                      ? t(locale, "match.waitingRematch")
+                      : t(locale, "match.playAgain")}
                   </button>
                 )}
                 <button className="secondary-action" onClick={leaveToMenu}>
-                  返回联机主页
+                  {t(locale, "match.backToVersus")}
                 </button>
               </div>
             </section>

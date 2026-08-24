@@ -4,9 +4,10 @@ type Snapshot = {
   countryGroupCode: string;
   primaryRole: string;
   currentOrLastTeam: string;
+  isActiveRoster: boolean;
   championsTitles: number;
   mastersTitles: number;
-  heroTop3: [string, string, string];
+  leagueTitles: number;
 };
 
 export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
@@ -21,6 +22,10 @@ export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
           : "mismatch",
     primaryRole: text(guess.primaryRole, target.primaryRole),
     currentOrLastTeam: text(guess.currentOrLastTeam, target.currentOrLastTeam),
+    status: text(
+      guess.isActiveRoster ? "active" : "retired",
+      target.isActiveRoster ? "active" : "retired",
+    ),
     championsTitles:
       guess.championsTitles === target.championsTitles
         ? "equal"
@@ -33,8 +38,11 @@ export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
         : guess.mastersTitles < target.mastersTitles
           ? "higher"
           : "lower",
-    heroTop3: guess.heroTop3.some((hero) => target.heroTop3.includes(hero))
-      ? "partial"
-      : "mismatch",
+    leagueTitles:
+      guess.leagueTitles === target.leagueTitles
+        ? "equal"
+        : guess.leagueTitles < target.leagueTitles
+          ? "higher"
+          : "lower",
   };
 }

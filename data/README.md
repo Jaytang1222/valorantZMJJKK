@@ -1,15 +1,21 @@
 # 选手数据导入
 
-`players.template.csv` 是导入模板，`players.seed.csv` 是仅用于开发验证的待审核草稿。所有草稿均为 `pending_review`，不会进入查选手公开结果或题目池。
+`players.template.csv` 是导入模板，`players.seed.csv` 是用于开发验证和部署同步的已审核资料快照。正式运营中的修改仍应通过管理后台建立新的快照并保留审核记录。
 
 字段约定：
 
-- `aliases` 与 `hero_top_3` 使用 `|` 分隔；英雄必须恰好三个。
+- `aliases` 使用 `|` 分隔。
 - `country_group` 用于国籍“相近”的版本化地理分区，例如 `north_america`、`eastern_europe`、`south_america`、`greater_china`。
-- `data_as_of` 是资料快照日期；赛事冠军次数与英雄 Top 3 都以该日期为截止点。
+- `data_as_of` 是资料快照日期；赛事冠军次数与选手状态都以该日期为截止点。`is_active_roster=true` 表示现役，`false` 表示退役。
 - `source_url` 必须是可公开核验的资料来源；导入前需要人工核验。
 
-当前 `players.seed.csv` 为 248 名已批准选手的内容快照。每行保留公开选手档案 URL 与核验日期；`hero_top_3` 依据“截至快照日，官方/高水平赛事出场次数最多的三个英雄”的产品定义。该字段在题目发布前应以赛事统计源二次复核，不能将 CSV 视为永久赛事档案。
+当前 `players.seed.csv` 为已批准选手的内容快照。每行保留公开选手档案 URL 与核验日期；冠军赛夺冠次数、大师赛夺冠次数、联赛冠军次数和现役状态均以快照日期为准，发布前仍应按来源复核。
+
+字段约定（续）：
+
+- `champions_titles`：冠军赛夺冠次数（2021–2025 届冠军赛冠军）。
+- `masters_titles`：大师赛夺冠次数（大师赛冠军）。
+- `league_titles`：联赛冠军次数（官方 VCT 四大赛区联赛阶段冠军次数；不包含大师赛、冠军赛、挑战者赛和 Ascension）。该字段由联赛冠军赛事记录重新统计，已弃用旧的冠军赛入围次数。
 
 难度分层字段：
 
@@ -19,6 +25,6 @@
 
 本次名单选择、快照范围和无法可靠导入的例外见 `roster-eligibility.2026-08-03.md`。
 
-国籍“相近”规则见 `country-groups.v1.md`。新增国家时必须先分配版本化分区，再录入选手快照。
+国籍“相近”规则见 `country-groups.v2.md`。新增国家时必须先分配版本化分区，再录入选手快照。
 
 验证 CSV：`pnpm --filter @valo-yiba/api players:validate ../../data/players.seed.csv`

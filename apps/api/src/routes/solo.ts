@@ -25,6 +25,19 @@ const guessSchema = z.object({
   guestId: z.string().uuid().optional(),
 });
 
+function playerDetails(snapshot: typeof playerSnapshots.$inferSelect) {
+  return {
+    region: snapshot.region,
+    countryCode: snapshot.countryCode,
+    primaryRole: snapshot.primaryRole,
+    currentOrLastTeam: snapshot.currentOrLastTeam,
+    isActiveRoster: snapshot.isActiveRoster,
+    championsTitles: snapshot.championsTitles,
+    mastersTitles: snapshot.mastersTitles,
+    leagueTitles: snapshot.leagueTitles,
+  };
+}
+
 function bearer(header: string | undefined) {
   return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
 }
@@ -147,6 +160,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
           and(
             eq(players.id, input.playerId),
             eq(playerSnapshots.reviewStatus, "approved"),
+            eq(playerSnapshots.isCoach, false),
           ),
         )
         .limit(1);
@@ -192,6 +206,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
           canonicalName: guessed.canonicalName,
           isCorrect,
           comparison: result,
+          details: playerDetails(guessed.snapshot),
         },
         attempt: {
           id: attempt.id,
@@ -249,6 +264,21 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
             .innerJoin(players, eq(players.id, playerSnapshots.playerId))
             .where(eq(puzzles.id, attempt.puzzleId))
             .limit(1);
+    const guessesWithDetails = await Promise.all(
+      history.map(async (guess) => {
+        const [snapshot] = await db
+          .select({ snapshot: playerSnapshots })
+          .from(playerSnapshots)
+          .innerJoin(players, eq(players.id, playerSnapshots.playerId))
+          .where(eq(players.canonicalName, guess.canonicalName))
+          .orderBy(desc(playerSnapshots.dataVersion))
+          .limit(1);
+        return {
+          ...guess,
+          details: snapshot ? playerDetails(snapshot.snapshot) : undefined,
+        };
+      }),
+    );
     return {
       attempt: {
         id: attempt.id,
@@ -259,7 +289,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
         startedAt: attempt.startedAt,
         finishedAt: attempt.finishedAt,
       },
-      guesses: history,
+      guesses: guessesWithDetails,
       result: target ? { target, score: attempt.score } : undefined,
     };
   });

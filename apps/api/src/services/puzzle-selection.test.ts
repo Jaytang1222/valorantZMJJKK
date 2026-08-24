@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { fallbackDifficulties, versusDifficulty } from "./puzzle-selection.js";
 
 describe("versus difficulty selection", () => {
-  it("uses the configured 30/50/20 distribution boundaries", () => {
+  it("uses the configured 60/30/10 distribution boundaries", () => {
     expect(versusDifficulty(0)).toBe("beginner");
-    expect(versusDifficulty(0.299999)).toBe("beginner");
-    expect(versusDifficulty(0.3)).toBe("easy");
-    expect(versusDifficulty(0.799999)).toBe("easy");
-    expect(versusDifficulty(0.8)).toBe("full");
+    expect(versusDifficulty(0.599999)).toBe("beginner");
+    expect(versusDifficulty(0.6)).toBe("easy");
+    expect(versusDifficulty(0.899999)).toBe("easy");
+    expect(versusDifficulty(0.9)).toBe("full");
   });
 
   it("tries the requested pool before deterministic fallbacks", () => {

@@ -1,25 +1,41 @@
-export const metadata = { title: "数据与商标声明 | 康一把" };
+import { cookies, headers } from "next/headers";
+import { LOCALE_COOKIE, detectLocale, t, tWith } from "../lib/i18n";
 
-export default function DataSourcesPage() {
+const EMAIL = "jaytang12221@outlook.com";
+
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const acceptLanguage = (await headers()).get("accept-language");
+  const locale = detectLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    acceptLanguage,
+  );
+  return {
+    title: `${t(locale, "dataSources.title")} | ${t(locale, "nav.brand")}`,
+  };
+}
+
+export default async function DataSourcesPage() {
+  const cookieStore = await cookies();
+  const acceptLanguage = (await headers()).get("accept-language");
+  const locale = detectLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    acceptLanguage,
+  );
   return (
     <main className="legal-page">
       <a href="/" className="back-link">
-        返回首页
+        {t(locale, "lb.back")}
       </a>
       <p className="eyebrow">DATA & TRADEMARKS</p>
-      <h1>数据与商标声明</h1>
+      <h1>{t(locale, "dataSources.title")}</h1>
+      <p>{t(locale, "dataSources.collectedText")}</p>
       <p>
-        选手资料由运营人员依据公开赛事记录、战队公告和其他许可清晰的公开资料人工整理。每个公开选手快照均保留来源链接与核验日期。
+        {tWith(locale, "dataSources.riotText", {
+          brand: t(locale, "nav.brand"),
+        })}
       </p>
-      <p>
-        VALORANT、Riot
-        Games、VCT、赛事名称、选手名称及战队相关商标归各自权利人所有。康一把为非官方社区项目，不代表、不隶属于且未获
-        Riot Games 或任何赛事主办方背书。
-      </p>
-      <p>
-        资料来源或商标使用问题请联系{" "}
-        <a href="mailto:jaytang12221@outlook.com">jaytang12221@outlook.com</a>。
-      </p>
+      <p>{tWith(locale, "dataSources.contactText", { email: EMAIL })}</p>
     </main>
   );
 }

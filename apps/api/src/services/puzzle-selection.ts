@@ -1,11 +1,11 @@
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, ne, or, sql } from "drizzle-orm";
 import type { Difficulty } from "@valo-yiba/contracts";
 import { db } from "../db/client.js";
 import { playerSnapshots, players } from "../db/schema.js";
 
 export function versusDifficulty(random = Math.random()): Difficulty {
-  if (random < 0.3) return "beginner";
-  if (random < 0.8) return "easy";
+  if (random < 0.6) return "beginner";
+  if (random < 0.9) return "easy";
   return "full";
 }
 
@@ -25,8 +25,14 @@ function eligibilityConditions(difficulty: Difficulty) {
       ...base,
       eq(playerSnapshots.isActiveRoster, true),
       or(
-        eq(playerSnapshots.isFeaturedTeam, true),
-        eq(playerSnapshots.isVctCnTeam, true),
+        and(
+          eq(playerSnapshots.region, "china"),
+          eq(playerSnapshots.isVctCnTeam, true),
+        ),
+        and(
+          ne(playerSnapshots.region, "china"),
+          eq(playerSnapshots.isFeaturedTeam, true),
+        ),
       ),
     ];
   }

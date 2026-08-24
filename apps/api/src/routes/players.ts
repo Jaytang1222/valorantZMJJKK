@@ -17,7 +17,9 @@ const playerSearchSchema = z.object({
     .enum(["duelist", "initiator", "controller", "sentinel", "flex"])
     .optional(),
   team: z.string().trim().min(1).max(128).optional(),
-  limit: z.coerce.number().int().min(1).max(250).default(250),
+  // The directory is intentionally loaded in one request so its client-side
+  // search covers the complete approved player set.
+  limit: z.coerce.number().int().min(1).max(5000).default(5000),
 });
 
 export async function registerPlayerRoutes(
@@ -39,6 +41,7 @@ export async function registerPlayerRoutes(
     const conditions = [
       eq(players.status, "active"),
       eq(playerSnapshots.reviewStatus, "approved"),
+      eq(playerSnapshots.isCoach, false),
     ];
 
     if (query.region) conditions.push(eq(playerSnapshots.region, query.region));
@@ -67,6 +70,8 @@ export async function registerPlayerRoutes(
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
+        isActiveRoster: playerSnapshots.isActiveRoster,
         dataAsOf: playerSnapshots.dataAsOf,
         aliases: sql<
           string[]
@@ -92,6 +97,8 @@ export async function registerPlayerRoutes(
         playerSnapshots.region,
         playerSnapshots.primaryRole,
         playerSnapshots.currentOrLastTeam,
+        playerSnapshots.rosterStatus,
+        playerSnapshots.isActiveRoster,
         playerSnapshots.dataAsOf,
       )
       .orderBy(asc(players.canonicalName))
@@ -122,9 +129,11 @@ export async function registerPlayerRoutes(
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
         championsTitles: playerSnapshots.championsTitles,
         mastersTitles: playerSnapshots.mastersTitles,
-        heroTop3: playerSnapshots.heroTop3,
+        leagueTitles: playerSnapshots.leagueTitles,
+        isActiveRoster: playerSnapshots.isActiveRoster,
         dataAsOf: playerSnapshots.dataAsOf,
         sourceUrl: playerSnapshots.sourceUrl,
         sourceCheckedAt: playerSnapshots.sourceCheckedAt,
@@ -143,6 +152,7 @@ export async function registerPlayerRoutes(
           eq(players.id, playerId),
           eq(players.status, "active"),
           eq(playerSnapshots.reviewStatus, "approved"),
+          eq(playerSnapshots.isCoach, false),
         ),
       )
       .limit(1);

@@ -29,13 +29,16 @@ export const playerImportSchema = z.object({
     "coach",
   ]),
   currentOrLastTeam: z.string().trim().min(1).max(128),
+  rosterStatus: z
+    .enum(["active", "benched", "transferred", "retired", "inactive"])
+    .default("active"),
   isActiveRoster: z.boolean().default(true),
   isCoach: z.boolean().default(false),
   isFeaturedTeam: z.boolean().default(false),
   isVctCnTeam: z.boolean().default(false),
   championsTitles: z.number().int().min(0).max(10),
   mastersTitles: z.number().int().min(0).max(20),
-  heroTop3: z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]),
+  leagueTitles: z.number().int().min(0).max(20),
   dataAsOf: z.string().date(),
   sourceUrl: z.string().url(),
   sourceCheckedAt: z.string().datetime(),

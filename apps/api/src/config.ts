@@ -16,6 +16,7 @@ const environmentSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   PASSWORD_PEPPER: z.string().min(32).optional(),
   INTERNAL_API_SECRET: z.string().min(32),
+  RATE_LIMIT_PROXY_SECRET: z.string().min(32).optional(),
   CORS_ORIGIN: z.string().url().optional(),
 });
 
