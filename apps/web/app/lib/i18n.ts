@@ -206,7 +206,7 @@ const zh = {
   "admin.sourceUrl": "来源 URL",
   "admin.summary": "当前身份：{name}（{role}）",
   "admin.snapshotSummary":
-    "共 {total} 条快照，其中 {pending} 条待审核。编辑当前资料会更新最新版本，旧快照保留但不在页面展示。",
+    "共 {total} 条最新快照，当前第 {page} 页，本页 {pending} 条待审核。旧快照保留但不在页面展示。",
   "admin.created": "选手资料已创建，待审核后公开。",
   "admin.viewSource": "查看来源",
   "admin.deleteAlias": "删除",
@@ -229,7 +229,7 @@ const zh = {
   "privacy.dataText":
     "注册时收集邮箱地址和密码哈希。游戏过程中记录已结算的猜测、成绩、房间结算信息及必要的安全日志，用于提供排行榜、战绩、内容审核和防滥用能力。",
   "privacy.usageText":
-    "数据仅用于运营本服务、处理安全事件与履行法律义务。账户与审计数据默认保留 90 天；法律另有要求或存在未处理安全事件时，可在必要范围内延长。",
+    "数据仅用于运营本服务、处理安全事件与履行法律义务。账户与审计数据会按照运营需要保存；如需删除或更正，请通过下方邮箱提交申请，我们会按人工流程核验并处理。",
   "privacy.deletionText":
     "你可请求访问、更正或删除个人数据。请使用注册邮箱发送请求至 {email}，并说明账户邮箱与请求类型。",
   "privacy.scopeText":
@@ -268,7 +268,7 @@ const zh = {
 } as const;
 
 const en: Record<keyof typeof zh, string> = {
-  "nav.brand": "VALO YIBA",
+  "nav.brand": "康一把",
   "nav.leaderboards": "Leaderboards",
   "nav.account": "My Stats",
   "footer.privacy": "Privacy Policy",
@@ -477,7 +477,7 @@ const en: Record<keyof typeof zh, string> = {
   "admin.sourceUrl": "Source URL",
   "admin.summary": "Identity: {name} ({role})",
   "admin.snapshotSummary":
-    "{total} snapshots, {pending} pending review. Editing updates the latest version; older snapshots are retained but hidden.",
+    "{total} latest snapshots, page {page}; {pending} pending review on this page. Older snapshots are retained but hidden.",
   "admin.created": "Player profile created and waiting for review.",
   "admin.viewSource": "View source",
   "admin.deleteAlias": "Delete",
@@ -493,7 +493,7 @@ const en: Record<keyof typeof zh, string> = {
     "Valid rows: {valid}; conflicts: {conflicts}; errors: {errors}",
   "admin.csvErrorRow": "Row {row}: {detail}",
   "privacy.title": "Privacy Policy",
-  "privacy.operator": "Operator: VALO YIBA",
+  "privacy.operator": "Operator: 康一把",
   "privacy.data": "Data Collected",
   "privacy.usage": "Usage & Retention",
   "privacy.deletion": "Deletion & Contact",
@@ -502,7 +502,7 @@ const en: Record<keyof typeof zh, string> = {
   "privacy.dataText":
     "On registration we collect your email address and a password hash. During gameplay we record settled guesses, scores, room results, and necessary security logs to power leaderboards, stats, content review, and anti-abuse measures.",
   "privacy.usageText":
-    "Data is used only to operate this service, handle security incidents, and meet legal obligations. Account and audit data is retained for 90 days by default; retention may be extended where required by law or while an incident is open.",
+    "Data is used only to operate this service, handle security incidents, and meet legal obligations. Account and audit data is retained as needed for operations; deletion and correction requests are reviewed and handled manually through the contact process below.",
   "privacy.deletionText":
     "You may request access, correction, or deletion of your personal data. Send a request from your registered email to {email}, stating your account email and the request type.",
   "privacy.scopeText":

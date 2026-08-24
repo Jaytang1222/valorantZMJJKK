@@ -21,6 +21,7 @@ type PageProps = {
     team?: string;
     region?: string;
     rosterStatus?: string;
+    page?: string;
     reviewStatus?: "pending_review" | "approved" | "rejected" | "all";
   }>;
 };
@@ -176,10 +177,19 @@ export default async function AdminPage({ searchParams }: PageProps) {
     team: params.team,
     region: params.region,
     rosterStatus: params.rosterStatus,
+    page: Math.max(1, Number(params.page ?? "1") || 1),
+    limit: 100,
   });
-  const pending = snapshots.filter(
+  const pending = snapshots.items.filter(
     (item) => item.reviewStatus === "pending_review",
   ).length;
+  const pageUrl = (page: number) => {
+    const next = new URLSearchParams();
+    for (const [key, value] of Object.entries(params))
+      if (value) next.set(key, value);
+    next.set("page", String(page));
+    return `/admin?${next.toString()}`;
+  };
   return (
     <main className="admin-shell">
       <header className="admin-header">
@@ -199,8 +209,9 @@ export default async function AdminPage({ searchParams }: PageProps) {
       </header>
       <p className="admin-summary">
         {tWith(locale, "admin.snapshotSummary", {
-          total: snapshots.length,
+          total: snapshots.total,
           pending,
+          page: snapshots.page,
         })}
       </p>
       {params.created && (
@@ -238,7 +249,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
         </Link>
       </form>
       <section className="snapshot-list">
-        {snapshots.map((snapshot) => (
+        {snapshots.items.map((snapshot) => (
           <article className="snapshot" key={snapshot.snapshotId}>
             <div>
               <h2>
@@ -301,6 +312,17 @@ export default async function AdminPage({ searchParams }: PageProps) {
           </article>
         ))}
       </section>
+      <nav className="admin-pagination" aria-label="Admin pages">
+        {snapshots.page > 1 && (
+          <Link href={pageUrl(snapshots.page - 1)}>Previous</Link>
+        )}
+        <span>
+          {snapshots.page} / {snapshots.totalPages}
+        </span>
+        {snapshots.page < snapshots.totalPages && (
+          <Link href={pageUrl(snapshots.page + 1)}>Next</Link>
+        )}
+      </nav>
       <Link href="/" className="back-link">
         {t(locale, "lb.back")}
       </Link>

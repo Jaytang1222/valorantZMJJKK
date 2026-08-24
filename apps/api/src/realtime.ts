@@ -6,8 +6,14 @@ import { env } from "./config.js";
 import { verifyRealtimeTicket } from "./routes/auth.js";
 import { redis, redisSubscriber } from "./redis.js";
 import { db } from "./db/client.js";
-import { playerSnapshots, players, puzzles, users } from "./db/schema.js";
-import { and, eq, sql } from "drizzle-orm";
+import {
+  playerSnapshots,
+  players,
+  puzzles,
+  rooms,
+  users,
+} from "./db/schema.js";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   beginCountdown,
   beginRound,
@@ -43,7 +49,9 @@ import { findVersusEligibleSnapshot } from "./services/puzzle-selection.js";
 
 const FINISHED_ROOM_TTL_MS = 120_000;
 
-export function createRealtimeServer(httpServer: HttpServer): Server {
+export async function createRealtimeServer(
+  httpServer: HttpServer,
+): Promise<Server> {
   const io = new Server(httpServer, {
     cors: { origin: env.CORS_ORIGIN ?? false, credentials: true },
     transports: ["websocket", "polling"],
@@ -119,19 +127,25 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
     return true;
   };
 
-  const scheduleFinishedRoomCleanup = (code: string) => {
-    setTimeout(async () => {
-      let release: (() => Promise<void>) | undefined;
-      try {
-        release = await acquireRoomLock(code);
-        const room = await loadRoom(code);
-        if (!room || room.phase !== "finished") return;
-        emitClosed(room);
-        await archiveFinishedRoom(room);
-      } finally {
-        await release?.();
-      }
-    }, FINISHED_ROOM_TTL_MS).unref();
+  const scheduleFinishedRoomCleanup = (
+    code: string,
+    finishedAt = Date.now(),
+  ) => {
+    setTimeout(
+      async () => {
+        let release: (() => Promise<void>) | undefined;
+        try {
+          release = await acquireRoomLock(code);
+          const room = await loadRoom(code);
+          if (!room || room.phase !== "finished") return;
+          emitClosed(room);
+          await archiveFinishedRoom(room);
+        } finally {
+          await release?.();
+        }
+      },
+      Math.max(0, finishedAt + FINISHED_ROOM_TTL_MS - Date.now()),
+    ).unref();
   };
 
   const scheduleRoundTimeout = (code: string, endsAt: number) => {
@@ -153,26 +167,69 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
     ).unref();
   };
 
-  const scheduleReconnectExpiry = (code: string) => {
-    setTimeout(async () => {
-      let release: (() => Promise<void>) | undefined;
-      try {
-        release = await acquireRoomLock(code);
-        const room = await loadRoom(code);
-        if (!room) return;
-        const previousPhase = room.phase;
-        forfeitExpiredMembers(room);
-        if (room.phase === "finished" && previousPhase !== "finished") {
-          await emitFinishedRoom(room);
-          return;
+  const scheduleReconnectExpiry = (
+    code: string,
+    deadline = Date.now() + 20_100,
+  ) => {
+    setTimeout(
+      async () => {
+        let release: (() => Promise<void>) | undefined;
+        try {
+          release = await acquireRoomLock(code);
+          const room = await loadRoom(code);
+          if (!room) return;
+          const previousPhase = room.phase;
+          forfeitExpiredMembers(room);
+          if (room.phase === "finished" && previousPhase !== "finished") {
+            await emitFinishedRoom(room);
+            return;
+          }
+          if (await disposeIfEmpty(room)) return;
+          await saveRoom(room);
+          emitRoom(room);
+        } finally {
+          await release?.();
         }
-        if (await disposeIfEmpty(room)) return;
-        await saveRoom(room);
-        emitRoom(room);
-      } finally {
-        await release?.();
+      },
+      Math.max(0, deadline - Date.now() + 100),
+    ).unref();
+  };
+
+  const recoverPersistedRooms = async () => {
+    const persistedRooms = await db
+      .select({
+        code: rooms.code,
+        state: rooms.state,
+        finishedAt: rooms.finishedAt,
+      })
+      .from(rooms)
+      .where(
+        inArray(rooms.state, ["lobby", "countdown", "playing", "finished"]),
+      );
+    for (const persisted of persistedRooms) {
+      if (!persisted.code) continue;
+      const room = await loadRoom(persisted.code);
+      if (!room) continue;
+      if (persisted.state === "finished") {
+        scheduleFinishedRoomCleanup(
+          room.code,
+          persisted.finishedAt?.getTime() ?? Date.now(),
+        );
+        continue;
       }
-    }, 20_100).unref();
+      if (room.phase === "playing" && room.roundEndsAt)
+        scheduleRoundTimeout(room.code, room.roundEndsAt);
+      const reconnectDeadline = room.members
+        .filter(
+          (member) =>
+            member.status === "disconnected" &&
+            member.disconnectedAt !== undefined,
+        )
+        .map((member) => member.disconnectedAt! + 20_000)
+        .sort((left, right) => left - right)[0];
+      if (reconnectDeadline !== undefined)
+        scheduleReconnectExpiry(room.code, reconnectDeadline);
+    }
   };
 
   io.on("connection", (socket) => {
@@ -581,7 +638,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
         if (!(await disposeIfEmpty(room))) {
           await saveRoom(room);
           emitRoom(room);
-          if (room.phase === "finished") scheduleFinishedRoomCleanup(room.code);
+          if (room.phase === "finished")
+            scheduleFinishedRoomCleanup(
+              room.code,
+              room.roundFinishedAt ?? Date.now(),
+            );
         }
         acknowledge?.({ ok: true });
       } catch (error) {
@@ -672,7 +733,11 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
             userId,
             reconnectDeadline: Date.now() + 20_000,
           });
-          scheduleReconnectExpiry(room.code);
+          scheduleReconnectExpiry(
+            room.code,
+            (room.members.find((member) => member.userId === userId)
+              ?.disconnectedAt ?? Date.now()) + 20_000,
+          );
         } finally {
           await release?.();
         }
@@ -682,5 +747,10 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
     socket.emit("system:ready", { protocolVersion: 1 });
   });
 
+  try {
+    await recoverPersistedRooms();
+  } catch (error) {
+    console.error("Unable to recover active rooms", error);
+  }
   return io;
 }

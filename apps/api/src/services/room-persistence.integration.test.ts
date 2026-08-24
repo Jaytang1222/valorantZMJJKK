@@ -138,10 +138,19 @@ testSuite("finished room persistence", () => {
     beginRound(room, now);
     room.targetPlayerId = playerId;
     room.targetPuzzleId = puzzleId;
-    surrenderMember(room, hostId);
 
     await roomStore.saveRoom(room);
-    await roomStore.archiveFinishedRoom(room);
+    await cache?.redis.del(`valo:room:${code}`);
+    const restored = await roomStore.loadRoom(code);
+    expect(restored).toMatchObject({
+      id: roomId,
+      phase: "playing",
+      targetPlayerId: playerId,
+      targetPuzzleId: puzzleId,
+    });
+    surrenderMember(restored!, hostId);
+    await roomStore.saveRoom(restored!);
+    await roomStore.archiveFinishedRoom(restored!);
 
     const [persisted] = await database.db
       .select({
@@ -194,6 +203,19 @@ testSuite("finished room persistence", () => {
         url: "/internal/v1/admin/snapshots",
       });
       expect(deniedAdmin.statusCode).toBe(401);
+
+      const pagedAdmin = await app.inject({
+        method: "GET",
+        url: "/internal/v1/admin/snapshots?reviewStatus=all&page=1&limit=1",
+        headers: { "x-internal-api-secret": process.env.INTERNAL_API_SECRET },
+      });
+      expect(pagedAdmin.statusCode).toBe(200);
+      expect(pagedAdmin.json()).toMatchObject({
+        page: 1,
+        limit: 1,
+        totalPages: expect.any(Number),
+        items: expect.any(Array),
+      });
 
       const deniedProfile = await app.inject({
         method: "GET",

@@ -89,8 +89,16 @@ export async function getSnapshots(
     team?: string;
     rosterStatus?: string;
     q?: string;
+    page?: number;
+    limit?: number;
   } = {},
-): Promise<AdminSnapshot[]> {
+): Promise<{
+  items: AdminSnapshot[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> {
   const { apiBaseUrl, internalApiSecret } = getConfig();
   const response = await fetch(
     `${apiBaseUrl}/internal/v1/admin/snapshots?${new URLSearchParams({

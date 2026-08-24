@@ -1,4 +1,4 @@
-/* VALO YIBA visual system: Valorant-inspired, angular, information-dense.
+/* 康一把 visual system: Valorant-inspired, angular, information-dense.
    Theme via [data-theme] on <html>; light mode shares the VALORANT palette. */
 
 :root {
@@ -1933,6 +1933,20 @@ article p {
 .snapshot-list {
   display: grid;
   gap: 12px;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 22px 0;
+  color: var(--text-sec);
+}
+
+.admin-pagination a {
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .snapshot {

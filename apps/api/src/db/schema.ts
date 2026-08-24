@@ -274,6 +274,7 @@ export const rooms = pgTable(
       .notNull()
       .default(300),
     currentRound: integer("current_round").notNull().default(0),
+    liveState: jsonb("live_state"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
