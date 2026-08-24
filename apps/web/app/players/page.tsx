@@ -56,6 +56,7 @@ export default function PlayersPage() {
         <p className="eyebrow">PLAYER DIRECTORY</p>
         <h1>{t(locale, "home.entryDirectory")}</h1>
         <p>{t(locale, "players.lead")}</p>
+        <p className="data-disclaimer">{t(locale, "players.issueNotice")}</p>
       </section>
       <section className="player-directory">
         <label>

@@ -35,9 +35,7 @@ export default async function TermsPage() {
       <h2>{t(locale, "terms.account")}</h2>
       <p>{t(locale, "terms.accountText")}</p>
       <h2>{t(locale, "terms.contact")}</h2>
-      <p>
-        {tWith(locale, "terms.contactText", { email: EMAIL })}
-      </p>
+      <p>{tWith(locale, "terms.contactText", { email: EMAIL })}</p>
     </main>
   );
 }

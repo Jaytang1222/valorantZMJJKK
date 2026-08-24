@@ -69,11 +69,8 @@ describe("searchPlayers", () => {
   });
 
   it("matches extra fields by prefix", () => {
-    const results = searchPlayers(
-      players,
-      "sentinels",
-      8,
-      (p) => (p.canonicalName === "TenZ" ? ["Sentinels"] : []),
+    const results = searchPlayers(players, "sentinels", 8, (p) =>
+      p.canonicalName === "TenZ" ? ["Sentinels"] : [],
     );
     expect(results.map((p) => p.canonicalName)).toEqual(["TenZ"]);
   });

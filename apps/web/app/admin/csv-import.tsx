@@ -53,7 +53,9 @@ export function CsvImport() {
               </p>
             ))}
             {!result.errors?.length && !result.imported && (
-              <button onClick={() => void run(true)}>{t(locale, "admin.csvApply")}</button>
+              <button onClick={() => void run(true)}>
+                {t(locale, "admin.csvApply")}
+              </button>
             )}
           </>
         )}

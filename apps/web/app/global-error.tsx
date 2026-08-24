@@ -8,7 +8,8 @@ export default function GlobalError({
   error,
 }: Readonly<{ error: Error & { digest?: string } }>) {
   const [locale] = useState<"zh" | "en">(
-    () => readStoredLocale() ?? (navigator.language.startsWith("zh") ? "zh" : "en"),
+    () =>
+      readStoredLocale() ?? (navigator.language.startsWith("zh") ? "zh" : "en"),
   );
   useEffect(() => {
     Sentry.captureException(error);

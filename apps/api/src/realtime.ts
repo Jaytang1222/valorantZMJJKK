@@ -515,7 +515,7 @@ export function createRealtimeServer(httpServer: HttpServer): Server {
             isActiveRoster: guess.snapshot.isActiveRoster,
             championsTitles: guess.snapshot.championsTitles,
             mastersTitles: guess.snapshot.mastersTitles,
-            championsAppearances: guess.snapshot.championsAppearances,
+            leagueTitles: guess.snapshot.leagueTitles,
           },
         });
         socket.emit("room:guess-result", {

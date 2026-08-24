@@ -60,7 +60,7 @@ type GuessResult = {
     isActiveRoster: boolean;
     championsTitles: number;
     mastersTitles: number;
-    championsAppearances: number;
+    leagueTitles: number;
   };
 };
 type OpponentProfile = {
@@ -91,7 +91,7 @@ function guessValue(field: string, guess: GuessResult, locale: "zh" | "en") {
     return formatTeam(details.currentOrLastTeam);
   if (field === "championsTitles") return details.championsTitles;
   if (field === "mastersTitles") return details.mastersTitles;
-  if (field === "championsAppearances") return details.championsAppearances;
+  if (field === "leagueTitles") return details.leagueTitles;
   return "—";
 }
 
@@ -399,6 +399,7 @@ function MatchPageContent() {
                 : t(locale, "match.roundOver")}
             </span>
           </section>
+          <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
           {error && <p className="form-error">{error}</p>}
           <section className="match-columns">
             <section className="match-player-panel own-panel">

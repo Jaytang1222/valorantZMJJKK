@@ -90,9 +90,9 @@ function NewPlayerForm({ locale }: { locale: "zh" | "en" }) {
           />
         </label>
         <label>
-          {t(locale, "admin.championsAppearances")}
+          {t(locale, "admin.leagueTitles")}
           <input
-            name="championsAppearances"
+            name="leagueTitles"
             type="number"
             min="0"
             defaultValue="0"
@@ -254,8 +254,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
               <p>
                 {t(locale, "admin.championsTitles")} {snapshot.championsTitles}{" "}
                 · {t(locale, "admin.mastersTitles")} {snapshot.mastersTitles} ·{" "}
-                {t(locale, "admin.championsAppearances")}{" "}
-                {snapshot.championsAppearances}
+                {t(locale, "admin.leagueTitles")} {snapshot.leagueTitles}
               </p>
               <p>Roster state: {snapshot.rosterStatus}</p>
               <a href={snapshot.sourceUrl} target="_blank" rel="noreferrer">

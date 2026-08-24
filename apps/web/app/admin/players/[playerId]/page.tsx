@@ -173,12 +173,12 @@ export default async function PlayerPage({ params, searchParams }: PageProps) {
             />
           </label>
           <label>
-            {t(locale, "admin.championsAppearances")}
+            {t(locale, "admin.leagueTitles")}
             <input
-              name="championsAppearances"
+              name="leagueTitles"
               type="number"
               min="0"
-              defaultValue={player.championsAppearances}
+              defaultValue={player.leagueTitles}
               required
             />
           </label>

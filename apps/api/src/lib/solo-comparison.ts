@@ -7,7 +7,7 @@ type Snapshot = {
   isActiveRoster: boolean;
   championsTitles: number;
   mastersTitles: number;
-  championsAppearances: number;
+  leagueTitles: number;
 };
 
 export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
@@ -38,10 +38,10 @@ export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
         : guess.mastersTitles < target.mastersTitles
           ? "higher"
           : "lower",
-    championsAppearances:
-      guess.championsAppearances === target.championsAppearances
+    leagueTitles:
+      guess.leagueTitles === target.leagueTitles
         ? "equal"
-        : guess.championsAppearances < target.championsAppearances
+        : guess.leagueTitles < target.leagueTitles
           ? "higher"
           : "lower",
   };

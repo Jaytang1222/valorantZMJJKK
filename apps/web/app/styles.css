@@ -952,6 +952,13 @@ article p {
   color: var(--text-sec);
 }
 
+.data-disclaimer {
+  margin: 8px 0 0;
+  color: var(--text-mid);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .difficulty-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

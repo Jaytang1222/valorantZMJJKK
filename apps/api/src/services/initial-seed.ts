@@ -3,11 +3,7 @@ import { parse } from "csv-parse/sync";
 import { playerImportSchema } from "@valo-yiba/contracts";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db/client.js";
-import {
-  countryGroups,
-  playerAliases,
-  playerSnapshots,
-} from "../db/schema.js";
+import { countryGroups, playerAliases, playerSnapshots } from "../db/schema.js";
 import { normalizeAlias } from "../lib/normalization.js";
 import { resolvePlayer } from "./player-identity.js";
 
@@ -49,7 +45,7 @@ function parseRow(row: CsvRow) {
     isVctCnTeam: row.is_vct_cn_team === "true",
     championsTitles: Number(row.champions_titles),
     mastersTitles: Number(row.masters_titles),
-    championsAppearances: Number(row.champions_appearances),
+    leagueTitles: Number(row.league_titles),
     dataAsOf: row.data_as_of,
     sourceUrl: row.source_url,
     sourceCheckedAt: row.source_checked_at,
@@ -74,11 +70,12 @@ function snapshotMatchesData(
     snapshot.isVctCnTeam === data.isVctCnTeam &&
     snapshot.championsTitles === data.championsTitles &&
     snapshot.mastersTitles === data.mastersTitles &&
-    snapshot.championsAppearances === data.championsAppearances &&
+    snapshot.leagueTitles === data.leagueTitles &&
     snapshot.dataAsOf.getTime() ===
       new Date(`${data.dataAsOf}T00:00:00.000Z`).getTime() &&
     snapshot.sourceUrl === data.sourceUrl &&
-    snapshot.sourceCheckedAt.getTime() === new Date(data.sourceCheckedAt).getTime() &&
+    snapshot.sourceCheckedAt.getTime() ===
+      new Date(data.sourceCheckedAt).getTime() &&
     snapshot.reviewStatus === data.reviewStatus
   );
 }
@@ -137,7 +134,7 @@ export async function seedInitialPlayerData(
         isVctCnTeam: data.isVctCnTeam,
         championsTitles: data.championsTitles,
         mastersTitles: data.mastersTitles,
-        championsAppearances: data.championsAppearances,
+        leagueTitles: data.leagueTitles,
         dataAsOf: new Date(`${data.dataAsOf}T00:00:00.000Z`),
         sourceUrl: data.sourceUrl,
         sourceCheckedAt: new Date(data.sourceCheckedAt),

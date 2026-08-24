@@ -10,7 +10,9 @@ export async function generateMetadata() {
     cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage,
   );
-  return { title: `${t(locale, "dataSources.title")} | ${t(locale, "nav.brand")}` };
+  return {
+    title: `${t(locale, "dataSources.title")} | ${t(locale, "nav.brand")}`,
+  };
 }
 
 export default async function DataSourcesPage() {
@@ -28,7 +30,11 @@ export default async function DataSourcesPage() {
       <p className="eyebrow">DATA & TRADEMARKS</p>
       <h1>{t(locale, "dataSources.title")}</h1>
       <p>{t(locale, "dataSources.collectedText")}</p>
-      <p>{tWith(locale, "dataSources.riotText", { brand: t(locale, "nav.brand") })}</p>
+      <p>
+        {tWith(locale, "dataSources.riotText", {
+          brand: t(locale, "nav.brand"),
+        })}
+      </p>
       <p>{tWith(locale, "dataSources.contactText", { email: EMAIL })}</p>
     </main>
   );

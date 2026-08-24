@@ -10,10 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
-import {
-  LOCALE_COOKIE,
-  type Locale,
-} from "../lib/i18n";
+import { LOCALE_COOKIE, type Locale } from "../lib/i18n";
 
 export type Theme = "dark" | "light";
 
@@ -38,7 +35,8 @@ function applyTheme(theme: Theme) {
   document.documentElement.style.colorScheme =
     theme === "light" ? "light" : "dark";
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "light" ? "#f3f0ea" : "#0f1923");
+  if (meta)
+    meta.setAttribute("content", theme === "light" ? "#f3f0ea" : "#0f1923");
 }
 
 export function UiProvider({
@@ -126,7 +124,9 @@ export function NavControls() {
       <button
         type="button"
         className="nav-icon-btn"
-        aria-label={theme === "dark" ? "Switch to light mode" : "切换到深色模式"}
+        aria-label={
+          theme === "dark" ? "Switch to light mode" : "切换到深色模式"
+        }
         title={theme === "dark" ? "Light mode" : "深色模式"}
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       >

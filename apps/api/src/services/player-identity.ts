@@ -9,10 +9,7 @@ import {
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export async function resolvePlayer(
-  tx: DbTransaction,
-  canonicalName: string,
-) {
+export async function resolvePlayer(tx: DbTransaction, canonicalName: string) {
   const matches = await tx
     .select({ id: players.id, canonicalName: players.canonicalName })
     .from(players)
@@ -91,7 +88,9 @@ export async function resolvePlayer(
         .where(eq(playerSnapshots.id, snapshot.id));
     }
 
-    await tx.delete(playerAliases).where(eq(playerAliases.playerId, duplicate.id));
+    await tx
+      .delete(playerAliases)
+      .where(eq(playerAliases.playerId, duplicate.id));
     await tx.delete(players).where(eq(players.id, duplicate.id));
   }
 

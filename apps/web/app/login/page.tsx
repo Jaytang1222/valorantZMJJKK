@@ -34,7 +34,11 @@ export default function LoginPage() {
         <a href="/" className="back-link">
           {t(locale, "lb.back")}
         </a>
-        <h1>{mode === "login" ? t(locale, "login.submit") : t(locale, "login.registerSubmit")}</h1>
+        <h1>
+          {mode === "login"
+            ? t(locale, "login.submit")
+            : t(locale, "login.registerSubmit")}
+        </h1>
         <p>{t(locale, "login.registerNote")}</p>
         <form onSubmit={submit} className="auth-form">
           <label>
@@ -62,7 +66,9 @@ export default function LoginPage() {
           </label>
           {error && <p className="form-error">{error}</p>}
           <button type="submit">
-            {mode === "login" ? t(locale, "login.submit") : t(locale, "login.createAccount")}
+            {mode === "login"
+              ? t(locale, "login.submit")
+              : t(locale, "login.createAccount")}
           </button>
         </form>
         <button

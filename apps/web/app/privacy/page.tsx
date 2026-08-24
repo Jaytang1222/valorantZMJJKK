@@ -27,15 +27,15 @@ export default async function PrivacyPage() {
       </a>
       <p className="eyebrow">PRIVACY</p>
       <h1>{t(locale, "privacy.title")}</h1>
-      <p>{tWith(locale, "privacy.updated", { brand: t(locale, "nav.brand") })}</p>
+      <p>
+        {tWith(locale, "privacy.updated", { brand: t(locale, "nav.brand") })}
+      </p>
       <h2>{t(locale, "privacy.data")}</h2>
       <p>{t(locale, "privacy.dataText")}</p>
       <h2>{t(locale, "privacy.usage")}</h2>
       <p>{t(locale, "privacy.usageText")}</p>
       <h2>{t(locale, "privacy.deletion")}</h2>
-      <p>
-        {tWith(locale, "privacy.deletionText", { email: EMAIL })}
-      </p>
+      <p>{tWith(locale, "privacy.deletionText", { email: EMAIL })}</p>
       <h2>{t(locale, "privacy.scope")}</h2>
       <p>{t(locale, "privacy.scopeText")}</p>
     </main>

@@ -10,7 +10,9 @@ export async function generateMetadata() {
     cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage,
   );
-  return { title: `${t(locale, "corrections.title")} | ${t(locale, "nav.brand")}` };
+  return {
+    title: `${t(locale, "corrections.title")} | ${t(locale, "nav.brand")}`,
+  };
 }
 
 export default async function CorrectionsPage() {

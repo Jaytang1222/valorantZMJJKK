@@ -26,7 +26,7 @@ type PlayerDetails = {
   isActiveRoster: boolean;
   championsTitles: number;
   mastersTitles: number;
-  championsAppearances: number;
+  leagueTitles: number;
 };
 type Guess = {
   canonicalName: string;
@@ -73,7 +73,7 @@ function valueFor(column: string, guess: Guess, locale: "zh" | "en") {
     return formatTeam(details.currentOrLastTeam);
   if (column === "championsTitles") return details.championsTitles;
   if (column === "mastersTitles") return details.mastersTitles;
-  if (column === "championsAppearances") return details.championsAppearances;
+  if (column === "leagueTitles") return details.leagueTitles;
   return "—";
 }
 
@@ -140,7 +140,7 @@ export default function SoloPage() {
         ["currentOrLastTeam", t(locale, "col.team")],
         ["championsTitles", t(locale, "col.championsTitles")],
         ["mastersTitles", t(locale, "col.mastersTitles")],
-        ["championsAppearances", t(locale, "col.championsAppearances")],
+        ["leagueTitles", t(locale, "col.leagueTitles")],
       ] as const,
     [locale],
   );
@@ -257,6 +257,7 @@ export default function SoloPage() {
             <p className="eyebrow">SOLO ALPHA</p>
             <h1>{t(locale, "home.entrySolo")}</h1>
             <p>{t(locale, "solo.lead")}</p>
+            <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
           </section>
           <section className="difficulty-grid">
             {(["beginner", "easy", "full"] as Difficulty[]).map(
@@ -276,6 +277,7 @@ export default function SoloPage() {
       )}
       {attempt && (
         <section className="game-board">
+          <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
           <div
             className="guess-table-wrap"
             aria-label={t(locale, "solo.tableLabel")}

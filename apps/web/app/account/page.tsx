@@ -70,7 +70,10 @@ export default function AccountPage() {
         <a className="text-link" href="/leaderboards">
           {t(locale, "account.leaderboardSoon")}
         </a>
-        <div className="account-stats" aria-label={t(locale, "account.statsLabel")}>
+        <div
+          className="account-stats"
+          aria-label={t(locale, "account.statsLabel")}
+        >
           <StatsCard
             title={t(locale, "account.solo")}
             value={solo}
@@ -82,7 +85,10 @@ export default function AccountPage() {
             locale={locale}
           />
         </div>
-        <section className="recent-games" aria-label={t(locale, "account.recent")}>
+        <section
+          className="recent-games"
+          aria-label={t(locale, "account.recent")}
+        >
           <h2>{t(locale, "account.recent")}</h2>
           {recentGames.length === 0 ? (
             <p>{t(locale, "account.noGames")}</p>
@@ -102,7 +108,9 @@ export default function AccountPage() {
                       : t(locale, "account.abandoned")}
                 </span>
                 <span>{game.targetName}</span>
-                <span>{tWith(locale, "account.guesses", { count: game.guessCount })}</span>
+                <span>
+                  {tWith(locale, "account.guesses", { count: game.guessCount })}
+                </span>
                 <time>
                   {new Date(game.finishedAt).toLocaleString(
                     locale === "zh" ? "zh-CN" : "en-US",

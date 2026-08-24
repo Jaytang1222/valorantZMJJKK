@@ -47,7 +47,7 @@ export type AdminSnapshot = {
   rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
-  championsAppearances: number;
+  leagueTitles: number;
   isActiveRoster: boolean;
   dataAsOf: string;
   sourceUrl: string;
@@ -64,7 +64,7 @@ export type PlayerInput = {
   rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
   mastersTitles: number;
-  championsAppearances: number;
+  leagueTitles: number;
   isCoach?: boolean;
   isFeaturedTeam?: boolean;
   isVctCnTeam?: boolean;

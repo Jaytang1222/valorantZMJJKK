@@ -114,7 +114,11 @@ export default function VersusPage() {
         });
       })
       .catch((cause) =>
-        setError(cause instanceof Error ? cause.message : t(locale, "match.reconnectError")),
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : t(locale, "match.reconnectError"),
+        ),
       );
     return () => {
       cancelled = true;
@@ -138,9 +142,7 @@ export default function VersusPage() {
       client
         .timeout(8_000)
         .emit(event, payload, (requestError: Error | null, reply: unknown) =>
-          resolve(
-            requestError ? { error: t(locale, "match.timeout") } : reply,
-          ),
+          resolve(requestError ? { error: t(locale, "match.timeout") } : reply),
         );
     });
 
@@ -251,7 +253,9 @@ export default function VersusPage() {
             </div>
           )}
           {waiting ? (
-            <button onClick={cancelMatch}>{t(locale, "versus.cancelMatch")}</button>
+            <button onClick={cancelMatch}>
+              {t(locale, "versus.cancelMatch")}
+            </button>
           ) : (
             <button
               className="entry-button"
@@ -291,7 +295,9 @@ export default function VersusPage() {
       {room?.phase === "lobby" && (
         <section className="game-board">
           <div className="game-meta">
-            <strong>{tWith(locale, "match.roomCode", { code: room.code })}</strong>
+            <strong>
+              {tWith(locale, "match.roomCode", { code: room.code })}
+            </strong>
             <span>BO1</span>
           </div>
           <div className="member-list">
@@ -314,12 +320,16 @@ export default function VersusPage() {
                       </b>
                     )}
                     {member.status === "forfeited" && (
-                      <b className="disconnect-warning">{t(locale, "versus.left")}</b>
+                      <b className="disconnect-warning">
+                        {t(locale, "versus.left")}
+                      </b>
                     )}
                   </span>
                   <span>
-                    {member.ready ? t(locale, "versus.ready") : t(locale, "versus.notReady")} ·{" "}
-                    {tWith(locale, "match.points", { score: member.score })}
+                    {member.ready
+                      ? t(locale, "versus.ready")
+                      : t(locale, "versus.notReady")}{" "}
+                    · {tWith(locale, "match.points", { score: member.score })}
                   </span>
                 </div>
               ))}

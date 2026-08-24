@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { CircleUserRound, Trophy } from "lucide-react";
 import "./styles.css";
-import {
-  detectLocale,
-  LOCALE_COOKIE,
-  t,
-} from "./lib/i18n";
+import { detectLocale, LOCALE_COOKIE, t } from "./lib/i18n";
 import {
   NavControls,
   THEME_COOKIE,
@@ -44,12 +40,18 @@ export default async function RootLayout({
   return (
     <html lang={locale === "zh" ? "zh-CN" : "en"} data-theme={theme}>
       <head>
-        <meta name="theme-color" content={theme === "light" ? "#f3f0ea" : "#0f1923"} />
+        <meta
+          name="theme-color"
+          content={theme === "light" ? "#f3f0ea" : "#0f1923"}
+        />
       </head>
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <UiProvider initialLocale={locale} initialTheme={theme}>
-          <nav className="site-nav" aria-label={locale === "zh" ? "主导航" : "Main navigation"}>
+          <nav
+            className="site-nav"
+            aria-label={locale === "zh" ? "主导航" : "Main navigation"}
+          >
             <div className="site-nav-inner">
               <a className="site-brand" href="/">
                 <span className="brand-mark" aria-hidden="true">

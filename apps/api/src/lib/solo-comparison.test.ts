@@ -10,7 +10,7 @@ const target = {
   isActiveRoster: true,
   championsTitles: 1,
   mastersTitles: 2,
-  championsAppearances: 3,
+  leagueTitles: 3,
 };
 
 describe("compareSoloGuess", () => {
@@ -22,7 +22,7 @@ describe("compareSoloGuess", () => {
           countryCode: "JP",
           championsTitles: 0,
           mastersTitles: 3,
-          championsAppearances: 5,
+          leagueTitles: 5,
           isActiveRoster: false,
         },
         target,
@@ -32,7 +32,7 @@ describe("compareSoloGuess", () => {
       country: "nearby",
       championsTitles: "higher",
       mastersTitles: "lower",
-      championsAppearances: "lower",
+      leagueTitles: "lower",
       status: "mismatch",
     });
   });

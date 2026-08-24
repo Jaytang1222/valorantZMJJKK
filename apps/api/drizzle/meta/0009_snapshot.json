@@ -82,12 +82,8 @@
           "name": "admin_audit_logs_actor_user_id_users_id_fk",
           "tableFrom": "admin_audit_logs",
           "tableTo": "users",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -195,12 +191,8 @@
           "name": "content_reports_reporter_user_id_users_id_fk",
           "tableFrom": "content_reports",
           "tableTo": "users",
-          "columnsFrom": [
-            "reporter_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reporter_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -208,12 +200,8 @@
           "name": "content_reports_reviewer_user_id_users_id_fk",
           "tableFrom": "content_reports",
           "tableTo": "users",
-          "columnsFrom": [
-            "reviewer_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reviewer_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -384,12 +372,8 @@
           "name": "guesses_solo_attempt_id_solo_attempts_id_fk",
           "tableFrom": "guesses",
           "tableTo": "solo_attempts",
-          "columnsFrom": [
-            "solo_attempt_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["solo_attempt_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -397,12 +381,8 @@
           "name": "guesses_room_round_id_room_rounds_id_fk",
           "tableFrom": "guesses",
           "tableTo": "room_rounds",
-          "columnsFrom": [
-            "room_round_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_round_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -410,12 +390,8 @@
           "name": "guesses_user_id_users_id_fk",
           "tableFrom": "guesses",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -423,12 +399,8 @@
           "name": "guesses_guessed_player_id_players_id_fk",
           "tableFrom": "guesses",
           "tableTo": "players",
-          "columnsFrom": [
-            "guessed_player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["guessed_player_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -548,12 +520,8 @@
           "name": "leaderboard_entries_user_id_users_id_fk",
           "tableFrom": "leaderboard_entries",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -649,12 +617,8 @@
           "name": "moderation_actions_target_user_id_users_id_fk",
           "tableFrom": "moderation_actions",
           "tableTo": "users",
-          "columnsFrom": [
-            "target_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -662,12 +626,8 @@
           "name": "moderation_actions_actor_user_id_users_id_fk",
           "tableFrom": "moderation_actions",
           "tableTo": "users",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -752,12 +712,8 @@
           "name": "player_aliases_player_id_players_id_fk",
           "tableFrom": "player_aliases",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -949,12 +905,8 @@
           "name": "player_snapshots_player_id_players_id_fk",
           "tableFrom": "player_snapshots",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1097,12 +1049,8 @@
           "name": "puzzles_snapshot_id_player_snapshots_id_fk",
           "tableFrom": "puzzles",
           "tableTo": "player_snapshots",
-          "columnsFrom": [
-            "snapshot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["snapshot_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1220,12 +1168,8 @@
           "name": "room_participants_room_id_rooms_id_fk",
           "tableFrom": "room_participants",
           "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1233,12 +1177,8 @@
           "name": "room_participants_user_id_users_id_fk",
           "tableFrom": "room_participants",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1331,12 +1271,8 @@
           "name": "room_rounds_room_id_rooms_id_fk",
           "tableFrom": "room_rounds",
           "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1344,12 +1280,8 @@
           "name": "room_rounds_puzzle_id_puzzles_id_fk",
           "tableFrom": "room_rounds",
           "tableTo": "puzzles",
-          "columnsFrom": [
-            "puzzle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["puzzle_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1357,12 +1289,8 @@
           "name": "room_rounds_winner_user_id_users_id_fk",
           "tableFrom": "room_rounds",
           "tableTo": "users",
-          "columnsFrom": [
-            "winner_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["winner_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1542,12 +1470,8 @@
           "name": "rooms_host_id_users_id_fk",
           "tableFrom": "rooms",
           "tableTo": "users",
-          "columnsFrom": [
-            "host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["host_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1555,12 +1479,8 @@
           "name": "rooms_winner_user_id_users_id_fk",
           "tableFrom": "rooms",
           "tableTo": "users",
-          "columnsFrom": [
-            "winner_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["winner_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1685,12 +1605,8 @@
           "name": "solo_attempts_user_id_users_id_fk",
           "tableFrom": "solo_attempts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1698,12 +1614,8 @@
           "name": "solo_attempts_puzzle_id_puzzles_id_fk",
           "tableFrom": "solo_attempts",
           "tableTo": "puzzles",
-          "columnsFrom": [
-            "puzzle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["puzzle_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1822,48 +1734,27 @@
     "public.attempt_status": {
       "name": "attempt_status",
       "schema": "public",
-      "values": [
-        "active",
-        "won",
-        "lost",
-        "abandoned"
-      ]
+      "values": ["active", "won", "lost", "abandoned"]
     },
     "public.difficulty": {
       "name": "difficulty",
       "schema": "public",
-      "values": [
-        "beginner",
-        "easy",
-        "full"
-      ]
+      "values": ["beginner", "easy", "full"]
     },
     "public.leaderboard_mode": {
       "name": "leaderboard_mode",
       "schema": "public",
-      "values": [
-        "solo",
-        "versus"
-      ]
+      "values": ["solo", "versus"]
     },
     "public.moderation_action": {
       "name": "moderation_action",
       "schema": "public",
-      "values": [
-        "hide_leaderboard",
-        "void_scores",
-        "restrict_account"
-      ]
+      "values": ["hide_leaderboard", "void_scores", "restrict_account"]
     },
     "public.participant_state": {
       "name": "participant_state",
       "schema": "public",
-      "values": [
-        "connected",
-        "disconnected",
-        "forfeited",
-        "left"
-      ]
+      "values": ["connected", "disconnected", "forfeited", "left"]
     },
     "public.player_role": {
       "name": "player_role",
@@ -1880,38 +1771,22 @@
     "public.player_status": {
       "name": "player_status",
       "schema": "public",
-      "values": [
-        "active",
-        "disabled"
-      ]
+      "values": ["active", "disabled"]
     },
     "public.region": {
       "name": "region",
       "schema": "public",
-      "values": [
-        "americas",
-        "emea",
-        "pacific",
-        "china"
-      ]
+      "values": ["americas", "emea", "pacific", "china"]
     },
     "public.report_status": {
       "name": "report_status",
       "schema": "public",
-      "values": [
-        "open",
-        "resolved",
-        "dismissed"
-      ]
+      "values": ["open", "resolved", "dismissed"]
     },
     "public.review_status": {
       "name": "review_status",
       "schema": "public",
-      "values": [
-        "pending_review",
-        "approved",
-        "rejected"
-      ]
+      "values": ["pending_review", "approved", "rejected"]
     },
     "public.room_state": {
       "name": "room_state",
@@ -1928,12 +1803,7 @@
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "user",
-        "editor",
-        "moderator",
-        "admin"
-      ]
+      "values": ["user", "editor", "moderator", "admin"]
     }
   },
   "schemas": {},

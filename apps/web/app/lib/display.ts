@@ -134,7 +134,7 @@ export const teamNames: Record<string, { full: string; short: string }> = {
   Joblife: { full: "Joblife", short: "JL" },
   "KeepBest Gaming": { full: "KeepBest Gaming", short: "KBG" },
   "KRÜ Esports": { full: "KRÜ Esports", short: "KRÜ" },
-  "LEVIATÁN": { full: "LEVIATÁN", short: "LEV" },
+  LEVIATÁN: { full: "LEVIATÁN", short: "LEV" },
   LOUD: { full: "LOUD", short: "LOUD" },
   MIBR: { full: "MIBR", short: "MIBR" },
   "Natus Vincere": { full: "Natus Vincere", short: "NAVI" },

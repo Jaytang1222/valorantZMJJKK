@@ -19,7 +19,10 @@ export default async function LeaderboardsPage() {
           <h1>{t(locale, "lb.title")}</h1>
         </div>
       </header>
-      <section className="leaderboard-notice" aria-label={t(locale, "lb.title")}>
+      <section
+        className="leaderboard-notice"
+        aria-label={t(locale, "lb.title")}
+      >
         <h2>{t(locale, "lb.comingSoon")}</h2>
         <p>{t(locale, "lb.notice")}</p>
       </section>

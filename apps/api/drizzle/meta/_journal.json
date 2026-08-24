@@ -78,6 +78,13 @@
       "when": 1787270400000,
       "tag": "0010_vct_roster_status",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1787472000000,
+      "tag": "0011_replace_champions_appearances",
+      "breakpoints": true
     }
   ]
 }
