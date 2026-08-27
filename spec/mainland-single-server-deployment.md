@@ -1,220 +1,165 @@
-# 中国大陆单服务器生产部署方案
+# 中国大陆单服务器上线手册
 
-更新时间：2026-08-25
+更新时间：2026-08-27
 
-## 1. 目标与当前决策
+本文覆盖本项目从 Railway/Vercel 生产环境迁移到阿里云 ECS 单服务器后的上线流程。目标是让中国大陆用户通过正式域名访问完整服务，并保留 Railway/Vercel 作为 staging 或回滚环境。
 
-生产环境迁移到中国大陆可稳定访问的云服务器，采用一台服务器运行 Web、API、PostgreSQL 和 Redis。Railway/Vercel 保留为 staging 或回滚环境，不与生产数据库共享。
+## 1. 架构与当前服务器
 
-本方案适用于当前小规模正式上线。服务器规模扩大或数据重要性提高后，再将 PostgreSQL、Redis 拆分为托管服务。
+    用户浏览器 -> https://正式域名 -> Nginx
+      /           -> web:3000  Next.js
+      /api/...    -> Web 同源代理 -> api:3001
+      /socket.io/ -> api:3001  Socket.IO
 
-## 2. 目标架构
+    ECS Docker Compose：web、api、postgres、redis、nginx
 
-```text
-自定义域名
-  ├─ www.example.com  -> Nginx -> Next.js Web
-  └─ api.example.com  -> Nginx -> Fastify + Socket.IO API
+PostgreSQL 和 Redis 只在 Compose 内网访问，不开放 5432、6379；Web/API 也不直接开放 3000、3001。
 
-同一台大陆云服务器（Docker Compose）
-  ├─ web
-  ├─ api
-  ├─ postgres（持久化数据卷）
-  └─ redis（持久化数据卷）
-```
+当前服务器记录：
 
-Nginx 负责 HTTPS、WebSocket Upgrade 和域名转发。PostgreSQL 与 Redis 不开放公网端口，只允许容器网络访问。
+- 公网 IPv4：47.120.3.39
+- SSH 用户：ecs-user
+- 项目目录：/opt/valo-yiba
+- 生产分支：main
+- 数据卷：postgres_data、redis_data
+- 规格：2 vCPU、4 GiB RAM、60 GiB SSD
 
-## 3. 推荐服务器规格
+## 2. 合并 main 后的五项收尾
 
-最低可用规格：
+### 2.1 同步 ECS 到最新 main
 
-- x86_64
-- Ubuntu 22.04 LTS 或 Ubuntu 24.04 LTS
-- 2 vCPU、4 GB RAM
-- 60 GB 以上 SSD
-- 公网 IPv4
-- 5 Mbps 左右公网带宽
+本地确认远程提交：
 
-推荐规格：
+    git fetch origin main
+    git rev-parse origin/main
 
-- 4 vCPU、8 GB RAM
-- 80 GB 以上 SSD
-- 5–10 Mbps 公网带宽
+服务器代码更新前必须：
 
-由于单机同时运行 Next.js、Fastify、PostgreSQL 和 Redis，2 vCPU/4 GB 只建议用于低流量试运行；如果学生套餐价格差距不大，应优先选择 4 vCPU/8 GB。
+1. 保留 /opt/valo-yiba/.env.production。
+2. 保留 postgres_data 和 redis_data，禁止 docker compose down -v。
+3. 不设置 SEED_INITIAL_DATA=true。生产启动只执行 Drizzle migration，不从 CSV 覆盖后台修改。
+4. 确认工作树没有需要保留的服务器修改后，切换到 main 最新提交。若服务器无法通过 GitHub 拉取，可由部署者从本地上传已确认的源码归档；不要上传 .env.production、私钥或其他 secret。
+5. 重建并检查容器：
 
-## 4. 学生方案比较（官方页面核对）
+   cd /opt/valo-yiba
+   docker compose --env-file .env.production -f docker-compose.production.yml up -d --build
+   docker compose --env-file .env.production -f docker-compose.production.yml ps
+   docker compose --env-file .env.production -f docker-compose.production.yml logs --tail=100 api
 
-以下价格和活动会随账号、地域、活动期和登录状态变化。官方页面未显示固定金额时，不根据第三方文章推算价格，最终以购买页为准。
+当前 origin/main 已包含 PostgreSQL 18 Compose 修复（镜像和卷挂载路径调整），不会要求删除现有数据库卷。若代码版本不同，先停止本次发布并核对提交，不能用 down -v “解决”版本问题。
 
-### 4.1 腾讯云：云+校园
+### 2.2 域名、实名认证和 ICP 备案
 
-官方页面：[云+校园](https://cloud.tencent.com/act/campus)
+域名购买、实名认证、备案、DNS 控制台和证书申请必须由账号持有人操作。推荐在阿里云完成，ECS、域名、DNS、备案入口集中管理。
 
-页面当前可确认的规则：
+建议购买一个主域名，例如 valo-yiba.top 或 valo-yiba.online，Web 与 API 共用同一域名。单域名使浏览器只访问同源 /api 和 /socket.io，不需要跨域 Cookie，也只需要维护一张证书。top 通常首年和续费成本较低；online 也可用，最终以注册页的首年价、续费价、实名认证和转入限制为准。
 
-- 完成学生认证后才有优惠购买资格。
-- 校园云服务器限购 1 台。
-- 可选 3 个月、6 个月或 1 年等时长。
-- 页面价格需要登录并完成资格确认后显示，未登录抓取结果为占位符，不应视为实际价格。
+流程：
 
-页面当前列出的服务器配置：
+1. 在阿里云万网搜索并购买 .top 或 .online 域名。
+2. 完成域名实名认证，主体信息必须与备案主体一致。
+3. 在阿里云备案系统将域名接入此 ECS，提交 ICP 备案。中国大陆服务器正式提供网站服务前应完成备案。
+4. 备案审核期间可用 IP 做技术测试，但不要将 IP 作为正式推广入口。
+5. 备案通过后添加 DNS：
 
-| 产品                   | 地域           | 带宽/流量     | 系统盘   | 购买时长            |
-| ---------------------- | -------------- | ------------- | -------- | ------------------- |
-| 轻量应用服务器 2 核 2G | 北京/上海/广州 | 4M、每月 300G | SSD 40G  | 3 月/6 月/1 年      |
-| 轻量应用服务器 2 核 4G | 广州/上海/北京 | 5M、每月 500G | SSD 60G  | 3 月/6 月/1 年      |
-| CVM 云服务器 2 核 4G   | 广州/上海/北京 | 3M            | SSD 100G | 自购买起 1 年内有效 |
+   主机记录：@ 类型：A 记录值：47.120.3.39
+   主机记录：www 类型：CNAME 记录值：@（可选）
 
-适配评价：
+6. 本地确认 DNS：
 
-- 2 核 4G 轻量服务器可以作为本项目的低流量起步配置。
-- CVM 更适合后续扩容和绑定更多云服务，但学生页的公网带宽配置较低。
-- 单台服务器部署本项目时，应优先选择 2 核 4G 轻量服务器或更高规格，而不是 2 核 2G。
+   Resolve-DnsName valo-yiba.top
 
-### 4.2 阿里云：云工开物高校学生计划
+### 2.3 HTTPS 与 Nginx
 
-官方页面：[云工开物学生权益](https://developer.aliyun.com/adc/student/)
+推荐使用 Let’s Encrypt 免费 DV 证书并自动续期；成本为 0，适合当前低流量项目。也可以使用阿里云免费/低价 DV 证书，但必须设置到期提醒或自动部署。
 
-页面当前可确认的规则：
+安全组最终规则：
 
-- 面向完成学生认证的中国高校学生，包括专科、本科、硕士、博士和在职研究生等在校学生。
-- 可领取 300 元无门槛优惠券。
-- 每日数量有限，先到先得。
-- 优惠适用于部分国内公共云产品，具体以订单中的适用商品列表为准。
-- 优惠券不能转让，通常不能与其他优惠叠加。
-- 具体 ECS 规格、购买时长和抵扣金额在登录后、下单时确认。
+- TCP 22：仅允许自己的管理 IP。
+- TCP 80：允许公网，用于 HTTP 跳转和 ACME 验证。
+- TCP 443：允许公网。
+- 不开放 5432、6379、3000、3001。
 
-阿里云官方免费试用页：[免费试用](https://free.aliyun.com/)
+Nginx 必须包含：
 
-免费试用页当前可确认：
+1. 80 将普通请求重定向到 https://$host$request_uri，ACME /.well-known/acme-challenge/ 除外。
+2. 443 加载证书和私钥。
+3. /socket.io/ 使用 HTTP/1.1，转发 Upgrade 和 Connection。
+4. 上游只使用 Compose 服务名 web:3000、api:3001。
 
-- 160+ 云产品可申请试用。
-- 个人认证和企业认证可筛选不同产品。
-- 每个账号通常只有一次对应产品的试用资格。
-- 试用结束后数据可能保留 1–15 天，具体以产品规则为准；到期不续费可能释放实例并清理数据。
-- 必须通过试用中心开通，不能假定从普通购买页开通也享受试用。
+证书目录可以挂载为：
 
-适配评价：
+    /etc/letsencrypt:/etc/letsencrypt:ro
+    /var/www/certbot:/var/www/certbot:ro
 
-- 300 元券对一次性购买 ECS 很有价值。
-- 需要在下单页确认该券是否适用于目标 ECS 规格、地域和带宽。
-- 如果选择免费试用，必须设置到期提醒，避免实例释放或产生额外费用。
+部署证书后检查：
 
-### 4.3 华为云：ECS/云耀云服务器与学生权益
+    docker compose --env-file .env.production -f docker-compose.production.yml exec nginx nginx -t
+    docker compose --env-file .env.production -f docker-compose.production.yml up -d nginx
+    curl -I https://valo-yiba.top
 
-官方 ECS 页面：[弹性云服务器 ECS](https://www.huaweicloud.com/intl/zh-cn/product/ecs.html)
+### 2.4 生产变量与重建
 
-官方学生活动入口：[华为云学生专区](https://activity.huaweicloud.com/students/)
+编辑服务器 /opt/valo-yiba/.env.production，不得将内容发到聊天或提交 Git。至少确认：
 
-兼容性已确认：
+    NODE_ENV=production
+    POSTGRES_DB=...
+    POSTGRES_USER=...
+    POSTGRES_PASSWORD=...
+    SESSION_SECRET=...
+    PASSWORD_PEPPER=...
+    INTERNAL_API_SECRET=...
+    RATE_LIMIT_PROXY_SECRET=...
+    USER_SESSION_SECRET=...
+    ADMIN_USERNAME=...
+    ADMIN_PASSWORD=...
+    ADMIN_SESSION_SECRET=...
+    CORS_ORIGIN=https://valo-yiba.top
+    NEXT_PUBLIC_WS_URL=https://valo-yiba.top
+    SEED_INITIAL_DATA 不设置或不是 true
 
-- ECS 支持 Linux、Docker、Node.js、Nginx、PostgreSQL 和 Redis。
-- 可使用云耀云服务器作为低成本单机方案。
-- 也可以后续迁移到 RDS PostgreSQL、分布式缓存服务 DCS 和云监控。
-- 当前项目的 API Dockerfile、数据库迁移脚本和 Redis 连接方式可以继续使用。
+NEXT_PUBLIC_WS_URL 在 Web 镜像构建阶段写入前端，因此变量改变后必须执行 up -d --build，只重启容器不够。生产的 RATE_LIMIT_PROXY_SECRET 只需在此 Compose 的 Web/API 之间一致，不要与 staging 共享，也不要使用示例值。
 
-学生价格注意事项：
+### 2.5 HTTPS 后验证与运维
 
-- 学生专区价格和可购规格需要登录、完成学生认证后查看。
-- 不同账号、地域和活动期可能显示不同权益。
-- 在当前公开页面无法稳定读取学生专区的最终结算价格，因此不在本文件虚构固定价格。
+按顺序验证：
 
-适配评价：
+1. https://valo-yiba.top 返回 200，无证书错误或 Mixed Content。
+2. 注册、登录、刷新后仍保持登录，/api/auth/me 返回当前用户。
+3. 游客单人入门、简单、完整三档均可开始、猜测、结算。
+4. 注册用户的单人战绩和账户页可见。
+5. 联机 Socket.IO 可连接，建房、加入、猜测、投降、断线恢复和结束返回正常。
+6. /admin 可登录、查看和修改最新选手资料。
+7. 查选手目录数量与迁移前一致。
+8. 公网无法连接 5432、6379、3000、3001。
+9. 重启 Docker/ECS 后五个容器自动恢复，数据库数据仍存在。
 
-- 华为云可以完整适配本项目。
-- 如果学生专区能提供 2 核 4G 或 4 核 8G 的大陆实例，成本和配置满足要求即可选择。
-- 若最终选择华为云，首选 ECS/云耀云服务器 + Docker Compose；RDS/DCS 作为后续升级方案。
+日常检查：
 
-## 5. 选择建议
+    docker compose --env-file .env.production -f docker-compose.production.yml ps
+    docker stats --no-stream
+    df -h
 
-按当前项目和学生预算，建议按以下顺序比较购买页：
+应配置磁盘、内存和容器异常告警，并定期查看 API 日志。当前已接受“不启用数据库备份”的风险；数据重要性提高后优先增加 PostgreSQL 备份。
 
-1. 腾讯云云+校园 2 核 4G 轻量应用服务器：配置明确，最容易直接用于本项目。
-2. 阿里云 ECS：优先使用 300 元学生券，确认券后总价和公网带宽。
-3. 华为云 ECS/云耀：学生专区若提供同等规格和更低价格，可以选择；先确认实际结算价。
+## 3. 当前 HTTP IP 故障说明
 
-选择时不要只比较实例价格，还要确认：
+生产 Web 在 apps/web/app/api/auth/[action]/route.ts 中将用户 Cookie 设置为 Secure。访问 http://47.120.3.39 时浏览器不会保存或发送该 Cookie，所以登录后刷新仍显示未登录。单人页面在 apps/web/app/solo/page.tsx 使用 crypto.randomUUID() 生成游客 ID；该 API 需要安全上下文（HTTPS，或本机 localhost），HTTP 公网 IP 可能在浏览器端直接失败。
 
-- 公网 IPv4 是否单独收费。
-- 带宽是固定带宽还是按流量计费。
-- 系统盘大小和类型。
-- 试用或优惠结束后的续费价格。
-- 到期后实例和数据的保留时间。
-- 是否能在中国大陆地域绑定自定义域名并完成备案接入。
+公网三档单人创建接口已实测返回 201，故这两个现象不是 PostgreSQL、Redis 或题库故障。完成 HTTPS 并使用正式域名后，生产 Cookie 和游客 UUID 才能按设计工作。
 
-## 6. 用户需要提前完成的配置
+## 4. Railway/Vercel 保留策略
 
-### 6.1 云服务器
+Railway staging 和 Vercel Preview 继续用于开发回归，不迁移生产数据库，也不与 ECS 共享 PostgreSQL/Redis。确认 ECS 稳定后再决定是否释放原生产资源；释放前应再次确认数据库数据已在 ECS 上核对无误。
 
-创建服务器并记录：
+## 5. 必须由账号持有人完成的事项
 
-- 云厂商和地域
-- 公网 IPv4
-- 操作系统
-- CPU、内存、系统盘
-- SSH 用户名
+- 购买域名并完成实名认证。
+- 提交并完成 ICP 备案。
+- 在 DNS 控制台添加 A/CNAME 记录。
+- 在阿里云安全组开放 443，并限制 22 来源 IP。
+- 申请或授权 TLS 证书并配置自动续期。
+- 在服务器 .env.production 填写和核对生产 secret、域名变量。
+- 完成 HTTPS 下的浏览器回归验证。
 
-不要向代码仓库或聊天中提交 root 密码、SSH 私钥或生产 secret。
-
-### 6.2 安全组
-
-开放：
-
-- TCP 22：只允许自己的管理 IP
-- TCP 80：HTTP
-- TCP 443：HTTPS
-
-不开放：
-
-- PostgreSQL 5432
-- Redis 6379
-- Next.js 3000
-- API 内部端口
-
-### 6.3 域名与备案
-
-准备自定义域名，例如：
-
-```text
-www.example.com
-api.example.com
-```
-
-正式使用中国大陆服务器通常需要 ICP 备案。备案完成前可用 IP 或临时域名进行技术测试，但不作为正式运营入口。
-
-## 7. 生产迁移流程
-
-1. 创建大陆云服务器并配置安全组。
-2. 安装 Docker、Docker Compose、Nginx 和防火墙规则。
-3. 将 Web/API 镜像部署到新服务器。
-4. 创建 PostgreSQL 和 Redis 持久化卷。
-5. 从 Railway Production PostgreSQL 导出并导入完整数据，保留用户、战绩、选手资料和审计记录。
-6. 不迁移 Redis 房间和匹配状态；切换时让活动房间结束。
-7. 运行数据库迁移，确认不会执行 CSV seed。
-8. 配置生产环境变量、CORS、WebSocket 地址和 Sentry。
-9. 配置 Nginx HTTPS 和 Socket.IO WebSocket Upgrade。
-10. 使用临时子域名完成健康检查、登录、单人和联机验证。
-11. 降低 DNS TTL 后切换正式域名。
-12. 保留 Railway/Vercel 生产部署作为回滚环境，确认新环境稳定后再决定是否释放资源。
-
-## 8. 代码与平台差异
-
-- API 的 Dockerfile 和数据库迁移脚本可以复用。
-- `railway.toml` 只对 Railway 生效，迁移后由 Docker Compose/Nginx 启动配置替代。
-- 生产启动只执行数据库迁移和 API 启动，不配置 `SEED_INITIAL_DATA=true`。
-- Web 需要配置新的 `API_BASE_URL`、`NEXT_PUBLIC_API_BASE_URL` 和 `NEXT_PUBLIC_WS_URL`。
-- `CORS_ORIGIN` 必须改为正式 Web 域名。
-- Railway staging 和 Vercel Preview 不需要迁移，可以继续作为开发验证环境。
-
-## 9. 放行检查
-
-- `https://api.example.com/health` 返回数据库和 Redis 均为 `ok`。
-- `https://www.example.com` 可以正常加载首页。
-- 公开选手目录数量与生产迁移前一致。
-- 注册、登录、游客单人和三档难度均正常。
-- WebSocket 可以建立连接，联机建房和匹配正常。
-- `/admin` 可以登录并修改资料。
-- PostgreSQL、Redis 端口无法从公网直接访问。
-- 云服务器磁盘、内存和带宽监控已配置。
-- 学生优惠到期时间和续费价格已记录。
+其余代码同步、镜像构建、迁移检查、Nginx 检查和容器健康检查可以由部署协作者执行，但任何 secret 只应由账号持有人在服务器控制台填写。
