@@ -67,7 +67,7 @@ PostgreSQL 和 Redis 只在 Compose 内网访问，不开放 5432、6379；Web/A
 
 6. 本地确认 DNS：
 
-   Resolve-DnsName valo-yiba.top
+   Resolve-DnsName zmjjkk33.top
 
 ### 2.3 HTTPS 与 Nginx
 
