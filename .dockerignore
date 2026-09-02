@@ -13,5 +13,4 @@ data/
 .env.*
 !.env.example
 !.env.production.example
-deploy/certbot/conf/
-deploy/certbot/www/
+deploy/certbot/
