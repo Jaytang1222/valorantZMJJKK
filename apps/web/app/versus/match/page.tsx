@@ -71,6 +71,17 @@ type OpponentProfile = {
   averageGuesses: number;
 };
 
+const GUESS_FIELDS = [
+  ["region", "col.region"],
+  ["country", "col.country"],
+  ["primaryRole", "col.role"],
+  ["currentOrLastTeam", "col.team"],
+  ["status", "col.status"],
+  ["championsTitles", "col.championsTitles"],
+  ["mastersTitles", "col.mastersTitles"],
+  ["leagueTitles", "col.leagueTitles"],
+] as const;
+
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
 function matchSymbol(tone: string) {
   return tone === "higher" ? "↑" : tone === "lower" ? "↓" : "";
@@ -400,6 +411,20 @@ function MatchPageContent() {
             </span>
           </section>
           <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
+          <section
+            className="match-field-guide"
+            aria-label={t(locale, "match.fieldLegend")}
+          >
+            <p>{t(locale, "match.fieldLegend")}</p>
+            <small>{t(locale, "match.numericHint")}</small>
+            <div className="match-field-legend">
+              {GUESS_FIELDS.map(([field, label]) => (
+                <span key={field}>
+                  <b>{t(locale, label)}</b>
+                </span>
+              ))}
+            </div>
+          </section>
           {error && <p className="form-error">{error}</p>}
           <section className="match-columns">
             <section className="match-player-panel own-panel">
@@ -473,11 +498,17 @@ function MatchPageContent() {
                       </strong>
                     </header>
                     <div className="comparison-grid">
-                      {Object.entries(guess.comparison).map(([field, tone]) => (
-                        <span key={field} data-match={tone}>
-                          {guessValue(field, guess, locale)} {matchSymbol(tone)}
-                        </span>
-                      ))}
+                      {GUESS_FIELDS.map(([field, label]) => {
+                        const tone = guess.comparison[field];
+                        if (!tone) return null;
+                        return (
+                          <span key={field} data-match={tone}>
+                            <b>{t(locale, label)}</b>
+                            <strong>{guessValue(field, guess, locale)}</strong>
+                            <i aria-hidden="true">{matchSymbol(tone)}</i>
+                          </span>
+                        );
+                      })}
                     </div>
                   </article>
                 ))}
@@ -568,6 +599,10 @@ function MatchPageContent() {
                       <span
                         key={toneIndex}
                         data-match={tone}
+                        title={t(
+                          locale,
+                          GUESS_FIELDS[toneIndex]?.[1] ?? "col.guess",
+                        )}
                         aria-label={tWith(locale, "match.guessPosition", {
                           n: index + 1,
                         })}

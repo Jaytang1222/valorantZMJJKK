@@ -53,6 +53,27 @@ export type AdminSnapshot = {
   sourceUrl: string;
 };
 
+export type AdminUserStats = {
+  totalScore: number;
+  gamesPlayed: number;
+  wins: number;
+  totalGuesses: number;
+  averageGuesses: number;
+  winRate: number;
+};
+
+export type AdminUser = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  role: "user" | "editor" | "moderator" | "admin";
+  createdAt: string;
+  stats: {
+    solo: AdminUserStats | null;
+    versus: AdminUserStats | null;
+  };
+};
+
 export type PlayerInput = {
   canonicalName: string;
   aliases: string[];
@@ -115,6 +136,101 @@ export async function getSnapshots(
   if (!response.ok)
     throw new Error(`Unable to load snapshots: ${response.status}`);
   return response.json();
+}
+
+export async function getAdminUsers(
+  filters: {
+    q?: string;
+    page?: number;
+    limit?: number;
+  } = {},
+): Promise<{
+  items: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/users?${new URLSearchParams(
+      Object.fromEntries(
+        Object.entries(filters)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)]),
+      ),
+    )}`,
+    {
+      headers: { "x-internal-api-secret": internalApiSecret },
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) throw new Error(`Unable to load users: ${response.status}`);
+  return response.json();
+}
+
+export type AdminUserInput = {
+  email: string;
+  password: string;
+  displayName?: string;
+  role?: "user" | "admin";
+};
+
+export async function createAdminUser(
+  data: AdminUserInput,
+): Promise<AdminUser> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(`${apiBaseUrl}/internal/v1/admin/users`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-internal-api-secret": internalApiSecret,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(
+      `Unable to create user: ${response.status}${detail ? ` ${detail}` : ""}`,
+    );
+  }
+  return response.json();
+}
+
+export async function resetAdminUserPassword(userId: string): Promise<string> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/users/${userId}/password-reset`,
+    {
+      method: "POST",
+      headers: { "x-internal-api-secret": internalApiSecret },
+    },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(
+      `Unable to reset password: ${response.status}${detail ? ` ${detail}` : ""}`,
+    );
+  }
+  const data = (await response.json()) as { temporaryPassword: string };
+  return data.temporaryPassword;
+}
+
+export async function deleteAdminUser(userId: string): Promise<void> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/users/${userId}`,
+    {
+      method: "DELETE",
+      headers: { "x-internal-api-secret": internalApiSecret },
+    },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(
+      `Unable to delete user: ${response.status}${detail ? ` ${detail}` : ""}`,
+    );
+  }
 }
 
 export async function updateReview(

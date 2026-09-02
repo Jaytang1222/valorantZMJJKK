@@ -7,9 +7,14 @@ import { env } from "../config.js";
 import { db } from "../db/client.js";
 import { users } from "../db/schema.js";
 
-const credentialsSchema = z.object({
+const registerCredentialsSchema = z.object({
   email: z.string().trim().email().max(320),
   password: z.string().min(8).max(128),
+});
+const loginCredentialsSchema = z.object({
+  email: z.string().trim().email().max(320),
+  // The admin reset flow intentionally uses the fixed temporary password 123456.
+  password: z.string().min(6).max(128),
 });
 function normalize(value: string) {
   return value.trim().normalize("NFKC").toLocaleLowerCase("en-US");
@@ -78,7 +83,7 @@ export function verifyRealtimeTicket(token: string | undefined): string | null {
   return z.string().uuid().safeParse(userId).success ? userId : null;
 }
 
-async function defaultName() {
+export async function defaultName() {
   for (let index = 0; index < 10; index += 1) {
     const suffix = randomBytes(5)
       .toString("base64url")
@@ -100,7 +105,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     "/v1/auth/register",
     { config: { rateLimit: { max: 5, timeWindow: "1 hour" } } },
     async (request, reply) => {
-      const input = credentialsSchema.parse(request.body);
+      const input = registerCredentialsSchema.parse(request.body);
       if (!env.PASSWORD_PEPPER)
         return reply.serviceUnavailable(
           "Password registration is not configured",
@@ -135,7 +140,7 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     "/v1/auth/login",
     { config: { rateLimit: { max: 10, timeWindow: "15 minutes" } } },
     async (request, reply) => {
-      const input = credentialsSchema.parse(request.body);
+      const input = loginCredentialsSchema.parse(request.body);
       if (!env.PASSWORD_PEPPER)
         return reply.serviceUnavailable("Password login is not configured");
       const [user] = await db

@@ -1,22 +1,39 @@
 import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { playerImportSchema } from "@valo-yiba/contracts";
+import argon2 from "argon2";
 import { parse } from "csv-parse/sync";
-import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 import { env } from "../config.js";
 import {
   adminAuditLogs,
   contentReports,
+  guesses,
   moderationActions,
   countryGroups,
   playerAliases,
   playerSnapshots,
   players,
+  roomParticipants,
+  roomRounds,
+  rooms,
+  soloAttempts,
   users,
 } from "../db/schema.js";
 import { db } from "../db/client.js";
 import { normalizeAlias } from "../lib/normalization.js";
+import { defaultName } from "./auth.js";
 import { invalidateLeaderboard } from "../services/leaderboard.js";
 import {
   PlayerCanonicalNameConflictError,
@@ -55,6 +72,17 @@ const countryGroupSchema = z.object({
 });
 const userRoleSchema = z.object({
   role: z.enum(["user", "admin"]),
+});
+const userListSchema = z.object({
+  q: z.string().trim().min(1).max(64).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+const createUserSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: z.string().min(8).max(128),
+  displayName: z.string().trim().min(1).max(20).optional(),
+  role: z.enum(["user", "admin"]).default("user"),
 });
 const reportResolutionSchema = z.object({
   status: z.enum(["resolved", "dismissed"]),
@@ -118,6 +146,40 @@ async function audit(input: {
   await db.insert(adminAuditLogs).values({
     ...input,
     metadata: input.metadata ?? {},
+  });
+}
+
+function adminStats(
+  row:
+    | {
+        totalScore: number | string;
+        gamesPlayed: number | string;
+        wins: number | string;
+        totalGuesses: number | string;
+      }
+    | undefined,
+) {
+  if (!row) return null;
+  const totalScore = Number(row.totalScore);
+  const gamesPlayed = Number(row.gamesPlayed);
+  const wins = Number(row.wins);
+  const totalGuesses = Number(row.totalGuesses);
+  return {
+    totalScore,
+    gamesPlayed,
+    wins,
+    totalGuesses,
+    averageGuesses:
+      gamesPlayed > 0 ? Number((totalGuesses / gamesPlayed).toFixed(2)) : 0,
+    winRate: gamesPlayed > 0 ? Number((wins / gamesPlayed).toFixed(4)) : 0,
+  };
+}
+
+async function hashPassword(password: string) {
+  if (!env.PASSWORD_PEPPER)
+    throw new Error("Password management is not configured");
+  return argon2.hash(`${password}${env.PASSWORD_PEPPER}`, {
+    type: argon2.argon2id,
   });
 }
 
@@ -498,8 +560,20 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  app.get("/v1/admin/users", async () => {
-    return db
+  app.get("/v1/admin/users", async (request) => {
+    const input = userListSchema.parse(request.query);
+    const conditions = input.q
+      ? or(
+          ilike(users.displayName, `%${input.q}%`),
+          ilike(users.email, `%${input.q}%`),
+        )
+      : undefined;
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(users)
+      .where(conditions);
+    const offset = (input.page - 1) * input.limit;
+    const rows = await db
       .select({
         id: users.id,
         displayName: users.displayName,
@@ -508,8 +582,193 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         createdAt: users.createdAt,
       })
       .from(users)
-      .orderBy(asc(users.createdAt))
-      .limit(100);
+      .where(conditions)
+      .orderBy(desc(users.createdAt), asc(users.normalizedDisplayName))
+      .limit(input.limit)
+      .offset(offset);
+    const ids = rows.map((row) => row.id);
+    const [soloRows, versusRows] = ids.length
+      ? await Promise.all([
+          db
+            .select({
+              userId: soloAttempts.userId,
+              totalScore: sql<number>`coalesce(sum(${soloAttempts.score}), 0)::int`,
+              gamesPlayed: sql<number>`count(*)::int`,
+              wins: sql<number>`count(*) filter (where ${soloAttempts.status} = 'won')::int`,
+              totalGuesses: sql<number>`coalesce(sum(${soloAttempts.guessCount}), 0)::int`,
+            })
+            .from(soloAttempts)
+            .where(
+              and(
+                inArray(soloAttempts.userId, ids),
+                inArray(soloAttempts.status, ["won", "lost"]),
+              ),
+            )
+            .groupBy(soloAttempts.userId),
+          db
+            .select({
+              userId: roomParticipants.userId,
+              totalScore: sql<number>`count(distinct ${rooms.id}) filter (where ${rooms.winnerUserId} = ${roomParticipants.userId})::int`,
+              gamesPlayed: sql<number>`count(distinct ${rooms.id})::int`,
+              wins: sql<number>`count(distinct ${rooms.id}) filter (where ${rooms.winnerUserId} = ${roomParticipants.userId})::int`,
+              totalGuesses: sql<number>`count(${guesses.id})::int`,
+            })
+            .from(roomParticipants)
+            .innerJoin(rooms, eq(rooms.id, roomParticipants.roomId))
+            .leftJoin(
+              roomRounds,
+              and(
+                eq(roomRounds.roomId, rooms.id),
+                eq(roomRounds.roundNumber, 1),
+              ),
+            )
+            .leftJoin(
+              guesses,
+              and(
+                eq(guesses.roomRoundId, roomRounds.id),
+                eq(guesses.userId, roomParticipants.userId),
+              ),
+            )
+            .where(
+              and(
+                inArray(roomParticipants.userId, ids),
+                isNotNull(rooms.finishedAt),
+                isNotNull(rooms.winnerUserId),
+              ),
+            )
+            .groupBy(roomParticipants.userId),
+        ])
+      : [[], []];
+    const soloByUser = new Map(
+      soloRows.map((row) => [row.userId, adminStats(row)]),
+    );
+    const versusByUser = new Map(
+      versusRows.map((row) => [row.userId, adminStats(row)]),
+    );
+    return {
+      items: rows.map((row) => ({
+        ...row,
+        stats: {
+          solo: soloByUser.get(row.id) ?? null,
+          versus: versusByUser.get(row.id) ?? null,
+        },
+      })),
+      total: Number(total),
+      page: input.page,
+      limit: input.limit,
+      totalPages: Math.max(1, Math.ceil(Number(total) / input.limit)),
+    };
+  });
+
+  app.post("/v1/admin/users", async (request, reply) => {
+    const input = createUserSchema.parse(request.body);
+    const email = normalizeAlias(input.email);
+    if (!env.PASSWORD_PEPPER)
+      return reply.serviceUnavailable("Password management is not configured");
+    const [existingEmail] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.normalizedEmail, email))
+      .limit(1);
+    if (existingEmail)
+      return reply.conflict("This email is already registered");
+    const displayName = input.displayName ?? (await defaultName());
+    const normalizedDisplayName = normalizeAlias(displayName);
+    const [existingName] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.normalizedDisplayName, normalizedDisplayName))
+      .limit(1);
+    if (existingName)
+      return reply.conflict("This display name is already used");
+    const passwordHash = await hashPassword(input.password);
+    const [user] = await db
+      .insert(users)
+      .values({
+        displayName,
+        normalizedDisplayName,
+        email: input.email.trim(),
+        normalizedEmail: email,
+        passwordHash,
+        role: input.role,
+      })
+      .returning({
+        id: users.id,
+        displayName: users.displayName,
+        email: users.email,
+        role: users.role,
+        createdAt: users.createdAt,
+      });
+    await audit({
+      action: "user_created",
+      entityType: "user",
+      entityId: user.id,
+      metadata: { role: user.role },
+    });
+    return reply.code(201).send(user);
+  });
+
+  app.post("/v1/admin/users/:userId/password-reset", async (request, reply) => {
+    const { userId } = z
+      .object({ userId: z.string().uuid() })
+      .parse(request.params);
+    if (!env.PASSWORD_PEPPER)
+      return reply.serviceUnavailable("Password management is not configured");
+    const [user] = await db
+      .update(users)
+      .set({
+        passwordHash: await hashPassword("123456"),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning({ id: users.id });
+    if (!user) return reply.notFound("User not found");
+    await audit({
+      action: "user_password_reset",
+      entityType: "user",
+      entityId: user.id,
+      metadata: { temporary: true },
+    });
+    return { id: user.id, temporaryPassword: "123456" };
+  });
+
+  app.delete("/v1/admin/users/:userId", async (request, reply) => {
+    const { userId } = z
+      .object({ userId: z.string().uuid() })
+      .parse(request.params);
+    try {
+      const [target] = await db
+        .select({ id: users.id, role: users.role })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      if (!target) return reply.notFound("User not found");
+      if (target.role === "admin") {
+        const [{ count: adminCount }] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(users)
+          .where(eq(users.role, "admin"));
+        if (Number(adminCount) <= 1)
+          return reply.conflict("The last administrator cannot be deleted");
+      }
+      const [user] = await db
+        .delete(users)
+        .where(eq(users.id, userId))
+        .returning({ id: users.id });
+      if (!user) return reply.notFound("User not found");
+      await audit({
+        action: "user_deleted",
+        entityType: "user",
+        entityId: user.id,
+      });
+      return { id: user.id };
+    } catch (error) {
+      if (error instanceof Error && "code" in error && error.code === "23503")
+        return reply.conflict(
+          "User has historical matches or other protected records and cannot be deleted",
+        );
+      throw error;
+    }
   });
 
   app.patch("/v1/admin/users/:userId/role", async (request, reply) => {

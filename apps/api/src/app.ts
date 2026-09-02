@@ -51,15 +51,20 @@ export async function buildApp() {
   });
   await app.register(sensible);
   app.setErrorHandler((error, request, reply) => {
+    const reportedStatusCode =
+      typeof error === "object" &&
+      error !== null &&
+      "statusCode" in error &&
+      typeof error.statusCode === "number" &&
+      error.statusCode >= 400 &&
+      error.statusCode <= 599
+        ? error.statusCode
+        : undefined;
     const statusCode =
       error instanceof ZodError
         ? 400
-        : typeof error === "object" &&
-            error !== null &&
-            "statusCode" in error &&
-            typeof error.statusCode === "number" &&
-            error.statusCode < 500
-          ? error.statusCode
+        : reportedStatusCode !== undefined
+          ? reportedStatusCode
           : 500;
     if (statusCode >= 500) {
       Sentry.withScope((scope) => {
@@ -75,9 +80,11 @@ export async function buildApp() {
           ? "Internal Server Error"
           : statusCode === 400
             ? "Invalid request"
-            : error instanceof Error
-              ? error.message
-              : "Request failed",
+            : statusCode === 503
+              ? "Service unavailable"
+              : error instanceof Error
+                ? error.message
+                : "Request failed",
     });
   });
   await app.register(cors, {

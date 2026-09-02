@@ -2,7 +2,7 @@
 
 更新时间：2026-08-27
 
-本文覆盖本项目从 Railway/Vercel 生产环境迁移到阿里云 ECS 单服务器后的上线流程。目标是让中国大陆用户通过正式域名访问完整服务，并保留 Railway/Vercel 作为 staging 或回滚环境。
+本文覆盖本项目迁移到阿里云 ECS 单服务器后的上线流程。目标是让中国大陆用户通过正式域名访问完整服务；验证环境使用本地 Docker 与 GitHub Actions，ECS 是唯一生产运行环境。
 
 ## 1. 架构与当前服务器
 
@@ -148,9 +148,9 @@ NEXT_PUBLIC_WS_URL 在 Web 镜像构建阶段写入前端，因此变量改变�
 
 公网三档单人创建接口已实测返回 201，故这两个现象不是 PostgreSQL、Redis 或题库故障。完成 HTTPS 并使用正式域名后，生产 Cookie 和游客 UUID 才能按设计工作。
 
-## 4. Railway/Vercel 保留策略
+## 4. 验证与生产边界
 
-Railway staging 和 Vercel Preview 继续用于开发回归，不迁移生产数据库，也不与 ECS 共享 PostgreSQL/Redis。确认 ECS 稳定后再决定是否释放原生产资源；释放前应再次确认数据库数据已在 ECS 上核对无误。
+本地 Docker 与 GitHub Actions 仅用于开发和回归验证，不连接或覆盖生产数据库。ECS 独立运行 PostgreSQL、Redis、API、Web 与 Nginx；生产发布只从已合并的 `main` 分支执行，不使用自动 CSV 种子同步。
 
 ## 5. 必须由账号持有人完成的事项
 

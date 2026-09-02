@@ -1,49 +1,32 @@
-# M2 双人对战压测
+# 双人联机受控压测
 
-此脚本只允许在 staging 执行。它会为每个房间创建两个临时测试账号，建立双人私密房，双方准备并开始对局，维持指定时长后由一方投降完成结算。
+脚本在本地 Docker 或 ECS 的测试环境运行，不依赖 Railway。压测前确认 API、PostgreSQL 和 Redis 使用隔离数据；不要对生产用户数据执行该脚本。
 
-## 前置条件
-
-- staging 的 Railway API 与 Vercel Preview 已部署当前 `staging` 提交。
-- Railway staging 中 `SEED_INITIAL_DATA` 不存在或不为 `true`。
-- 在本机仓库根目录执行命令，使用 staging API 公共域名，不使用生产域名。
-- 测试会永久新增临时账号和对局审计记录；使用 staging 数据库即可接受。
-
-## 小规模预检
-
-在 PowerShell 中设置变量。`LOAD_PASSWORD` 使用仅用于 staging 的临时强密码，不要提交到仓库或发送给我。
+## 预检
 
 ```powershell
-$env:LOAD_API_URL = "https://<railway-staging-api-domain>"
-$env:LOAD_PASSWORD = "<temporary-staging-password>"
-$env:LOAD_CONFIRM = "RUN_STAGING_LOAD"
-$env:LOAD_ROOM_COUNT = "2"
-$env:LOAD_WORKERS = "2"
-$env:LOAD_HOLD_SECONDS = "15"
-$env:LOAD_ROUND_DURATION_SECONDS = "90"
-$env:LOAD_RAMP_SECONDS = "0"
-pnpm --filter @valo-yiba/api load:versus
-```
-
-预检应输出 JSON：`failures` 为空，且每个 `room_*` 指标都有样本。
-
-## 100 活跃房间
-
-确认预检通过、staging 没有其他测试人员后，保持前三个变量，改为：
-
-```powershell
-$env:LOAD_ROOM_COUNT = "100"
-$env:LOAD_WORKERS = "100"
-$env:LOAD_HOLD_SECONDS = "60"
+docker compose up -d
+pnpm db:migrate
+pnpm --filter @valo-yiba/api build
+$env:LOAD_API_URL = "http://localhost:3001"
+$env:LOAD_WS_URL = "http://localhost:3001"
 $env:LOAD_ROUND_DURATION_SECONDS = "90"
 $env:LOAD_RAMP_SECONDS = "30"
+```
+
+如使用 HTTPS 测试地址，不要关闭 TLS 校验；只有明确使用自签名证书的隔离环境才可临时设置 `NODE_TLS_REJECT_UNAUTHORIZED=0`。
+
+## 运行
+
+```powershell
 pnpm --filter @valo-yiba/api load:versus
 ```
 
-脚本会在建立完成后维持约 100 个活跃双人房 60 秒，再逐个结算。运行期间在 Railway 查看 API、PostgreSQL 与 Redis 的 CPU、内存、连接数和错误日志；保留命令输出与三个服务的峰值截图。
+默认创建 100 个双人房，每个 worker 保持房间约 60 秒，再主动结束。输出包含认证、Socket 连接、建房、入房、准备、开始和结束的 P50/P95/最大延迟，以及 `failures` 列表。
 
-## 验收与回滚
+## 通过标准
 
-- `failures` 必须为空，且 `room_create`、`room_join`、`room_ready`、`room_start`、`room_surrender` 的 P95 均记录在输出中。
-- 目标是实时事件 P95 小于 300 ms；若未达标，记录 P95、峰值资源与错误日志，不进入 M3，先定位瓶颈。
-- 出现持续错误、数据库连接耗尽或 Redis 内存快速增长时，按 `Ctrl+C` 停止压测。已创建的房间会在服务端 TTL/结算清理机制下回收；临时账号和审计记录保留在 staging 供排查。
+- `failures` 为空。
+- 所有房间均完成唯一结算，胜者只增加 1 分。
+- API、PostgreSQL、Redis 无重启、连接耗尽或 5xx 峰值异常。
+- 压测结束后测试账号、房间和临时数据已清理。
