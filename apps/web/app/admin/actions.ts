@@ -10,8 +10,11 @@ import {
 import { requireAdminCapability } from "../../lib/admin-operator";
 import {
   addAlias,
+  createAdminUser,
   createPlayer,
+  deleteAdminUser,
   removeAlias,
+  resetAdminUserPassword,
   updatePlayer,
   updatePlayerStatus,
   updateReview,
@@ -139,4 +142,33 @@ export async function removeAliasAction(formData: FormData): Promise<void> {
   const playerId = String(formData.get("playerId") ?? "");
   await removeAlias(playerId, String(formData.get("aliasId") ?? ""));
   redirect(`/admin/players/${playerId}`);
+}
+
+export async function createUserAction(formData: FormData): Promise<void> {
+  await requireAdminCapability("content");
+  await createAdminUser({
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+    displayName: String(formData.get("displayName") ?? "").trim() || undefined,
+    role: String(formData.get("role") ?? "user") as "user" | "admin",
+  });
+  redirect("/admin?section=users&createdUser=1");
+}
+
+export async function resetUserPasswordAction(
+  formData: FormData,
+): Promise<void> {
+  await requireAdminCapability("content");
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId) throw new Error("User id is required");
+  await resetAdminUserPassword(userId);
+  redirect("/admin?section=users&resetUser=1");
+}
+
+export async function deleteUserAction(formData: FormData): Promise<void> {
+  await requireAdminCapability("content");
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId) throw new Error("User id is required");
+  await deleteAdminUser(userId);
+  redirect("/admin?section=users&deletedUser=1");
 }

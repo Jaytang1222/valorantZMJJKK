@@ -5,6 +5,8 @@ import {
   beginCountdown,
   beginRound,
   createLiveRoom,
+  disconnectMember,
+  forfeitExpiredMembers,
   joinRoom,
   setReady,
   surrenderMember,
@@ -190,6 +192,161 @@ testSuite("finished room persistence", () => {
     );
   });
 
+  it("persists a disconnect timeout winner and keeps both histories after cleanup", async () => {
+    if (!database || !schema || !roomStore || !leaderboard || !cache)
+      throw new Error("Database integration test dependencies are unavailable");
+    const timeoutHostId = randomUUID();
+    const timeoutGuestId = randomUUID();
+    const timeoutPlayerId = randomUUID();
+    const timeoutSnapshotId = randomUUID();
+    const timeoutPuzzleId = randomUUID();
+    const timeoutRoomId = randomUUID();
+    const timeoutCode =
+      `D${randomUUID().replaceAll("-", "").slice(0, 5)}`.toUpperCase();
+    const now = Date.now();
+    try {
+      await database.db.insert(schema.users).values([
+        {
+          id: timeoutHostId,
+          displayName: `TimeoutHost${timeoutHostId.slice(0, 6)}`,
+          normalizedDisplayName: `timeouthost${timeoutHostId.slice(0, 6)}`,
+        },
+        {
+          id: timeoutGuestId,
+          displayName: `TimeoutGuest${timeoutGuestId.slice(0, 6)}`,
+          normalizedDisplayName: `timeoutguest${timeoutGuestId.slice(0, 6)}`,
+        },
+      ]);
+      await database.db.insert(schema.players).values({
+        id: timeoutPlayerId,
+        canonicalName: `TimeoutTarget${timeoutPlayerId.slice(0, 6)}`,
+      });
+      await database.db.insert(schema.playerSnapshots).values({
+        id: timeoutSnapshotId,
+        playerId: timeoutPlayerId,
+        dataVersion: 1,
+        countryCode: "CN",
+        countryGroupCode: "east_asia",
+        region: "china",
+        primaryRole: "duelist",
+        currentOrLastTeam: "Test Team",
+        isActiveRoster: true,
+        championsTitles: 0,
+        mastersTitles: 0,
+        leagueTitles: 0,
+        dataAsOf: new Date(now),
+        sourceUrl: "https://example.test/source",
+        sourceCheckedAt: new Date(now),
+        reviewStatus: "approved",
+      });
+      await database.db.insert(schema.puzzles).values({
+        id: timeoutPuzzleId,
+        snapshotId: timeoutSnapshotId,
+        difficulty: "full",
+        status: "approved",
+      });
+
+      const room = createLiveRoom({
+        id: timeoutRoomId,
+        code: timeoutCode,
+        hostId: timeoutHostId,
+        isPublic: false,
+        isMatchmade: true,
+        maxPlayers: 2,
+        roundCount: 1,
+        roundDurationSeconds: 300,
+        host: {
+          userId: timeoutHostId,
+          displayName: "Timeout Host",
+          status: "connected",
+          ready: false,
+          score: 0,
+          guessCount: 0,
+          joinedAt: now,
+        },
+      });
+      joinRoom(room, {
+        userId: timeoutGuestId,
+        displayName: "Timeout Guest",
+        status: "connected",
+        ready: false,
+        score: 0,
+        guessCount: 0,
+        joinedAt: now,
+      });
+      setReady(room, timeoutHostId, true);
+      setReady(room, timeoutGuestId, true);
+      beginCountdown(room, timeoutHostId);
+      beginRound(room, now);
+      room.targetPlayerId = timeoutPlayerId;
+      room.targetPuzzleId = timeoutPuzzleId;
+      await roomStore.saveRoom(room);
+      disconnectMember(room, timeoutHostId, now);
+      await roomStore.saveRoom(room);
+
+      const restored = await roomStore.loadRoom(timeoutCode);
+      expect(restored?.members[0].status).toBe("disconnected");
+      forfeitExpiredMembers(restored!, now + 20_000);
+      await roomStore.saveRoom(restored!);
+      await roomStore.saveRoom(restored!);
+      await roomStore.archiveFinishedRoom(restored!);
+
+      const [persisted] = await database.db
+        .select({
+          state: schema.rooms.state,
+          winnerUserId: schema.rooms.winnerUserId,
+          finishReason: schema.rooms.finishReason,
+          finishedAt: schema.rooms.finishedAt,
+        })
+        .from(schema.rooms)
+        .where(eq(schema.rooms.id, timeoutRoomId));
+      expect(persisted).toMatchObject({
+        state: "finished",
+        winnerUserId: timeoutGuestId,
+        finishReason: "disconnect",
+      });
+      expect(persisted?.finishedAt).not.toBeNull();
+
+      const [hostSummary, guestSummary] = await Promise.all([
+        leaderboard.getAccountSummary(timeoutHostId),
+        leaderboard.getAccountSummary(timeoutGuestId),
+      ]);
+      expect(hostSummary.versus).toMatchObject({
+        gamesPlayed: 1,
+        wins: 0,
+        winRate: 0,
+      });
+      expect(guestSummary.versus).toMatchObject({
+        gamesPlayed: 1,
+        wins: 1,
+        winRate: 1,
+      });
+      expect(
+        hostSummary.recentGames.some((game) => game.id === timeoutRoomId),
+      ).toBe(true);
+      expect(
+        guestSummary.recentGames.some((game) => game.id === timeoutRoomId),
+      ).toBe(true);
+    } finally {
+      await database.db
+        .delete(schema.rooms)
+        .where(eq(schema.rooms.id, timeoutRoomId));
+      await database.db
+        .delete(schema.puzzles)
+        .where(eq(schema.puzzles.id, timeoutPuzzleId));
+      await database.db
+        .delete(schema.playerSnapshots)
+        .where(eq(schema.playerSnapshots.id, timeoutSnapshotId));
+      await database.db
+        .delete(schema.players)
+        .where(eq(schema.players.id, timeoutPlayerId));
+      await database.db
+        .delete(schema.users)
+        .where(inArray(schema.users.id, [timeoutHostId, timeoutGuestId]));
+      await cache.redis.del(`valo:room:${timeoutCode}`);
+    }
+  });
+
   it("enforces authentication, internal-secret, validation, and login limits", async () => {
     if (!application)
       throw new Error(
@@ -217,6 +374,55 @@ testSuite("finished room persistence", () => {
         items: expect.any(Array),
       });
 
+      const adminHeaders = {
+        "x-internal-api-secret": process.env.INTERNAL_API_SECRET,
+      };
+      const createdUserResponse = await app.inject({
+        method: "POST",
+        url: "/internal/v1/admin/users",
+        headers: adminHeaders,
+        payload: {
+          email: `admin-created-${guestId}@example.test`,
+          password: "temporary-password",
+        },
+      });
+      expect(createdUserResponse.statusCode).toBe(201);
+      const createdUser = createdUserResponse.json() as { id: string };
+      const userListResponse = await app.inject({
+        method: "GET",
+        url: "/internal/v1/admin/users?limit=1",
+        headers: adminHeaders,
+      });
+      expect(userListResponse.statusCode).toBe(200);
+      expect(userListResponse.json().items[0]).toMatchObject({
+        stats: { solo: null, versus: null },
+      });
+      const resetResponse = await app.inject({
+        method: "POST",
+        url: `/internal/v1/admin/users/${createdUser.id}/password-reset`,
+        headers: adminHeaders,
+      });
+      expect(resetResponse.statusCode).toBe(200);
+      expect(resetResponse.json()).toMatchObject({
+        id: createdUser.id,
+        temporaryPassword: "123456",
+      });
+      const resetLogin = await app.inject({
+        method: "POST",
+        url: "/v1/auth/login",
+        payload: {
+          email: `admin-created-${guestId}@example.test`,
+          password: "123456",
+        },
+      });
+      expect(resetLogin.statusCode).toBe(200);
+      const deleteResponse = await app.inject({
+        method: "DELETE",
+        url: `/internal/v1/admin/users/${createdUser.id}`,
+        headers: adminHeaders,
+      });
+      expect(deleteResponse.statusCode).toBe(200);
+
       const deniedProfile = await app.inject({
         method: "GET",
         url: `/v1/profiles/${guestId}/versus`,
@@ -231,7 +437,8 @@ testSuite("finished room persistence", () => {
       expect(invalidLogin.statusCode).toBe(400);
       expect(invalidLogin.json()).toEqual({ error: "Invalid request" });
 
-      for (let attempt = 0; attempt < 9; attempt += 1) {
+      // The malformed request above also consumes one login-limit slot.
+      for (let attempt = 0; attempt < 8; attempt += 1) {
         const response = await app.inject({
           method: "POST",
           url: "/v1/auth/login",

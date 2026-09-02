@@ -327,7 +327,7 @@ export default function VersusPage() {
                   </span>
                   <span>
                     {member.ready
-                      ? t(locale, "versus.ready")
+                      ? t(locale, "versus.readyStatus")
                       : t(locale, "versus.notReady")}{" "}
                     · {tWith(locale, "match.points", { score: member.score })}
                   </span>

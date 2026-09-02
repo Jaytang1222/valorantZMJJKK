@@ -157,6 +157,27 @@ export async function createRealtimeServer(
           const room = await loadRoom(code);
           if (!room || room.phase !== "playing" || room.roundEndsAt !== endsAt)
             return;
+          const now = Date.now();
+          const pendingReconnectDeadline = room.members
+            .filter(
+              (member) =>
+                member.status === "disconnected" &&
+                member.disconnectedAt !== undefined,
+            )
+            .map((member) => member.disconnectedAt! + 20_000)
+            .sort((left, right) => left - right)[0];
+          if (
+            pendingReconnectDeadline !== undefined &&
+            pendingReconnectDeadline > now
+          ) {
+            scheduleReconnectExpiry(room.code, pendingReconnectDeadline);
+            return;
+          }
+          forfeitExpiredMembers(room, now);
+          if ((room.phase as string) === "finished") {
+            await emitFinishedRoom(room);
+            return;
+          }
           finishRound(room, "time_expired");
           await emitFinishedRoom(room);
         } finally {
@@ -282,6 +303,12 @@ export async function createRealtimeServer(
         joinedAt: Date.now(),
       });
       await saveRoom(room);
+      if (
+        room.phase === "playing" &&
+        room.roundEndsAt !== undefined &&
+        room.roundEndsAt <= Date.now()
+      )
+        scheduleRoundTimeout(room.code, room.roundEndsAt);
       await socket.join(`room:${room.code}`);
       emitRoom(room);
       return room;

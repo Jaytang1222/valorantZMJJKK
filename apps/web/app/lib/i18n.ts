@@ -3,6 +3,22 @@ export type Locale = "zh" | "en";
 export const LOCALE_COOKIE = "valo_locale";
 
 const zh = {
+  "admin.playersTab": "选手资料",
+  "admin.usersTab": "用户管理",
+  "admin.usersHeading": "用户管理",
+  "admin.createUser": "新增用户",
+  "admin.email": "邮箱",
+  "admin.initialPassword": "初始密码（至少 8 位）",
+  "admin.displayNameOptional": "显示名（可选）",
+  "admin.userRole": "角色",
+  "admin.userStats":
+    "单人：{soloGames} 局 / {soloWins} 胜 / 胜率 {soloRate}% / 平均 {soloAvg} 次；联机：{versusGames} 局 / {versusWins} 胜 / 胜率 {versusRate}% / 平均 {versusAvg} 次",
+  "admin.resetPassword": "重置为 123456",
+  "admin.deleteUser": "删除用户",
+  "admin.userCreated": "用户已创建",
+  "admin.userPasswordReset": "密码已重置为 123456，请安全转交给用户。",
+  "admin.userDeleted": "用户已删除",
+  "admin.confirmDeleteUser": "确定删除该用户吗？有历史对局的用户可能无法删除。",
   "nav.brand": "康一把",
   "nav.leaderboards": "排行榜",
   "nav.account": "我的战绩",
@@ -68,7 +84,8 @@ const zh = {
   "versus.joinRoom": "加入房间",
   "versus.codePlaceholder": "6 位邀请码",
   "versus.resume": "恢复对局",
-  "versus.ready": "已准备",
+  "versus.ready": "准备",
+  "versus.readyStatus": "已准备",
   "versus.notReady": "未准备",
   "versus.host": "房主",
   "versus.start": "开始 BO1",
@@ -116,6 +133,10 @@ const zh = {
   "match.opponentSurrendered": "对手已投降。",
   "match.opponentForfeited": "对手已超时判负。",
   "match.progress": "猜测进度",
+  "match.fieldLegend":
+    "字段顺序：赛区、国籍、位置、队伍、状态、冠军赛冠军、大师赛冠军、联赛冠军",
+  "match.numericHint":
+    "数字字段均表示夺冠次数；颜色和箭头表示与答案的比较结果。",
   "match.guessPosition": "第 {n} 次猜测",
   "match.awaitingOpponent": "等待对手",
   "match.profileLoading": "正在加载战绩",
@@ -268,6 +289,24 @@ const zh = {
 } as const;
 
 const en: Record<keyof typeof zh, string> = {
+  "admin.playersTab": "Players",
+  "admin.usersTab": "Users",
+  "admin.usersHeading": "User management",
+  "admin.createUser": "Create user",
+  "admin.email": "Email",
+  "admin.initialPassword": "Initial password (8+ characters)",
+  "admin.displayNameOptional": "Display name (optional)",
+  "admin.userRole": "Role",
+  "admin.userStats":
+    "Solo: {soloGames} games / {soloWins} wins / {soloRate}% / avg {soloAvg}; Versus: {versusGames} games / {versusWins} wins / {versusRate}% / avg {versusAvg}",
+  "admin.resetPassword": "Reset to 123456",
+  "admin.deleteUser": "Delete user",
+  "admin.userCreated": "User created",
+  "admin.userPasswordReset":
+    "Password reset to 123456. Transfer it securely to the user.",
+  "admin.userDeleted": "User deleted",
+  "admin.confirmDeleteUser":
+    "Delete this user? Accounts with historical matches may be protected.",
   "nav.brand": "康一把",
   "nav.leaderboards": "Leaderboards",
   "nav.account": "My Stats",
@@ -336,6 +375,7 @@ const en: Record<keyof typeof zh, string> = {
   "versus.codePlaceholder": "6-digit code",
   "versus.resume": "Resume Match",
   "versus.ready": "Ready",
+  "versus.readyStatus": "Ready",
   "versus.notReady": "Not Ready",
   "versus.host": "Host",
   "versus.start": "Start BO1",
@@ -384,6 +424,10 @@ const en: Record<keyof typeof zh, string> = {
   "match.opponentSurrendered": "Opponent surrendered.",
   "match.opponentForfeited": "Opponent lost to timeout.",
   "match.progress": "Guess progress",
+  "match.fieldLegend":
+    "Fields: region, nationality, role, team, status, Champions titles, Masters titles, league titles",
+  "match.numericHint":
+    "Numeric fields are title counts; color and arrows show the comparison with the answer.",
   "match.guessPosition": "Guess {n}",
   "match.awaitingOpponent": "Waiting for opponent",
   "match.profileLoading": "Loading stats…",
