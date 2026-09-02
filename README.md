@@ -55,4 +55,4 @@ docker compose --env-file .env.production -f docker-compose.production.yml ps
 
 ## 部署回归
 
-发布后依次检查 `/health`、首页 API 状态、选手目录、注册/登录、单人结算、双人匹配/断线恢复、`/admin` 和 Docker 重启后的数据恢复。详细清单见 `spec/mainland-single-server-deployment.md` 与 `spec/bugfix-admin-release.md`。
+发布后依次检查 API 容器内 `/health`、首页 API 状态、选手目录、注册/登录、单人结算、双人匹配/断线恢复、`/admin` 和 Docker 重启后的数据恢复。详细清单见 `spec/mainland-single-server-deployment.md` 与 `spec/bugfix-admin-release.md`。
