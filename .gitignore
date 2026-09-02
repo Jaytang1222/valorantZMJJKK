@@ -5,7 +5,7 @@ coverage/
 .turbo/
 .env
 .env.*
-!.env.example
-!.env.production.example
 *.log
 *.tsbuildinfo
+# Private player data and source ledgers stay outside Git.
+data/

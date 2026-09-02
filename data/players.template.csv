@@ -1,2 +1,0 @@
-﻿canonical_name,aliases,country_code,country_group,region,primary_role,current_or_last_team,roster_status,is_active_roster,is_coach,is_featured_team,is_vct_cn_team,champions_titles,masters_titles,league_titles,data_as_of,source_url,source_checked_at,review_status
-Example Player,Example|example,CA,north_america,americas,duelist,Example Team,active,true,false,false,false,0,0,0,2026-08-20,https://example.com/player/example,2026-08-20T00:00:00.000Z,pending_review
