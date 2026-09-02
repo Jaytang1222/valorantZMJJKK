@@ -9,3 +9,5 @@ coverage/
 !.env.production.example
 *.log
 *.tsbuildinfo
+# Private player data and source ledgers stay outside Git.
+data/
