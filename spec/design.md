@@ -136,7 +136,7 @@ API 服务（认证、题目、成绩、排行榜） ─── PostgreSQL
 
 ### 4.3 服务边界与接口
 
-- `POST /auth/*`：OAuth 或邮箱验证码登录；游客使用受限匿名会话。
+- `POST /auth/*`：邮箱密码注册/登录；游客使用受限匿名会话，不能进入联机对战或排行榜。
 - `GET /players`、`GET /players/:id`：查选手入口，提供公开选手资料与筛选搜索。
 - `POST /attempts`、`POST /attempts/:id/guesses`：单人流程；创建时指定 `beginner|easy|full`。猜测响应只返回比较结果，绝不返回答案 ID。
 - `POST /matchmaking/queue`、`DELETE /matchmaking/queue`：在线匹配队列；`POST /rooms`、`POST /rooms/join`、`GET /rooms/:code`：房间生命周期。
