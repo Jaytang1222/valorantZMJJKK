@@ -54,6 +54,8 @@ fi
 
 "${compose[@]}" config --quiet
 "${compose[@]}" up -d --build
+# Re-resolve Docker DNS after api/web recreation so Nginx does not keep stale IPs.
+"${compose[@]}" up -d --force-recreate nginx
 "${compose[@]}" ps
 
 health_ok=false
