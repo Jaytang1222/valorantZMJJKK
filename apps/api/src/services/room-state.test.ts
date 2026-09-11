@@ -112,6 +112,40 @@ describe("room state", () => {
     ).toThrow("Round is not accepting guesses");
   });
 
+  it("preserves an age-bearing guess for room recovery", () => {
+    const room = createRoom();
+    addGuest(room);
+    room.phase = "playing";
+    room.roundEndsAt = 60_000;
+    recordGuess(
+      room,
+      "host",
+      {
+        id: "age-guess",
+        playerId: "age-player",
+        canonicalName: "Age Player",
+        comparison: { age: "higher" },
+        isCorrect: false,
+        points: 0,
+        details: {
+          region: "china",
+          countryCode: "CN",
+          age: 20,
+          primaryRole: "duelist",
+          roles: ["duelist"],
+          currentOrLastTeam: "Test Team",
+          isActiveRoster: true,
+          championsTitles: 0,
+          mastersTitles: 0,
+          leagueTitles: 0,
+        },
+      },
+      1,
+    );
+
+    expect(room.members[0].guesses[0]?.details?.age).toBe(20);
+  });
+
   it("allows a 20-second reconnect window before forfeit", () => {
     const room = createRoom();
     disconnectMember(room, "host", 0);

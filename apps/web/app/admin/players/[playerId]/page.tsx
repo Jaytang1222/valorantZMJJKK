@@ -9,6 +9,13 @@ import {
   updatePlayerAction,
 } from "../../actions";
 import { LOCALE_COOKIE, detectLocale, t } from "../../../lib/i18n";
+import {
+  ADMIN_COUNTRY_CODES,
+  ADMIN_COUNTRY_GROUPS,
+  ADMIN_PLAYER_ROLES,
+  ADMIN_REGIONS,
+  ADMIN_TEAMS,
+} from "../../../../lib/admin-player-options";
 
 type PageProps = {
   params: Promise<{ playerId: string }>;
@@ -118,39 +125,101 @@ export default async function PlayerPage({ params, searchParams }: PageProps) {
           </label>
           <label>
             {t(locale, "admin.countryCode")}
-            <input
+            <select
               name="countryCode"
               defaultValue={player.countryCode}
               required
-            />
+            >
+              {!ADMIN_COUNTRY_CODES.includes(
+                player.countryCode as (typeof ADMIN_COUNTRY_CODES)[number],
+              ) && (
+                <option value={player.countryCode}>{player.countryCode}</option>
+              )}
+              {ADMIN_COUNTRY_CODES.map((code) => (
+                <option key={code}>{code}</option>
+              ))}
+            </select>
           </label>
           <label>
             {t(locale, "admin.countryGroup")}
-            <input
+            <select
               name="countryGroup"
               defaultValue={player.countryGroup}
+              required
+            >
+              {!ADMIN_COUNTRY_GROUPS.includes(
+                player.countryGroup as (typeof ADMIN_COUNTRY_GROUPS)[number],
+              ) && (
+                <option value={player.countryGroup}>
+                  {player.countryGroup}
+                </option>
+              )}
+              {ADMIN_COUNTRY_GROUPS.map((group) => (
+                <option key={group}>{group}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t(locale, "col.age")}
+            <input
+              name="age"
+              type="number"
+              min="13"
+              max="60"
+              defaultValue={player.age}
               required
             />
           </label>
           <label>
             {t(locale, "admin.regionLabel")}
-            <input name="region" defaultValue={player.region} required />
+            <select name="region" defaultValue={player.region} required>
+              {ADMIN_REGIONS.map((region) => (
+                <option key={region} value={region}>
+                  {region.toUpperCase()}
+                </option>
+              ))}
+            </select>
           </label>
-          <label>
-            {t(locale, "admin.roleLabel")}
-            <input
-              name="primaryRole"
-              defaultValue={player.primaryRole}
-              required
-            />
-          </label>
+          <fieldset className="admin-fieldset">
+            <legend>{t(locale, "admin.roleLabel")}</legend>
+            <div
+              className="admin-checkbox-grid"
+              role="group"
+              aria-label="Roles"
+            >
+              {ADMIN_PLAYER_ROLES.map((role) => (
+                <label key={role}>
+                  <input
+                    type="checkbox"
+                    name="roles"
+                    value={role}
+                    defaultChecked={(
+                      player.roles ?? [player.primaryRole]
+                    ).includes(role)}
+                  />
+                  {role}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label>
             {t(locale, "admin.teamLabel")}
-            <input
+            <select
               name="team"
               defaultValue={player.currentOrLastTeam}
               required
-            />
+            >
+              {!ADMIN_TEAMS.includes(
+                player.currentOrLastTeam as (typeof ADMIN_TEAMS)[number],
+              ) && (
+                <option value={player.currentOrLastTeam}>
+                  {player.currentOrLastTeam}
+                </option>
+              )}
+              {ADMIN_TEAMS.map((team) => (
+                <option key={team}>{team}</option>
+              ))}
+            </select>
           </label>
           <label>
             {t(locale, "admin.championsTitles")}

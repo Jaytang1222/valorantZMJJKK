@@ -43,8 +43,10 @@ testSuite("latest player snapshot updates", () => {
       dataVersion: 3,
       countryCode: "CN",
       countryGroupCode: "east_asia",
+      age: 20,
       region: "china",
       primaryRole: "duelist",
+      playerRoles: ["duelist"],
       currentOrLastTeam: "Before Team",
       isActiveRoster: true,
       championsTitles: 0,
@@ -61,8 +63,10 @@ testSuite("latest player snapshot updates", () => {
       aliases: ["after-update"],
       countryCode: "CN",
       countryGroup: "east_asia",
+      age: 27,
       region: "china",
       primaryRole: "controller",
+      roles: ["controller", "flex"],
       currentOrLastTeam: "After Team",
       rosterStatus: "active",
       isActiveRoster: true,
@@ -92,6 +96,9 @@ testSuite("latest player snapshot updates", () => {
     expect(updatedSnapshot.dataVersion).toBe(3);
     expect(updatedSnapshot.currentOrLastTeam).toBe("After Team");
     expect(updatedSnapshot.reviewStatus).toBe("pending_review");
+    expect(updatedSnapshot.age).toBe(27);
     expect(updatedSnapshot.isVctCnTeam).toBe(true);
+    expect(updatedSnapshot.primaryRole).toBe("controller");
+    expect(updatedSnapshot.playerRoles).toEqual(["controller", "flex"]);
   });
 });

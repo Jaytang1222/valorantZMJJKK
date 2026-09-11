@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import {
+  createSoloAttemptSchema,
+  REGIONAL_POOL_NOT_AVAILABLE,
+} from "@valo-yiba/contracts";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { db } from "../db/client.js";
@@ -15,9 +19,7 @@ import { compareSoloGuess } from "../lib/solo-comparison.js";
 import { invalidateLeaderboard } from "../services/leaderboard.js";
 import { findRandomEligibleSnapshot } from "../services/puzzle-selection.js";
 
-const difficulty = z.enum(["beginner", "easy", "full"]);
-const createSchema = z.object({
-  difficulty,
+const createSchema = createSoloAttemptSchema.extend({
   guestId: z.string().uuid().optional(),
 });
 const guessSchema = z.object({
@@ -29,7 +31,9 @@ function playerDetails(snapshot: typeof playerSnapshots.$inferSelect) {
   return {
     region: snapshot.region,
     countryCode: snapshot.countryCode,
+    age: snapshot.age,
     primaryRole: snapshot.primaryRole,
+    roles: snapshot.playerRoles,
     currentOrLastTeam: snapshot.currentOrLastTeam,
     isActiveRoster: snapshot.isActiveRoster,
     championsTitles: snapshot.championsTitles,
@@ -52,6 +56,11 @@ function ownsAttempt(
 export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
   app.post("/v1/solo/attempts", async (request, reply) => {
     const input = createSchema.parse(request.body);
+    if (input.region) {
+      return reply.code(501).send({
+        error: REGIONAL_POOL_NOT_AVAILABLE,
+      });
+    }
     const userId = verifySession(bearer(request.headers.authorization));
     const guestId = userId ? null : (input.guestId ?? randomUUID());
     const target = await findRandomEligibleSnapshot(input.difficulty);
@@ -242,6 +251,7 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
       return reply.notFound("Attempt not found");
     const history = await db
       .select({
+        guessedPlayerId: guesses.guessedPlayerId,
         canonicalName: players.canonicalName,
         isCorrect: guesses.isCorrect,
         comparison: guesses.comparison,
@@ -264,17 +274,42 @@ export async function registerSoloRoutes(app: FastifyInstance): Promise<void> {
             .innerJoin(players, eq(players.id, playerSnapshots.playerId))
             .where(eq(puzzles.id, attempt.puzzleId))
             .limit(1);
+    const latestApprovedSnapshots = db
+      .select({
+        playerId: playerSnapshots.playerId,
+        dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+          "latest_data_version",
+        ),
+      })
+      .from(playerSnapshots)
+      .where(eq(playerSnapshots.reviewStatus, "approved"))
+      .groupBy(playerSnapshots.playerId)
+      .as("latest_approved_history_snapshots");
     const guessesWithDetails = await Promise.all(
       history.map(async (guess) => {
+        const { guessedPlayerId, ...publicGuess } = guess;
         const [snapshot] = await db
           .select({ snapshot: playerSnapshots })
           .from(playerSnapshots)
-          .innerJoin(players, eq(players.id, playerSnapshots.playerId))
-          .where(eq(players.canonicalName, guess.canonicalName))
-          .orderBy(desc(playerSnapshots.dataVersion))
+          .innerJoin(
+            latestApprovedSnapshots,
+            and(
+              eq(latestApprovedSnapshots.playerId, playerSnapshots.playerId),
+              eq(
+                latestApprovedSnapshots.dataVersion,
+                playerSnapshots.dataVersion,
+              ),
+            ),
+          )
+          .where(
+            and(
+              eq(playerSnapshots.playerId, guessedPlayerId),
+              eq(playerSnapshots.reviewStatus, "approved"),
+            ),
+          )
           .limit(1);
         return {
-          ...guess,
+          ...publicGuess,
           details: snapshot ? playerDetails(snapshot.snapshot) : undefined,
         };
       }),

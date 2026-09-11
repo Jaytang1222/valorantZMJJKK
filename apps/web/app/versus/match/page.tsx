@@ -11,6 +11,7 @@ import {
 } from "../../lib/display";
 import { searchPlayers } from "../../lib/player-search";
 import { t, tWith } from "../../lib/i18n";
+import { GUESS_FIELDS, matchSymbol, toneLabel } from "../../lib/guess-fields";
 import { useLocale } from "../../components/ui-provider";
 
 type Member = {
@@ -55,6 +56,7 @@ type GuessResult = {
   details?: {
     region: string;
     countryCode: string;
+    age?: number;
     primaryRole: string;
     currentOrLastTeam: string;
     isActiveRoster: boolean;
@@ -71,27 +73,14 @@ type OpponentProfile = {
   averageGuesses: number;
 };
 
-const GUESS_FIELDS = [
-  ["region", "col.region"],
-  ["country", "col.country"],
-  ["primaryRole", "col.role"],
-  ["currentOrLastTeam", "col.team"],
-  ["status", "col.status"],
-  ["championsTitles", "col.championsTitles"],
-  ["mastersTitles", "col.mastersTitles"],
-  ["leagueTitles", "col.leagueTitles"],
-] as const;
-
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
-function matchSymbol(tone: string) {
-  return tone === "higher" ? "↑" : tone === "lower" ? "↓" : "";
-}
 
 function guessValue(field: string, guess: GuessResult, locale: "zh" | "en") {
   const details = guess.details;
   if (!details) return "—";
   if (field === "region") return formatRegion(details.region);
   if (field === "country") return formatCountry(details.countryCode, locale);
+  if (field === "age") return guess.comparison.age ? (details.age ?? "—") : "—";
   if (field === "status")
     return t(
       locale,
@@ -139,6 +128,8 @@ function MatchPageContent() {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [showCandidates, setShowCandidates] = useState(true);
+  const [activeCandidateIndex, setActiveCandidateIndex] = useState(-1);
   const [players, setPlayers] = useState<Player[]>([]);
   const [ownGuesses, setOwnGuesses] = useState<GuessResult[]>([]);
   const [answer, setAnswer] = useState("");
@@ -340,6 +331,22 @@ function MatchPageContent() {
     () => searchPlayers(players, query, 250),
     [players, query],
   );
+  useEffect(() => {
+    setActiveCandidateIndex(-1);
+    setShowCandidates(true);
+  }, [query]);
+  const submitPlayerGuess = async (player: Player) => {
+    if (!room) return;
+    const reply = await run("room:guess", {
+      code: room.code,
+      playerId: player.id,
+    });
+    if (reply) {
+      setQuery("");
+      setActiveCandidateIndex(-1);
+      setShowCandidates(true);
+    }
+  };
   const remainingSeconds = (member: Member) =>
     member.disconnectedAt === undefined
       ? 0
@@ -417,11 +424,27 @@ function MatchPageContent() {
           >
             <p>{t(locale, "match.fieldLegend")}</p>
             <small>{t(locale, "match.numericHint")}</small>
-            <div className="match-field-legend">
+            <div className="comparison-legend" aria-hidden="true">
+              <span data-legend="exact">
+                <i />
+                {t(locale, "legend.exact")}
+              </span>
+              <span data-legend="nearby">
+                <i />
+                {t(locale, "legend.nearby")}
+              </span>
+              <span data-legend="mismatch">
+                <i />
+                {t(locale, "legend.mismatch")}
+              </span>
+              <span data-legend="direction">
+                <i>↕</i>
+                {t(locale, "legend.direction")}
+              </span>
+            </div>
+            <div className="match-field-order">
               {GUESS_FIELDS.map(([field, label]) => (
-                <span key={field}>
-                  <b>{t(locale, label)}</b>
-                </span>
+                <span key={field}>{t(locale, label)}</span>
               ))}
             </div>
           </section>
@@ -457,28 +480,78 @@ function MatchPageContent() {
                       </span>
                       <input
                         autoFocus
+                        role="combobox"
                         value={query}
-                        onChange={(event) => setQuery(event.target.value)}
+                        aria-expanded={
+                          showCandidates &&
+                          query.trim().length > 0 &&
+                          candidates.length > 0
+                        }
+                        aria-controls="versus-player-listbox"
+                        aria-activedescendant={
+                          activeCandidateIndex >= 0
+                            ? `versus-player-option-${activeCandidateIndex}`
+                            : undefined
+                        }
+                        onChange={(event) => {
+                          setQuery(event.target.value);
+                          setShowCandidates(true);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            setActiveCandidateIndex(-1);
+                            setShowCandidates(false);
+                            return;
+                          }
+                          if (!candidates.length) return;
+                          if (event.key === "ArrowDown") {
+                            event.preventDefault();
+                            setShowCandidates(true);
+                            setActiveCandidateIndex(
+                              (index) => (index + 1) % candidates.length,
+                            );
+                          } else if (event.key === "ArrowUp") {
+                            event.preventDefault();
+                            setShowCandidates(true);
+                            setActiveCandidateIndex((index) =>
+                              index <= 0 ? candidates.length - 1 : index - 1,
+                            );
+                          } else if (
+                            event.key === "Enter" &&
+                            activeCandidateIndex >= 0
+                          ) {
+                            event.preventDefault();
+                            void submitPlayerGuess(
+                              candidates[activeCandidateIndex],
+                            );
+                          }
+                        }}
                         placeholder={t(locale, "match.searchPlaceholder")}
                       />
-                      <div className="candidate-list">
-                        {candidates.map((player) => (
-                          <button
-                            className="candidate"
-                            key={player.id}
-                            onClick={async () => {
-                              const reply = await run("room:guess", {
-                                code: room.code,
-                                playerId: player.id,
-                              });
-                              if (reply) setQuery("");
-                            }}
-                          >
-                            {player.canonicalName}
-                            <small>{player.currentOrLastTeam}</small>
-                          </button>
-                        ))}
-                      </div>
+                      {showCandidates && query && candidates.length > 0 && (
+                        <div
+                          className="candidate-list"
+                          id="versus-player-listbox"
+                          role="listbox"
+                        >
+                          {candidates.map((player, index) => (
+                            <button
+                              className="candidate"
+                              key={player.id}
+                              id={`versus-player-option-${index}`}
+                              role="option"
+                              aria-selected={activeCandidateIndex === index}
+                              data-active={activeCandidateIndex === index}
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => void submitPlayerGuess(player)}
+                            >
+                              {player.canonicalName}
+                              <small>{player.currentOrLastTeam}</small>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <button
                       className="surrender-button"
@@ -500,12 +573,18 @@ function MatchPageContent() {
                     <div className="comparison-grid">
                       {GUESS_FIELDS.map(([field, label]) => {
                         const tone = guess.comparison[field];
-                        if (!tone) return null;
+                        const isLegacyAge = field === "age" && !tone;
+                        if (!tone && !isLegacyAge) return null;
                         return (
-                          <span key={field} data-match={tone}>
+                          <span
+                            key={field}
+                            data-match={tone}
+                            data-tone={toneLabel(tone)}
+                            data-unavailable={isLegacyAge || undefined}
+                          >
                             <b>{t(locale, label)}</b>
                             <strong>{guessValue(field, guess, locale)}</strong>
-                            <i aria-hidden="true">{matchSymbol(tone)}</i>
+                            <i aria-hidden="true">{matchSymbol(tone ?? "")}</i>
                           </span>
                         );
                       })}

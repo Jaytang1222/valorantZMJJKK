@@ -48,7 +48,9 @@ export async function registerPlayerRoutes(
     if (query.countryCode)
       conditions.push(eq(playerSnapshots.countryCode, query.countryCode));
     if (query.role)
-      conditions.push(eq(playerSnapshots.primaryRole, query.role));
+      conditions.push(
+        sql`${query.role}::player_role = any(${playerSnapshots.playerRoles})`,
+      );
     if (query.team)
       conditions.push(
         ilike(playerSnapshots.currentOrLastTeam, `%${query.team}%`),
@@ -69,6 +71,7 @@ export async function registerPlayerRoutes(
         countryCode: playerSnapshots.countryCode,
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
+        roles: playerSnapshots.playerRoles,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
@@ -96,6 +99,7 @@ export async function registerPlayerRoutes(
         playerSnapshots.countryCode,
         playerSnapshots.region,
         playerSnapshots.primaryRole,
+        playerSnapshots.playerRoles,
         playerSnapshots.currentOrLastTeam,
         playerSnapshots.rosterStatus,
         playerSnapshots.isActiveRoster,
@@ -126,8 +130,10 @@ export async function registerPlayerRoutes(
         canonicalName: players.canonicalName,
         countryCode: playerSnapshots.countryCode,
         countryGroupCode: playerSnapshots.countryGroupCode,
+        age: playerSnapshots.age,
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
+        roles: playerSnapshots.playerRoles,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         rosterStatus: playerSnapshots.rosterStatus,
         championsTitles: playerSnapshots.championsTitles,

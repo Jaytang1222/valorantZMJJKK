@@ -4,6 +4,7 @@ import {
   desc,
   eq,
   inArray,
+  isNull,
   isNotNull,
   notInArray,
   sql,
@@ -23,6 +24,7 @@ import {
   users,
 } from "../db/schema.js";
 import { redis } from "../redis.js";
+import { DELETED_USER_DISPLAY_NAME } from "../routes/auth.js";
 
 export type LeaderboardMode = "solo" | "versus";
 
@@ -69,9 +71,11 @@ async function rebuildLeaderboard(mode: LeaderboardMode) {
           totalGuesses: sql<number>`coalesce(sum(${soloAttempts.guessCount}), 0)::int`,
         })
         .from(soloAttempts)
+        .innerJoin(users, eq(users.id, soloAttempts.userId))
         .where(
           and(
             isNotNull(soloAttempts.userId),
+            isNull(users.deletedAt),
             inArray(soloAttempts.status, ["won", "lost"]),
             ...(excludedUserIds.length > 0
               ? [notInArray(soloAttempts.userId, excludedUserIds)]
@@ -103,6 +107,7 @@ async function rebuildLeaderboard(mode: LeaderboardMode) {
         totalGuesses: sql<number>`count(${guesses.id})::int`,
       })
       .from(roomParticipants)
+      .innerJoin(users, eq(users.id, roomParticipants.userId))
       .innerJoin(rooms, eq(rooms.id, roomParticipants.roomId))
       .leftJoin(
         roomRounds,
@@ -118,6 +123,7 @@ async function rebuildLeaderboard(mode: LeaderboardMode) {
       .where(
         and(
           eq(rooms.rankedEligible, true),
+          isNull(users.deletedAt),
           ...(excludedUserIds.length > 0
             ? [notInArray(roomParticipants.userId, excludedUserIds)]
             : []),
@@ -156,7 +162,7 @@ async function loadRows(mode: LeaderboardMode): Promise<LeaderboardRow[]> {
     })
     .from(leaderboardEntries)
     .innerJoin(users, eq(users.id, leaderboardEntries.userId))
-    .where(eq(leaderboardEntries.mode, mode))
+    .where(and(eq(leaderboardEntries.mode, mode), isNull(users.deletedAt)))
     .orderBy(
       desc(leaderboardEntries.totalScore),
       desc(leaderboardEntries.wins),
@@ -394,7 +400,7 @@ export async function getAccountSummary(userId: string) {
 
 export async function getPublicVersusProfile(userId: string) {
   const [user] = await db
-    .select({ displayName: users.displayName })
+    .select({ displayName: users.displayName, deletedAt: users.deletedAt })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -402,7 +408,7 @@ export async function getPublicVersusProfile(userId: string) {
 
   const stats = await getVersusStats(userId);
   return {
-    displayName: user.displayName,
+    displayName: user.deletedAt ? DELETED_USER_DISPLAY_NAME : user.displayName,
     gamesPlayed: stats?.gamesPlayed ?? 0,
     wins: stats?.wins ?? 0,
     winRate: stats?.winRate ?? 0,

@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const themeScript = `(function(){try{var t=localStorage.getItem('valo_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';}document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=(t==='light'?'light':'dark');document.documentElement.style.background=(t==='light'?'#f3f0ea':'#0f1923');}catch(_){document.documentElement.dataset.theme='dark';}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem('valo_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';}document.documentElement.dataset.theme=t;}catch(_){document.documentElement.dataset.theme='dark';}})();`;
 
 export default async function RootLayout({
   children,
@@ -38,7 +38,11 @@ export default async function RootLayout({
   const theme: Theme = storedTheme === "light" ? "light" : "dark";
 
   return (
-    <html lang={locale === "zh" ? "zh-CN" : "en"} data-theme={theme}>
+    <html
+      lang={locale === "zh" ? "zh-CN" : "en"}
+      data-theme={theme}
+      suppressHydrationWarning
+    >
       <head>
         <meta
           name="theme-color"

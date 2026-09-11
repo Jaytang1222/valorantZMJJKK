@@ -52,7 +52,7 @@ export async function review(formData: FormData): Promise<void> {
   )
     throw new Error("Invalid review request");
   await updateReview(snapshotId, reviewStatus);
-  redirect("/admin");
+  redirect(String(formData.get("returnTo") ?? "/admin"));
 }
 
 function list(value: FormDataEntryValue | null): string[] {
@@ -62,19 +62,40 @@ function list(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
+function rolesFromForm(formData: FormData) {
+  const values = formData
+    .getAll("roles")
+    .map(String)
+    .filter((value) =>
+      ["duelist", "initiator", "controller", "sentinel", "flex"].includes(
+        value,
+      ),
+    );
+  const fallback = String(formData.get("primaryRole") ?? "flex");
+  const roles = [...new Set(values.length ? values : [fallback])];
+  return {
+    roles: roles as (
+      "duelist" | "initiator" | "controller" | "sentinel" | "flex"
+    )[],
+    primaryRole: roles[0] as
+      "duelist" | "initiator" | "controller" | "sentinel" | "flex",
+  };
+}
+
 export async function createPlayerAction(formData: FormData): Promise<void> {
   await requireAdminCapability("content");
   const rosterStatus = String(formData.get("rosterStatus") ?? "active") as
     "active" | "benched" | "transferred" | "retired" | "inactive";
+  const roleData = rolesFromForm(formData);
   await createPlayer({
     canonicalName: String(formData.get("canonicalName") ?? ""),
     aliases: list(formData.get("aliases")),
     countryCode: String(formData.get("countryCode") ?? "").toUpperCase(),
     countryGroup: String(formData.get("countryGroup") ?? ""),
+    age: Number(formData.get("age")),
     region: String(formData.get("region")) as
       "americas" | "emea" | "pacific" | "china",
-    primaryRole: String(formData.get("primaryRole")) as
-      "duelist" | "initiator" | "controller" | "sentinel" | "flex",
+    ...roleData,
     currentOrLastTeam: String(formData.get("team") ?? ""),
     rosterStatus,
     championsTitles: Number(formData.get("championsTitles")),
@@ -95,6 +116,7 @@ export async function updatePlayerAction(formData: FormData): Promise<void> {
   if (!playerId) throw new Error("Player id is required");
   const rosterStatus = String(formData.get("rosterStatus") ?? "active") as
     "active" | "benched" | "transferred" | "retired" | "inactive";
+  const roleData = rolesFromForm(formData);
   await updatePlayer(playerId, {
     isCoach: formData.get("isCoach") === "true",
     isFeaturedTeam: formData.get("isFeaturedTeam") === "true",
@@ -103,10 +125,10 @@ export async function updatePlayerAction(formData: FormData): Promise<void> {
     aliases: list(formData.get("aliases")),
     countryCode: String(formData.get("countryCode") ?? "").toUpperCase(),
     countryGroup: String(formData.get("countryGroup") ?? ""),
+    age: Number(formData.get("age")),
     region: String(formData.get("region")) as
       "americas" | "emea" | "pacific" | "china",
-    primaryRole: String(formData.get("primaryRole")) as
-      "duelist" | "initiator" | "controller" | "sentinel" | "flex",
+    ...roleData,
     currentOrLastTeam: String(formData.get("team") ?? ""),
     rosterStatus,
     championsTitles: Number(formData.get("championsTitles")),
@@ -127,7 +149,7 @@ export async function setPlayerStatus(formData: FormData): Promise<void> {
     String(formData.get("playerId") ?? ""),
     String(formData.get("status")) as "active" | "disabled",
   );
-  redirect("/admin");
+  redirect(String(formData.get("returnTo") ?? "/admin"));
 }
 
 export async function addAliasAction(formData: FormData): Promise<void> {
@@ -169,6 +191,14 @@ export async function deleteUserAction(formData: FormData): Promise<void> {
   await requireAdminCapability("content");
   const userId = String(formData.get("userId") ?? "");
   if (!userId) throw new Error("User id is required");
-  await deleteAdminUser(userId);
-  redirect("/admin?section=users&deletedUser=1");
+  let failed = false;
+  try {
+    await deleteAdminUser(userId);
+  } catch {
+    failed = true;
+  }
+  const view = String(formData.get("userView") ?? "active");
+  redirect(
+    `/admin?section=users&userView=${encodeURIComponent(view)}&${failed ? "userError=1" : "deletedUser=1"}`,
+  );
 }

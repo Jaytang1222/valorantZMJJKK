@@ -3,7 +3,10 @@ import type { Server as HttpServer } from "node:http";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server } from "socket.io";
 import { env } from "./config.js";
-import { verifyRealtimeTicket } from "./routes/auth.js";
+import {
+  DELETED_USER_DISPLAY_NAME,
+  verifyRealtimeTicket,
+} from "./routes/auth.js";
 import { redis, redisSubscriber } from "./redis.js";
 import { db } from "./db/client.js";
 import {
@@ -257,12 +260,16 @@ export async function createRealtimeServer(
     const userId = socket.data.userId as string;
     const getUser = async () => {
       const [user] = await db
-        .select({ displayName: users.displayName })
+        .select({ displayName: users.displayName, deletedAt: users.deletedAt })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
       if (!user) throw new Error("User not found");
-      return user;
+      return {
+        displayName: user.deletedAt
+          ? DELETED_USER_DISPLAY_NAME
+          : user.displayName,
+      };
     };
     const pickTarget = async () => {
       const target = await findVersusEligibleSnapshot();
@@ -565,6 +572,17 @@ export async function createRealtimeServer(
           .innerJoin(players, eq(players.id, playerSnapshots.playerId))
           .where(eq(puzzles.id, room.targetPuzzleId))
           .limit(1);
+        const latestApprovedSnapshots = db
+          .select({
+            playerId: playerSnapshots.playerId,
+            dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+              "latest_data_version",
+            ),
+          })
+          .from(playerSnapshots)
+          .where(eq(playerSnapshots.reviewStatus, "approved"))
+          .groupBy(playerSnapshots.playerId)
+          .as("latest_approved_guess_snapshots");
         const [guess] = await db
           .select({
             id: players.id,
@@ -573,13 +591,24 @@ export async function createRealtimeServer(
           })
           .from(players)
           .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
+          .innerJoin(
+            latestApprovedSnapshots,
+            and(
+              eq(latestApprovedSnapshots.playerId, playerSnapshots.playerId),
+              eq(
+                latestApprovedSnapshots.dataVersion,
+                playerSnapshots.dataVersion,
+              ),
+            ),
+          )
           .where(
             and(
               eq(players.id, String(playerId)),
               eq(playerSnapshots.reviewStatus, "approved"),
+              eq(players.status, "active"),
+              eq(playerSnapshots.isCoach, false),
             ),
           )
-          .orderBy(sql`${playerSnapshots.dataVersion} desc`)
           .limit(1);
         if (!target || !guess)
           throw new Error("Selected player is unavailable");
@@ -594,7 +623,9 @@ export async function createRealtimeServer(
           details: {
             region: guess.snapshot.region,
             countryCode: guess.snapshot.countryCode,
+            age: guess.snapshot.age,
             primaryRole: guess.snapshot.primaryRole,
+            roles: guess.snapshot.playerRoles,
             currentOrLastTeam: guess.snapshot.currentOrLastTeam,
             isActiveRoster: guess.snapshot.isActiveRoster,
             championsTitles: guess.snapshot.championsTitles,

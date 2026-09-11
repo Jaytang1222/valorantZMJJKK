@@ -17,8 +17,10 @@ for (const [index, row] of rows.entries()) {
     aliases: row.aliases.split("|").filter(Boolean),
     countryCode: row.country_code,
     countryGroup: row.country_group,
+    age: row.age?.trim() ? Number(row.age) : undefined,
     region: row.region,
     primaryRole: row.primary_role,
+    roles: row.roles?.split("|").filter(Boolean),
     currentOrLastTeam: row.current_or_last_team,
     rosterStatus:
       row.roster_status ??
