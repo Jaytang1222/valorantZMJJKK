@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -98,6 +98,7 @@ export const users = pgTable(
     normalizedEmail: varchar("normalized_email", { length: 320 }),
     passwordHash: text("password_hash"),
     role: userRoleEnum("role").notNull().default("user"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -108,6 +109,7 @@ export const users = pgTable(
   (table) => [
     uniqueIndex("users_display_name_unique").on(table.normalizedDisplayName),
     uniqueIndex("users_normalized_email_unique").on(table.normalizedEmail),
+    index("users_deleted_at_idx").on(table.deletedAt),
   ],
 );
 
@@ -179,8 +181,13 @@ export const playerSnapshots = pgTable(
     dataVersion: integer("data_version").notNull(),
     countryCode: varchar("country_code", { length: 2 }).notNull(),
     countryGroupCode: varchar("country_group_code", { length: 64 }).notNull(),
+    age: integer("age").notNull().default(20),
     region: regionEnum("region").notNull(),
     primaryRole: playerRoleEnum("primary_role").notNull(),
+    playerRoles: playerRoleEnum("player_roles")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['flex']::player_role[]`),
     currentOrLastTeam: varchar("current_or_last_team", {
       length: 128,
     }).notNull(),

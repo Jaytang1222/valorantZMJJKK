@@ -1,23 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { Crosshair, GitFork, Swords, UsersRound } from "lucide-react";
+import { RulesDialog } from "./components/rules-dialog";
 import { LOCALE_COOKIE, detectLocale, t } from "./lib/i18n";
-
-const API_BASE_URL =
-  process.env.API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:3001";
-
-async function getApiStatus(): Promise<"online" | "offline"> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(2_000),
-    });
-    return response.ok ? "online" : "offline";
-  } catch {
-    return "offline";
-  }
-}
 
 export default async function HomePage() {
   const cookieStore = await cookies();
@@ -26,8 +10,6 @@ export default async function HomePage() {
     cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage,
   );
-  const apiStatus = await getApiStatus();
-
   return (
     <main className="home-page">
       <section className="hero">
@@ -35,13 +17,7 @@ export default async function HomePage() {
         <div className="hero-copy">
           <p className="eyebrow">VALORANT // PLAYER INTEL</p>
           <h1>{t(locale, "nav.brand")}</h1>
-          <p className="lead">{t(locale, "home.lead")}</p>
-          <div className="status" data-online={apiStatus === "online"}>
-            <span aria-hidden="true" />
-            {apiStatus === "online"
-              ? t(locale, "home.statusOnline")
-              : t(locale, "home.statusOffline")}
-          </div>
+          <RulesDialog />
         </div>
         <div className="hero-readout" aria-hidden="true">
           <span>08</span>

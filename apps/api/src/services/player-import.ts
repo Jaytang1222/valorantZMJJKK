@@ -5,6 +5,17 @@ import { playerAliases, playerSnapshots, players } from "../db/schema.js";
 import { normalizeAlias } from "../lib/normalization.js";
 import { resolvePlayer } from "./player-identity.js";
 
+type UpsertPlayerSnapshotOptions = {
+  preserveExistingAge?: boolean;
+};
+
+function normalizeRoles(
+  primaryRole: PlayerImport["primaryRole"],
+  roles: PlayerImport["roles"],
+) {
+  return [...new Set([...(roles ?? []), primaryRole])];
+}
+
 export class PlayerCanonicalNameConflictError extends Error {
   constructor() {
     super("Canonical player name is already in use");
@@ -21,6 +32,7 @@ export class PlayerSnapshotNotFoundError extends Error {
 
 export async function upsertPlayerSnapshot(
   data: PlayerImport,
+  options: UpsertPlayerSnapshotOptions = {},
 ): Promise<{ playerId: string; snapshotId: string }> {
   return db.transaction(async (tx) => {
     const player = await resolvePlayer(tx, data.canonicalName);
@@ -37,11 +49,17 @@ export async function upsertPlayerSnapshot(
     }
 
     const [latestSnapshot] = await tx
-      .select({ dataVersion: playerSnapshots.dataVersion })
+      .select({
+        dataVersion: playerSnapshots.dataVersion,
+        age: playerSnapshots.age,
+      })
       .from(playerSnapshots)
       .where(eq(playerSnapshots.playerId, player.id))
       .orderBy(desc(playerSnapshots.dataVersion))
       .limit(1);
+    const age = options.preserveExistingAge
+      ? (latestSnapshot?.age ?? data.age)
+      : data.age;
 
     const [snapshot] = await tx
       .insert(playerSnapshots)
@@ -50,8 +68,10 @@ export async function upsertPlayerSnapshot(
         dataVersion: (latestSnapshot?.dataVersion ?? 0) + 1,
         countryCode: data.countryCode,
         countryGroupCode: data.countryGroup,
+        age,
         region: data.region,
         primaryRole: data.primaryRole,
+        playerRoles: normalizeRoles(data.primaryRole, data.roles),
         currentOrLastTeam: data.currentOrLastTeam,
         rosterStatus: data.rosterStatus,
         isActiveRoster: data.isActiveRoster,
@@ -125,8 +145,10 @@ export async function updateLatestPlayerSnapshot(
       .set({
         countryCode: data.countryCode,
         countryGroupCode: data.countryGroup,
+        age: data.age,
         region: data.region,
         primaryRole: data.primaryRole,
+        playerRoles: normalizeRoles(data.primaryRole, data.roles),
         currentOrLastTeam: data.currentOrLastTeam,
         rosterStatus: data.rosterStatus,
         isActiveRoster: data.isActiveRoster,

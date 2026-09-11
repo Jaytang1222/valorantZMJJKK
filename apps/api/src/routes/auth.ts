@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { env } from "../config.js";
@@ -19,6 +19,8 @@ const loginCredentialsSchema = z.object({
 function normalize(value: string) {
   return value.trim().normalize("NFKC").toLocaleLowerCase("en-US");
 }
+
+export const DELETED_USER_DISPLAY_NAME = "已注销用户";
 
 function signedToken(userId: string, lifetimeMs: number, purpose = "session") {
   const expiresAt = Date.now() + lifetimeMs;
@@ -150,7 +152,12 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
           passwordHash: users.passwordHash,
         })
         .from(users)
-        .where(eq(users.normalizedEmail, normalize(input.email)))
+        .where(
+          and(
+            eq(users.normalizedEmail, normalize(input.email)),
+            isNull(users.deletedAt),
+          ),
+        )
         .limit(1);
       if (
         !user?.passwordHash ||
@@ -178,12 +185,22 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
         displayName: users.displayName,
         email: users.email,
         role: users.role,
+        deletedAt: users.deletedAt,
       })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
     if (!user) return reply.unauthorized("Authentication is required");
-    return { user };
+    return {
+      user: {
+        ...user,
+        displayName: user.deletedAt
+          ? DELETED_USER_DISPLAY_NAME
+          : user.displayName,
+        role: user.deletedAt ? "user" : user.role,
+        email: user.deletedAt ? null : user.email,
+      },
+    };
   });
 
   app.post(

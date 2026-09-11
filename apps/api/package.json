@@ -11,7 +11,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "pretest:integration": "pnpm --filter @valo-yiba/contracts build",
-    "test:integration": "vitest run src/services/room-persistence.integration.test.ts src/services/player-import.integration.test.ts",
+    "test:integration": "vitest run src/services/room-persistence.integration.test.ts src/services/player-import.integration.test.ts src/services/admin-player-management.integration.test.ts src/services/player-age.integration.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",

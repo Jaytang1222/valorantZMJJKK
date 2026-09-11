@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import {
   formatCountry,
   formatRegion,
@@ -22,17 +24,123 @@ type Player = {
   dataAsOf: string;
   aliases?: string[];
 };
+
+type PlayerDetails = Player & {
+  age: number;
+  isActiveRoster: boolean;
+  championsTitles: number;
+  mastersTitles: number;
+  leagueTitles: number;
+};
+
+const detailFields = [
+  ["region", "col.region"],
+  ["country", "col.country"],
+  ["age", "col.age"],
+  ["status", "col.status"],
+  ["primaryRole", "col.role"],
+  ["currentOrLastTeam", "col.team"],
+  ["championsTitles", "col.championsTitles"],
+  ["mastersTitles", "col.mastersTitles"],
+  ["leagueTitles", "col.leagueTitles"],
+] as const;
+
+function detailValue(
+  field: (typeof detailFields)[number][0],
+  player: PlayerDetails,
+  locale: "zh" | "en",
+) {
+  if (field === "region") return formatRegion(player.region);
+  if (field === "country") return formatCountry(player.countryCode, locale);
+  if (field === "age") return player.age;
+  if (field === "status")
+    return t(
+      locale,
+      player.isActiveRoster ? "status.active" : "status.retired",
+    );
+  if (field === "primaryRole") return formatRole(player.primaryRole, locale);
+  if (field === "currentOrLastTeam")
+    return formatTeam(player.currentOrLastTeam);
+  return player[field];
+}
+
 export default function PlayersPage() {
   const { locale } = useLocale();
   const [players, setPlayers] = useState<Player[]>([]);
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [details, setDetails] = useState<PlayerDetails | null>(null);
+  const [detailsError, setDetailsError] = useState("");
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
-    fetch("/api/players?limit=5000")
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    fetch("/api/players?limit=5000", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json() as Promise<Player[]>;
+      })
       .then(setPlayers)
-      .catch(() => setError(t(locale, "players.error")));
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setError(t(locale, "players.error"));
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, [locale]);
+
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    const controller = new AbortController();
+    setDetails(null);
+    setDetailsError("");
+    setDetailsLoading(true);
+    fetch(`/api/players/${selectedPlayer.id}`, { signal: controller.signal })
+      .then((response) =>
+        response.ok ? response.json() : Promise.reject(new Error("details")),
+      )
+      .then((data) => setDetails(data))
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setDetailsError(t(locale, "players.detailsError"));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDetailsLoading(false);
+      });
+    return () => controller.abort();
+  }, [locale, selectedPlayer]);
+
+  function closeDetails() {
+    setSelectedPlayer(null);
+    setDetails(null);
+    setDetailsError("");
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  }
+
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeDetails();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [selectedPlayer]);
+
   const results = useMemo(
     () =>
       query.trim()
@@ -46,6 +154,12 @@ export default function PlayersPage() {
         : players,
     [players, query],
   );
+
+  function openDetails(player: Player, trigger: HTMLElement) {
+    triggerRef.current = trigger;
+    setSelectedPlayer(player);
+  }
+
   return (
     <main className="game-shell">
       <header className="game-header">
@@ -68,14 +182,35 @@ export default function PlayersPage() {
           />
         </label>
         {error && <p className="form-error">{error}</p>}
-        {!error && (
+        {loading && (
+          <p className="loading-state" role="status">
+            {t(locale, "players.loading")}
+          </p>
+        )}
+        {!error && !loading && (
           <p className="results-count">
             {tWith(locale, "players.count", { count: results.length })}
           </p>
         )}
-        <div className="player-results">
+        <div className="player-results" aria-busy={loading}>
           {results.map((player) => (
-            <article key={player.id}>
+            <article
+              className="player-card"
+              key={player.id}
+              role="button"
+              tabIndex={0}
+              aria-haspopup="dialog"
+              aria-label={tWith(locale, "players.openDetails", {
+                name: player.canonicalName,
+              })}
+              onClick={(event) => openDetails(player, event.currentTarget)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openDetails(player, event.currentTarget);
+                }
+              }}
+            >
               <h2>{player.canonicalName}</h2>
               <p>{formatTeam(player.currentOrLastTeam)}</p>
               <dl>
@@ -95,10 +230,64 @@ export default function PlayersPage() {
             </article>
           ))}
         </div>
-        {!error && results.length === 0 && (
+        {!error && !loading && results.length === 0 && (
           <p className="empty-state">{t(locale, "players.empty")}</p>
         )}
       </section>
+      {mounted &&
+        selectedPlayer &&
+        createPortal(
+          <div
+            className="player-details-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) closeDetails();
+            }}
+          >
+            <section
+              className="player-details-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="player-details-dialog-title"
+              aria-busy={detailsLoading}
+            >
+              <header className="player-details-dialog-header">
+                <div>
+                  <p className="eyebrow">PLAYER // INTEL</p>
+                  <h2 id="player-details-dialog-title">
+                    {tWith(locale, "players.detailsTitle", {
+                      name: selectedPlayer.canonicalName,
+                    })}
+                  </h2>
+                </div>
+                <button
+                  ref={closeButtonRef}
+                  type="button"
+                  className="icon-button"
+                  aria-label={t(locale, "players.closeDetails")}
+                  onClick={closeDetails}
+                >
+                  <X aria-hidden="true" size={18} />
+                </button>
+              </header>
+              <div className="player-details-dialog-body">
+                {detailsLoading && <p>{t(locale, "players.detailsLoading")}</p>}
+                {detailsError && <p className="form-error">{detailsError}</p>}
+                {details && (
+                  <dl className="player-details-grid">
+                    {detailFields.map(([field, label]) => (
+                      <div key={field}>
+                        <dt>{t(locale, label)}</dt>
+                        <dd>{detailValue(field, details, locale)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
     </main>
   );
 }

@@ -25,43 +25,57 @@ const initialCountryGroups = [
 ] as const;
 
 function parseRow(row: CsvRow) {
-  return playerImportSchema.parse({
-    canonicalName: row.canonical_name,
-    aliases: row.aliases.split("|").filter(Boolean),
-    countryCode: row.country_code,
-    countryGroup: row.country_group,
-    region: row.region,
-    primaryRole: row.primary_role,
-    currentOrLastTeam: row.current_or_last_team,
-    rosterStatus:
-      row.roster_status ??
-      (row.is_active_roster === "false" ? "retired" : "active"),
-    isActiveRoster:
-      row.is_active_roster === undefined
-        ? true
-        : row.is_active_roster === "true",
-    isCoach: row.is_coach === "true",
-    isFeaturedTeam: row.is_featured_team === "true",
-    isVctCnTeam: row.is_vct_cn_team === "true",
-    championsTitles: Number(row.champions_titles),
-    mastersTitles: Number(row.masters_titles),
-    leagueTitles: Number(row.league_titles),
-    dataAsOf: row.data_as_of,
-    sourceUrl: row.source_url,
-    sourceCheckedAt: row.source_checked_at,
-    reviewStatus: row.review_status,
-  });
+  const rawAge = row.age?.trim();
+  return {
+    ageProvided: Boolean(rawAge),
+    data: playerImportSchema.parse({
+      canonicalName: row.canonical_name,
+      aliases: row.aliases.split("|").filter(Boolean),
+      countryCode: row.country_code,
+      countryGroup: row.country_group,
+      age: rawAge ? Number(rawAge) : undefined,
+      region: row.region,
+      primaryRole: row.primary_role,
+      roles: row.roles?.split("|").filter(Boolean),
+      currentOrLastTeam: row.current_or_last_team,
+      rosterStatus:
+        row.roster_status ??
+        (row.is_active_roster === "false" ? "retired" : "active"),
+      isActiveRoster:
+        row.is_active_roster === undefined
+          ? true
+          : row.is_active_roster === "true",
+      isCoach: row.is_coach === "true",
+      isFeaturedTeam: row.is_featured_team === "true",
+      isVctCnTeam: row.is_vct_cn_team === "true",
+      championsTitles: Number(row.champions_titles),
+      mastersTitles: Number(row.masters_titles),
+      leagueTitles: Number(row.league_titles),
+      dataAsOf: row.data_as_of,
+      sourceUrl: row.source_url,
+      sourceCheckedAt: row.source_checked_at,
+      reviewStatus: row.review_status,
+    }),
+  };
+}
+
+function normalizedRoles(data: ReturnType<typeof parseRow>["data"]) {
+  return [...new Set([...(data.roles ?? []), data.primaryRole])];
 }
 
 function snapshotMatchesData(
   snapshot: typeof playerSnapshots.$inferSelect | undefined,
-  data: ReturnType<typeof parseRow>,
+  data: ReturnType<typeof parseRow>["data"],
+  age: number,
 ) {
   return (
     snapshot?.countryCode === data.countryCode &&
     snapshot.countryGroupCode === data.countryGroup &&
+    snapshot.age === age &&
     snapshot.region === data.region &&
     snapshot.primaryRole === data.primaryRole &&
+    JSON.stringify(snapshot?.playerRoles ?? []) ===
+      JSON.stringify(normalizedRoles(data)) &&
     snapshot.currentOrLastTeam === data.currentOrLastTeam &&
     snapshot.rosterStatus === data.rosterStatus &&
     snapshot.isActiveRoster === data.isActiveRoster &&
@@ -98,7 +112,8 @@ export async function seedInitialPlayerData(
   }
 
   for (const row of rows) {
-    const data = parseRow(row);
+    const parsedRow = parseRow(row);
+    const data = parsedRow.data;
     await db.transaction(async (tx) => {
       const player = await resolvePlayer(tx, data.canonicalName);
 
@@ -119,13 +134,18 @@ export async function seedInitialPlayerData(
         .where(eq(playerSnapshots.playerId, player.id))
         .orderBy(desc(playerSnapshots.dataVersion))
         .limit(1);
+      const age = parsedRow.ageProvided
+        ? data.age
+        : (latestSnapshot?.age ?? data.age);
       const snapshotValues = {
         playerId: player.id,
         dataVersion: latestSnapshot?.dataVersion ?? 0,
         countryCode: data.countryCode,
         countryGroupCode: data.countryGroup,
+        age,
         region: data.region,
         primaryRole: data.primaryRole,
+        playerRoles: normalizedRoles(data),
         currentOrLastTeam: data.currentOrLastTeam,
         rosterStatus: data.rosterStatus,
         isActiveRoster: data.isActiveRoster,
@@ -141,7 +161,7 @@ export async function seedInitialPlayerData(
         reviewStatus: data.reviewStatus,
       };
 
-      if (snapshotMatchesData(latestSnapshot, data)) {
+      if (snapshotMatchesData(latestSnapshot, data, age)) {
         await tx
           .update(playerSnapshots)
           .set(snapshotValues)

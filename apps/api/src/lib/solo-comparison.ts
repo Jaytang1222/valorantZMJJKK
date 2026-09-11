@@ -2,7 +2,9 @@ type Snapshot = {
   region: string;
   countryCode: string;
   countryGroupCode: string;
+  age: number;
   primaryRole: string;
+  playerRoles?: string[];
   currentOrLastTeam: string;
   isActiveRoster: boolean;
   championsTitles: number;
@@ -20,7 +22,17 @@ export function compareSoloGuess(guess: Snapshot, target: Snapshot) {
         : guess.countryGroupCode === target.countryGroupCode
           ? "nearby"
           : "mismatch",
-    primaryRole: text(guess.primaryRole, target.primaryRole),
+    age:
+      guess.age === target.age
+        ? "equal"
+        : guess.age < target.age
+          ? "higher"
+          : "lower",
+    primaryRole: (guess.playerRoles ?? [guess.primaryRole]).some((role) =>
+      (target.playerRoles ?? [target.primaryRole]).includes(role),
+    )
+      ? "exact"
+      : "mismatch",
     currentOrLastTeam: text(guess.currentOrLastTeam, target.currentOrLastTeam),
     status: text(
       guess.isActiveRoster ? "active" : "retired",

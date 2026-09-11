@@ -10,6 +10,7 @@ import {
   eq,
   ilike,
   inArray,
+  isNull,
   isNotNull,
   or,
   sql,
@@ -33,7 +34,7 @@ import {
 } from "../db/schema.js";
 import { db } from "../db/client.js";
 import { normalizeAlias } from "../lib/normalization.js";
-import { defaultName } from "./auth.js";
+import { DELETED_USER_DISPLAY_NAME, defaultName } from "./auth.js";
 import { invalidateLeaderboard } from "../services/leaderboard.js";
 import {
   PlayerCanonicalNameConflictError,
@@ -47,6 +48,7 @@ const reviewSchema = z.object({
 });
 
 const listSchema = z.object({
+  view: z.enum(["published", "pending", "disabled", "all"]).optional(),
   reviewStatus: z
     .enum(["pending_review", "approved", "rejected", "all"])
     .default("pending_review"),
@@ -75,6 +77,7 @@ const userRoleSchema = z.object({
 });
 const userListSchema = z.object({
   q: z.string().trim().min(1).max(64).optional(),
+  view: z.enum(["active", "deleted", "all"]).default("active"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
@@ -105,35 +108,41 @@ function parseCsvPlayers(csv: string) {
     skip_empty_lines: true,
     trim: true,
   }) as Record<string, string>[];
-  return rows.map((row, index) => ({
-    rowNumber: index + 2,
-    data: playerImportSchema.safeParse({
-      canonicalName: row.canonical_name,
-      aliases: row.aliases?.split("|").filter(Boolean),
-      countryCode: row.country_code,
-      countryGroup: row.country_group,
-      region: row.region,
-      primaryRole: row.primary_role,
-      currentOrLastTeam: row.current_or_last_team,
-      rosterStatus:
-        row.roster_status ??
-        (row.is_active_roster === "false" ? "retired" : "active"),
-      isActiveRoster:
-        row.is_active_roster === undefined
-          ? true
-          : row.is_active_roster === "true",
-      isCoach: row.is_coach === "true",
-      isFeaturedTeam: row.is_featured_team === "true",
-      isVctCnTeam: row.is_vct_cn_team === "true",
-      championsTitles: Number(row.champions_titles),
-      mastersTitles: Number(row.masters_titles),
-      leagueTitles: Number(row.league_titles),
-      dataAsOf: row.data_as_of,
-      sourceUrl: row.source_url,
-      sourceCheckedAt: row.source_checked_at,
-      reviewStatus: row.review_status,
-    }),
-  }));
+  return rows.map((row, index) => {
+    const rawAge = row.age?.trim();
+    return {
+      rowNumber: index + 2,
+      ageProvided: Boolean(rawAge),
+      data: playerImportSchema.safeParse({
+        canonicalName: row.canonical_name,
+        aliases: row.aliases?.split("|").filter(Boolean),
+        countryCode: row.country_code,
+        countryGroup: row.country_group,
+        age: rawAge ? Number(rawAge) : undefined,
+        region: row.region,
+        primaryRole: row.primary_role,
+        roles: row.roles?.split("|").filter(Boolean),
+        currentOrLastTeam: row.current_or_last_team,
+        rosterStatus:
+          row.roster_status ??
+          (row.is_active_roster === "false" ? "retired" : "active"),
+        isActiveRoster:
+          row.is_active_roster === undefined
+            ? true
+            : row.is_active_roster === "true",
+        isCoach: row.is_coach === "true",
+        isFeaturedTeam: row.is_featured_team === "true",
+        isVctCnTeam: row.is_vct_cn_team === "true",
+        championsTitles: Number(row.champions_titles),
+        mastersTitles: Number(row.masters_titles),
+        leagueTitles: Number(row.league_titles),
+        dataAsOf: row.data_as_of,
+        sourceUrl: row.source_url,
+        sourceCheckedAt: row.source_checked_at,
+        reviewStatus: row.review_status,
+      }),
+    };
+  });
 }
 
 async function audit(input: {
@@ -246,9 +255,11 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
           ],
     );
     const valid = parsed.flatMap((row) =>
-      row.data.success ? [row.data.data] : [],
+      row.data.success
+        ? [{ player: row.data.data, ageProvided: row.ageProvided }]
+        : [],
     );
-    const names = valid.map((row) => row.canonicalName);
+    const names = valid.map(({ player }) => player.canonicalName);
     const normalizedNames = [
       ...new Set(names.map((name) => name.toLowerCase())),
     ];
@@ -266,8 +277,12 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       return { preview: true, validRows: valid.length, errors, conflicts };
     }
     const imported = [];
-    for (const player of valid)
-      imported.push(await upsertPlayerSnapshot(player));
+    for (const { player, ageProvided } of valid)
+      imported.push(
+        await upsertPlayerSnapshot(player, {
+          preserveExistingAge: !ageProvided,
+        }),
+      );
     await audit({
       action: "players_csv_imported",
       entityType: "player_import",
@@ -301,7 +316,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get("/v1/admin/snapshots", async (request) => {
-    const { reviewStatus, region, team, q, rosterStatus, page, limit } =
+    const { view, reviewStatus, region, team, q, rosterStatus, page, limit } =
       listSchema.parse(request.query);
     const latestSnapshots = db
       .select({
@@ -328,10 +343,26 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
           ilike(playerAliases.alias, `%${q}%`),
         )!,
       );
-    const conditions =
-      reviewStatus === "all"
-        ? filterConditions
-        : [...filterConditions, eq(playerSnapshots.reviewStatus, reviewStatus)];
+    const viewConditions = view
+      ? view === "published"
+        ? [
+            eq(players.status, "active"),
+            eq(playerSnapshots.reviewStatus, "approved"),
+          ]
+        : view === "pending"
+          ? [
+              inArray(playerSnapshots.reviewStatus, [
+                "pending_review",
+                "rejected",
+              ]),
+            ]
+          : view === "disabled"
+            ? [eq(players.status, "disabled")]
+            : []
+      : reviewStatus === "all"
+        ? []
+        : [eq(playerSnapshots.reviewStatus, reviewStatus)];
+    const conditions = [...filterConditions, ...viewConditions];
     const whereClause = conditions.length ? and(...conditions) : undefined;
     const rowsQuery = db
       .select({
@@ -342,7 +373,9 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         reviewStatus: playerSnapshots.reviewStatus,
         region: playerSnapshots.region,
         countryCode: playerSnapshots.countryCode,
+        age: playerSnapshots.age,
         primaryRole: playerSnapshots.primaryRole,
+        roles: playerSnapshots.playerRoles,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
@@ -372,7 +405,9 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         playerSnapshots.reviewStatus,
         playerSnapshots.region,
         playerSnapshots.countryCode,
+        playerSnapshots.age,
         playerSnapshots.primaryRole,
+        playerSnapshots.playerRoles,
         playerSnapshots.currentOrLastTeam,
         playerSnapshots.rosterStatus,
         playerSnapshots.isActiveRoster,
@@ -410,6 +445,150 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
+  app.get("/v1/admin/players/export", async (request, reply) => {
+    const latestSnapshots = db
+      .select({
+        playerId: playerSnapshots.playerId,
+        dataVersion: sql<number>`max(${playerSnapshots.dataVersion})`.as(
+          "latest_data_version",
+        ),
+      })
+      .from(playerSnapshots)
+      .groupBy(playerSnapshots.playerId)
+      .as("latest_player_snapshots_export");
+    const rows = await db
+      .select({
+        canonicalName: players.canonicalName,
+        aliases: sql<
+          string[]
+        >`coalesce(array_agg(distinct ${playerAliases.alias}) filter (where ${playerAliases.alias} is not null), '{}')`,
+        countryCode: playerSnapshots.countryCode,
+        countryGroup: playerSnapshots.countryGroupCode,
+        age: playerSnapshots.age,
+        region: playerSnapshots.region,
+        primaryRole: playerSnapshots.primaryRole,
+        roles: playerSnapshots.playerRoles,
+        currentOrLastTeam: playerSnapshots.currentOrLastTeam,
+        rosterStatus: playerSnapshots.rosterStatus,
+        isActiveRoster: playerSnapshots.isActiveRoster,
+        isCoach: playerSnapshots.isCoach,
+        isFeaturedTeam: playerSnapshots.isFeaturedTeam,
+        isVctCnTeam: playerSnapshots.isVctCnTeam,
+        championsTitles: playerSnapshots.championsTitles,
+        mastersTitles: playerSnapshots.mastersTitles,
+        leagueTitles: playerSnapshots.leagueTitles,
+        dataAsOf: playerSnapshots.dataAsOf,
+        sourceUrl: playerSnapshots.sourceUrl,
+        sourceCheckedAt: playerSnapshots.sourceCheckedAt,
+        reviewStatus: playerSnapshots.reviewStatus,
+        playerStatus: players.status,
+        dataVersion: playerSnapshots.dataVersion,
+      })
+      .from(players)
+      .innerJoin(playerSnapshots, eq(playerSnapshots.playerId, players.id))
+      .innerJoin(
+        latestSnapshots,
+        and(
+          eq(latestSnapshots.playerId, playerSnapshots.playerId),
+          eq(latestSnapshots.dataVersion, playerSnapshots.dataVersion),
+        ),
+      )
+      .leftJoin(playerAliases, eq(playerAliases.playerId, players.id))
+      .groupBy(
+        players.id,
+        players.canonicalName,
+        players.status,
+        playerSnapshots.id,
+        playerSnapshots.countryCode,
+        playerSnapshots.countryGroupCode,
+        playerSnapshots.age,
+        playerSnapshots.region,
+        playerSnapshots.primaryRole,
+        playerSnapshots.playerRoles,
+        playerSnapshots.currentOrLastTeam,
+        playerSnapshots.rosterStatus,
+        playerSnapshots.isActiveRoster,
+        playerSnapshots.isCoach,
+        playerSnapshots.isFeaturedTeam,
+        playerSnapshots.isVctCnTeam,
+        playerSnapshots.championsTitles,
+        playerSnapshots.mastersTitles,
+        playerSnapshots.leagueTitles,
+        playerSnapshots.dataAsOf,
+        playerSnapshots.sourceUrl,
+        playerSnapshots.sourceCheckedAt,
+        playerSnapshots.reviewStatus,
+        playerSnapshots.dataVersion,
+      )
+      .orderBy(asc(players.canonicalName));
+    const headers = [
+      "canonical_name",
+      "aliases",
+      "country_code",
+      "country_group",
+      "age",
+      "region",
+      "primary_role",
+      "roles",
+      "current_or_last_team",
+      "roster_status",
+      "is_active_roster",
+      "is_coach",
+      "is_featured_team",
+      "is_vct_cn_team",
+      "champions_titles",
+      "masters_titles",
+      "league_titles",
+      "data_as_of",
+      "source_url",
+      "source_checked_at",
+      "review_status",
+      "player_status",
+      "data_version",
+    ];
+    const escape = (value: unknown) => {
+      const text =
+        value instanceof Date ? value.toISOString() : String(value ?? "");
+      return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+    };
+    const csv = [
+      headers.join(","),
+      ...rows.map((row) =>
+        [
+          row.canonicalName,
+          row.aliases.join("|"),
+          row.countryCode,
+          row.countryGroup,
+          row.age,
+          row.region,
+          row.primaryRole,
+          (row.roles ?? [row.primaryRole]).join("|"),
+          row.currentOrLastTeam,
+          row.rosterStatus,
+          row.isActiveRoster,
+          row.isCoach,
+          row.isFeaturedTeam,
+          row.isVctCnTeam,
+          row.championsTitles,
+          row.mastersTitles,
+          row.leagueTitles,
+          row.dataAsOf,
+          row.sourceUrl,
+          row.sourceCheckedAt,
+          row.reviewStatus,
+          row.playerStatus,
+          row.dataVersion,
+        ]
+          .map(escape)
+          .join(","),
+      ),
+    ].join("\r\n");
+    return reply
+      .header("content-type", "text/csv; charset=utf-8")
+      .header("content-disposition", 'attachment; filename="players.csv"')
+      .send(`\ufeff${csv}\r\n`);
+  });
+
   app.get("/v1/admin/players/:playerId", async (request, reply) => {
     const { playerId } = z
       .object({ playerId: z.string().uuid() })
@@ -422,8 +601,10 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         snapshotId: playerSnapshots.id,
         countryCode: playerSnapshots.countryCode,
         countryGroup: playerSnapshots.countryGroupCode,
+        age: playerSnapshots.age,
         region: playerSnapshots.region,
         primaryRole: playerSnapshots.primaryRole,
+        roles: playerSnapshots.playerRoles,
         currentOrLastTeam: playerSnapshots.currentOrLastTeam,
         rosterStatus: playerSnapshots.rosterStatus,
         isActiveRoster: playerSnapshots.isActiveRoster,
@@ -562,12 +743,21 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/v1/admin/users", async (request) => {
     const input = userListSchema.parse(request.query);
-    const conditions = input.q
-      ? or(
-          ilike(users.displayName, `%${input.q}%`),
-          ilike(users.email, `%${input.q}%`),
-        )
-      : undefined;
+    const statusCondition =
+      input.view === "active"
+        ? isNull(users.deletedAt)
+        : input.view === "deleted"
+          ? isNotNull(users.deletedAt)
+          : undefined;
+    const conditions = and(
+      statusCondition,
+      input.q
+        ? or(
+            ilike(users.displayName, `%${input.q}%`),
+            ilike(users.email, `%${input.q}%`),
+          )
+        : undefined,
+    );
     const [{ total }] = await db
       .select({ total: sql<number>`count(*)::int` })
       .from(users)
@@ -579,6 +769,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         displayName: users.displayName,
         email: users.email,
         role: users.role,
+        deletedAt: users.deletedAt,
         createdAt: users.createdAt,
       })
       .from(users)
@@ -648,6 +839,9 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     return {
       items: rows.map((row) => ({
         ...row,
+        displayName: row.deletedAt
+          ? DELETED_USER_DISPLAY_NAME
+          : row.displayName,
         stats: {
           solo: soloByUser.get(row.id) ?? null,
           versus: versusByUser.get(row.id) ?? null,
@@ -697,6 +891,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         displayName: users.displayName,
         email: users.email,
         role: users.role,
+        deletedAt: users.deletedAt,
         createdAt: users.createdAt,
       });
     await audit({
@@ -714,13 +909,21 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .parse(request.params);
     if (!env.PASSWORD_PEPPER)
       return reply.serviceUnavailable("Password management is not configured");
+    const [target] = await db
+      .select({ id: users.id, deletedAt: users.deletedAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!target) return reply.notFound("User not found");
+    if (target.deletedAt)
+      return reply.conflict("A deleted user cannot receive a password reset");
     const [user] = await db
       .update(users)
       .set({
         passwordHash: await hashPassword("123456"),
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId))
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .returning({ id: users.id });
     if (!user) return reply.notFound("User not found");
     await audit({
@@ -736,39 +939,54 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     const { userId } = z
       .object({ userId: z.string().uuid() })
       .parse(request.params);
-    try {
-      const [target] = await db
-        .select({ id: users.id, role: users.role })
+    const [target] = await db
+      .select({ id: users.id, role: users.role, deletedAt: users.deletedAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!target) return reply.notFound("User not found");
+    if (target.deletedAt) return { id: target.id, deletedAt: target.deletedAt };
+    const deletedAt = new Date();
+    const anonymizedName = `${DELETED_USER_DISPLAY_NAME}#${target.id
+      .slice(0, 6)
+      .toUpperCase()}`;
+    const [user] = await db
+      .update(users)
+      .set({
+        displayName: anonymizedName,
+        normalizedDisplayName: normalizeAlias(anonymizedName),
+        email: null,
+        normalizedEmail: null,
+        passwordHash: null,
+        role: "user",
+        deletedAt,
+        updatedAt: deletedAt,
+      })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .returning({ id: users.id, deletedAt: users.deletedAt });
+    if (!user) {
+      // A concurrent request may have anonymized the same account between
+      // the initial read and this conditional update. Treat that race as the
+      // same idempotent success as a request that observed deletedAt first.
+      const [alreadyDeleted] = await db
+        .select({ id: users.id, deletedAt: users.deletedAt })
         .from(users)
-        .where(eq(users.id, userId))
+        .where(and(eq(users.id, userId), isNotNull(users.deletedAt)))
         .limit(1);
-      if (!target) return reply.notFound("User not found");
-      if (target.role === "admin") {
-        const [{ count: adminCount }] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(users)
-          .where(eq(users.role, "admin"));
-        if (Number(adminCount) <= 1)
-          return reply.conflict("The last administrator cannot be deleted");
-      }
-      const [user] = await db
-        .delete(users)
-        .where(eq(users.id, userId))
-        .returning({ id: users.id });
-      if (!user) return reply.notFound("User not found");
-      await audit({
-        action: "user_deleted",
-        entityType: "user",
-        entityId: user.id,
-      });
-      return { id: user.id };
-    } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "23503")
-        return reply.conflict(
-          "User has historical matches or other protected records and cannot be deleted",
-        );
-      throw error;
+      if (alreadyDeleted) return alreadyDeleted;
+      return reply.notFound("User not found");
     }
+    await audit({
+      action: "user_anonymized",
+      entityType: "user",
+      entityId: user.id,
+      metadata: { deletedAt: deletedAt.toISOString() },
+    });
+    await Promise.all([
+      invalidateLeaderboard("solo"),
+      invalidateLeaderboard("versus"),
+    ]);
+    return { id: user.id, deletedAt: user.deletedAt };
   });
 
   app.patch("/v1/admin/users/:userId/role", async (request, reply) => {
@@ -776,10 +994,18 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
       .object({ userId: z.string().uuid() })
       .parse(request.params);
     const { role } = userRoleSchema.parse(request.body);
+    const [target] = await db
+      .select({ id: users.id, deletedAt: users.deletedAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!target) return reply.notFound("User not found");
+    if (target.deletedAt)
+      return reply.conflict("A deleted user cannot change roles");
     const [user] = await db
       .update(users)
       .set({ role, updatedAt: new Date() })
-      .where(eq(users.id, userId))
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .returning({ id: users.id, role: users.role });
     if (!user) return reply.notFound("User not found");
     await audit({

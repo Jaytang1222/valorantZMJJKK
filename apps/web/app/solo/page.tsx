@@ -9,9 +9,11 @@ import {
 } from "../lib/display";
 import { searchPlayers } from "../lib/player-search";
 import { t, tWith } from "../lib/i18n";
+import { GUESS_FIELDS, matchSymbol, toneLabel } from "../lib/guess-fields";
 import { useLocale } from "../components/ui-provider";
 
 type Difficulty = "beginner" | "easy" | "full";
+type Region = "china" | "americas" | "emea" | "pacific";
 type Player = {
   id: string;
   canonicalName: string;
@@ -21,6 +23,7 @@ type Player = {
 type PlayerDetails = {
   region: string;
   countryCode: string;
+  age?: number;
   primaryRole: string;
   currentOrLastTeam: string;
   isActiveRoster: boolean;
@@ -52,17 +55,13 @@ function guestId() {
   return value;
 }
 
-function matchSymbol(tone: string | undefined) {
-  if (tone === "higher") return "↑";
-  if (tone === "lower") return "↓";
-  return "";
-}
-
 function valueFor(column: string, guess: Guess, locale: "zh" | "en") {
   const details = guess.details;
   if (!details) return "—";
   if (column === "region") return formatRegion(details.region);
   if (column === "country") return formatCountry(details.countryCode, locale);
+  if (column === "age")
+    return guess.comparison.age ? (details.age ?? "—") : "—";
   if (column === "status")
     return t(
       locale,
@@ -83,6 +82,8 @@ export default function SoloPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Player | null>(null);
+  const [activeCandidateIndex, setActiveCandidateIndex] = useState(-1);
+  const [showCandidates, setShowCandidates] = useState(true);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [result, setResult] = useState<{
     target: { canonicalName: string };
@@ -130,18 +131,13 @@ export default function SoloPage() {
     return searchPlayers(players, query, 250);
   }, [players, query, selected]);
 
+  useEffect(() => {
+    setActiveCandidateIndex(-1);
+  }, [query, selected]);
+
   const columns = useMemo(
     () =>
-      [
-        ["region", t(locale, "col.region")],
-        ["country", t(locale, "col.country")],
-        ["status", t(locale, "col.status")],
-        ["primaryRole", t(locale, "col.role")],
-        ["currentOrLastTeam", t(locale, "col.team")],
-        ["championsTitles", t(locale, "col.championsTitles")],
-        ["mastersTitles", t(locale, "col.mastersTitles")],
-        ["leagueTitles", t(locale, "col.leagueTitles")],
-      ] as const,
+      GUESS_FIELDS.map(([field, label]) => [field, t(locale, label)] as const),
     [locale],
   );
 
@@ -162,6 +158,8 @@ export default function SoloPage() {
       setResult(null);
       setSelected(null);
       setQuery("");
+      setActiveCandidateIndex(-1);
+      setShowCandidates(true);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : t(locale, "solo.errorStart"),
@@ -189,6 +187,8 @@ export default function SoloPage() {
       if (data.result) localStorage.removeItem("valo_solo_attempt_id");
       setSelected(null);
       setQuery("");
+      setActiveCandidateIndex(-1);
+      setShowCandidates(true);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : t(locale, "solo.errorSubmit"),
@@ -217,6 +217,19 @@ export default function SoloPage() {
     beginner: t(locale, "solo.diffBeginner"),
     easy: t(locale, "solo.diffEasy"),
     full: t(locale, "solo.diffFull"),
+  };
+  const regionLabels: Record<Region, string> = {
+    china: t(locale, "solo.regionChina"),
+    americas: t(locale, "solo.regionAmericas"),
+    emea: t(locale, "solo.regionEmea"),
+    pacific: t(locale, "solo.regionPacific"),
+  };
+  const regions: Region[] = ["china", "americas", "emea", "pacific"];
+  const selectCandidate = (player: Player) => {
+    setSelected(player);
+    setQuery(player.canonicalName);
+    setActiveCandidateIndex(-1);
+    setShowCandidates(false);
   };
 
   return (
@@ -259,7 +272,10 @@ export default function SoloPage() {
             <p>{t(locale, "solo.lead")}</p>
             <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
           </section>
-          <section className="difficulty-grid">
+          <section
+            className="difficulty-grid"
+            aria-label={t(locale, "home.entrySolo")}
+          >
             {(["beginner", "easy", "full"] as Difficulty[]).map(
               (difficulty) => (
                 <button
@@ -268,16 +284,56 @@ export default function SoloPage() {
                   onClick={() => start(difficulty)}
                 >
                   <strong>{difficultyLabels[difficulty]}</strong>
-                  <span>{t(locale, "solo.start")}</span>
+                  <span>{t(locale, "solo.startAction")}</span>
                 </button>
               ),
             )}
+            {regions.map((region) => (
+              <div className="region-card" key={region} aria-disabled="true">
+                <strong>{regionLabels[region]}</strong>
+                <span>{t(locale, "solo.regionComingSoon")}</span>
+                <label>
+                  <input type="checkbox" disabled />
+                  {t(locale, "solo.regionActiveOnly")}
+                </label>
+              </div>
+            ))}
           </section>
         </>
       )}
       {attempt && (
         <section className="game-board">
+          <div className="solo-board-toolbar">
+            <div>
+              <p className="eyebrow">SOLO // INTEL GRID</p>
+              <h1>{difficultyLabels[attempt.difficulty]}</h1>
+            </div>
+            <span className="solo-board-counter">
+              {tWith(locale, "solo.guessesLeft", { used: attempt.guessCount })}
+            </span>
+          </div>
           <p className="data-disclaimer">{t(locale, "solo.dataNotice")}</p>
+          <div
+            className="comparison-legend"
+            aria-label={t(locale, "match.fieldLegend")}
+          >
+            <span data-legend="exact">
+              <i aria-hidden="true" />
+              {t(locale, "legend.exact")}
+            </span>
+            <span data-legend="nearby">
+              <i aria-hidden="true" />
+              {t(locale, "legend.nearby")}
+            </span>
+            <span data-legend="mismatch">
+              <i aria-hidden="true" />
+              {t(locale, "legend.mismatch")}
+            </span>
+            <span data-legend="direction">
+              <i aria-hidden="true">↕</i>
+              {t(locale, "legend.direction")}
+            </span>
+          </div>
           <div
             className="guess-table-wrap"
             aria-label={t(locale, "solo.tableLabel")}
@@ -302,9 +358,11 @@ export default function SoloPage() {
                     <span
                       key={key}
                       data-match={tone}
+                      data-tone={toneLabel(tone)}
                       title={label}
                       aria-label={`${label}: ${valueFor(key, guess, locale)}`}
                     >
+                      <small className="guess-cell-label">{label}</small>
                       {valueFor(key, guess, locale)} {matchSymbol(tone)}
                     </span>
                   );
@@ -348,37 +406,92 @@ export default function SoloPage() {
                 {t(locale, "solo.searchLabel")}
                 <input
                   autoFocus
+                  role="combobox"
                   value={query}
+                  aria-expanded={
+                    showCandidates &&
+                    query.trim().length > 0 &&
+                    candidates.length > 0
+                  }
+                  aria-controls="solo-player-listbox"
+                  aria-activedescendant={
+                    activeCandidateIndex >= 0
+                      ? `solo-player-option-${activeCandidateIndex}`
+                      : undefined
+                  }
                   onChange={(event) => {
                     setQuery(event.target.value);
                     setSelected(null);
+                    setShowCandidates(true);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setActiveCandidateIndex(-1);
+                      setShowCandidates(false);
+                      return;
+                    }
+                    if (event.key === "Enter" && selected) {
+                      event.preventDefault();
+                      if (!busy) void submit();
+                      return;
+                    }
+                    if (!candidates.length) return;
+                    if (event.key === "ArrowDown") {
+                      event.preventDefault();
+                      setShowCandidates(true);
+                      setActiveCandidateIndex(
+                        (index) => (index + 1) % candidates.length,
+                      );
+                    } else if (event.key === "ArrowUp") {
+                      event.preventDefault();
+                      setShowCandidates(true);
+                      setActiveCandidateIndex((index) =>
+                        index <= 0 ? candidates.length - 1 : index - 1,
+                      );
+                    } else if (
+                      event.key === "Enter" &&
+                      activeCandidateIndex >= 0
+                    ) {
+                      event.preventDefault();
+                      selectCandidate(candidates[activeCandidateIndex]);
+                    }
                   }}
                   placeholder={t(locale, "solo.guessPlaceholder")}
                 />
               </label>
-              {query && !selected && (
-                <div className="candidate-list">
-                  {candidates.map((player) => (
-                    <button
-                      key={player.id}
-                      onClick={() => {
-                        setSelected(player);
-                        setQuery(player.canonicalName);
-                      }}
-                    >
-                      {player.canonicalName}
-                      <small>{formatTeam(player.currentOrLastTeam)}</small>
-                    </button>
-                  ))}
-                </div>
-              )}
+              {showCandidates &&
+                query &&
+                !selected &&
+                candidates.length > 0 && (
+                  <div
+                    className="candidate-list"
+                    id="solo-player-listbox"
+                    role="listbox"
+                  >
+                    {candidates.map((player, index) => (
+                      <button
+                        key={player.id}
+                        id={`solo-player-option-${index}`}
+                        role="option"
+                        aria-selected={activeCandidateIndex === index}
+                        data-active={activeCandidateIndex === index}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => selectCandidate(player)}
+                      >
+                        {player.canonicalName}
+                        <small>{formatTeam(player.currentOrLastTeam)}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
               {selected && (
                 <button
                   className="submit-guess"
                   disabled={busy}
                   onClick={submit}
                 >
-                  {t(locale, "solo.submit")} {selected.canonicalName}
+                  {t(locale, "solo.submit")}
                 </button>
               )}
             </div>

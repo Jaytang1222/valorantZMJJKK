@@ -42,7 +42,9 @@ export type AdminSnapshot = {
   reviewStatus: "pending_review" | "approved" | "rejected";
   region: string;
   countryCode: string;
+  age: number;
   primaryRole: string;
+  roles: string[];
   currentOrLastTeam: string;
   rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
@@ -67,6 +69,7 @@ export type AdminUser = {
   displayName: string;
   email: string | null;
   role: "user" | "editor" | "moderator" | "admin";
+  deletedAt: string | null;
   createdAt: string;
   stats: {
     solo: AdminUserStats | null;
@@ -79,8 +82,10 @@ export type PlayerInput = {
   aliases: string[];
   countryCode: string;
   countryGroup: string;
+  age: number;
   region: "americas" | "emea" | "pacific" | "china";
   primaryRole: "duelist" | "initiator" | "controller" | "sentinel" | "flex";
+  roles?: ("duelist" | "initiator" | "controller" | "sentinel" | "flex")[];
   currentOrLastTeam: string;
   rosterStatus: "active" | "benched" | "transferred" | "retired" | "inactive";
   championsTitles: number;
@@ -93,7 +98,7 @@ export type PlayerInput = {
   dataAsOf: string;
   sourceUrl: string;
   sourceCheckedAt: string;
-  reviewStatus: "pending_review" | "approved";
+  reviewStatus: "pending_review" | "approved" | "rejected";
 };
 
 export type PlayerDetails = Omit<PlayerInput, "aliases"> & {
@@ -104,7 +109,12 @@ export type PlayerDetails = Omit<PlayerInput, "aliases"> & {
 };
 
 export async function getSnapshots(
-  status: AdminSnapshot["reviewStatus"] | "all",
+  status:
+    | AdminSnapshot["reviewStatus"]
+    | "all"
+    | "published"
+    | "pending"
+    | "disabled",
   filters: {
     region?: string;
     team?: string;
@@ -123,7 +133,11 @@ export async function getSnapshots(
   const { apiBaseUrl, internalApiSecret } = getConfig();
   const response = await fetch(
     `${apiBaseUrl}/internal/v1/admin/snapshots?${new URLSearchParams({
-      reviewStatus: status,
+      ...(status === "published" ||
+      status === "pending" ||
+      status === "disabled"
+        ? { view: status }
+        : { reviewStatus: status }),
       ...Object.fromEntries(
         Object.entries(filters).filter(([, value]) => value),
       ),
@@ -138,9 +152,30 @@ export async function getSnapshots(
   return response.json();
 }
 
+export async function downloadPlayerCsv(): Promise<{
+  body: string;
+  filename: string;
+}> {
+  const { apiBaseUrl, internalApiSecret } = getConfig();
+  const response = await fetch(
+    `${apiBaseUrl}/internal/v1/admin/players/export`,
+    {
+      headers: { "x-internal-api-secret": internalApiSecret },
+      cache: "no-store",
+    },
+  );
+  if (!response.ok)
+    throw new Error(`Unable to export players: ${response.status}`);
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const filename =
+    /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? "players.csv";
+  return { body: await response.text(), filename };
+}
+
 export async function getAdminUsers(
   filters: {
     q?: string;
+    view?: "active" | "deleted" | "all";
     page?: number;
     limit?: number;
   } = {},
@@ -228,7 +263,7 @@ export async function deleteAdminUser(userId: string): Promise<void> {
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(
-      `Unable to delete user: ${response.status}${detail ? ` ${detail}` : ""}`,
+      `Unable to anonymize user: ${response.status}${detail ? ` ${detail}` : ""}`,
     );
   }
 }
@@ -327,6 +362,7 @@ export async function getPlayerDetails(
   const player = await response.json();
   return {
     ...player,
+    roles: player.roles ?? [player.primaryRole],
     countryGroup: player.countryGroup,
     dataAsOf: new Date(player.dataAsOf).toISOString().slice(0, 10),
     sourceCheckedAt: player.sourceCheckedAt,

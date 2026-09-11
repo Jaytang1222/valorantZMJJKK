@@ -422,6 +422,10 @@ testSuite("finished room persistence", () => {
         headers: adminHeaders,
       });
       expect(deleteResponse.statusCode).toBe(200);
+      if (database && schema)
+        await database.db
+          .delete(schema.users)
+          .where(eq(schema.users.id, createdUser.id));
 
       const deniedProfile = await app.inject({
         method: "GET",
@@ -459,6 +463,211 @@ testSuite("finished room persistence", () => {
       });
       expect(throttledLogin.statusCode).toBe(429);
     } finally {
+      await app.close();
+    }
+  }, 20_000);
+
+  it("anonymizes users with historical matches and preserves records", async () => {
+    if (!database || !schema || !application)
+      throw new Error("Database integration test dependencies are unavailable");
+    const app = await application.buildApp();
+    await app.ready();
+    const userId = randomUUID();
+    const playerId = randomUUID();
+    const snapshotId = randomUUID();
+    const puzzleId = randomUUID();
+    const roomId = randomUUID();
+    const email = `anonymize-${userId}@example.test`;
+    const now = new Date();
+    let createdUserId: string | undefined;
+    let replacementId: string | undefined;
+    const adminHeaders = {
+      "x-internal-api-secret": process.env.INTERNAL_API_SECRET,
+    };
+    try {
+      const created = await app.inject({
+        method: "POST",
+        url: "/internal/v1/admin/users",
+        headers: adminHeaders,
+        payload: {
+          email,
+          password: "temporary-password",
+          role: "admin",
+        },
+      });
+      expect(created.statusCode).toBe(201);
+      const createdUser = created.json() as { id: string };
+      createdUserId = createdUser.id;
+      const authenticated = await app.inject({
+        method: "POST",
+        url: "/v1/auth/login",
+        payload: { email, password: "temporary-password" },
+      });
+      expect(authenticated.statusCode).toBe(200);
+      const session = authenticated.json().session.token as string;
+      const sessionBeforeDeletion = await app.inject({
+        method: "GET",
+        url: "/v1/auth/me",
+        headers: { authorization: `Bearer ${session}` },
+      });
+      expect(sessionBeforeDeletion.statusCode).toBe(200);
+      await database.db.insert(schema.players).values({
+        id: playerId,
+        canonicalName: `Anonymize Target ${playerId.slice(0, 6)}`,
+      });
+      await database.db.insert(schema.playerSnapshots).values({
+        id: snapshotId,
+        playerId,
+        dataVersion: 1,
+        countryCode: "CN",
+        countryGroupCode: "east_asia",
+        age: 20,
+        region: "china",
+        primaryRole: "flex",
+        playerRoles: ["flex"],
+        currentOrLastTeam: "Test Team",
+        dataAsOf: now,
+        sourceUrl: "https://example.test/anonymize",
+        sourceCheckedAt: now,
+        reviewStatus: "approved",
+      });
+      await database.db.insert(schema.puzzles).values({
+        id: puzzleId,
+        snapshotId,
+        difficulty: "full",
+        status: "approved",
+      });
+      await database.db.insert(schema.rooms).values({
+        id: roomId,
+        code: `A${userId.replaceAll("-", "").slice(0, 5)}`,
+        hostId: createdUser.id,
+        state: "finished",
+        rankedEligible: true,
+        finishedAt: now,
+        winnerUserId: createdUser.id,
+      });
+      await database.db.insert(schema.roomParticipants).values({
+        roomId,
+        userId: createdUser.id,
+        state: "connected",
+        score: 1,
+      });
+
+      const deleted = await app.inject({
+        method: "DELETE",
+        url: `/internal/v1/admin/users/${createdUser.id}`,
+        headers: adminHeaders,
+      });
+      expect(deleted.statusCode).toBe(200);
+      expect(deleted.json()).toMatchObject({ id: createdUser.id });
+
+      const [stored] = await database.db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, createdUser.id));
+      expect(stored).toMatchObject({
+        email: null,
+        normalizedEmail: null,
+        passwordHash: null,
+        role: "user",
+      });
+      expect(stored?.deletedAt).toBeInstanceOf(Date);
+      const sessionUser = await app.inject({
+        method: "GET",
+        url: "/v1/auth/me",
+        headers: { authorization: `Bearer ${session}` },
+      });
+      expect(sessionUser.statusCode).toBe(200);
+      expect(sessionUser.json()).toMatchObject({
+        user: {
+          id: createdUser.id,
+          displayName: "已注销用户",
+          email: null,
+          role: "user",
+        },
+      });
+      const [storedRoom] = await database.db
+        .select({ id: schema.rooms.id, hostId: schema.rooms.hostId })
+        .from(schema.rooms)
+        .where(eq(schema.rooms.id, roomId));
+      const [storedParticipant] = await database.db
+        .select({ userId: schema.roomParticipants.userId })
+        .from(schema.roomParticipants)
+        .where(eq(schema.roomParticipants.roomId, roomId));
+      expect(storedRoom).toMatchObject({ id: roomId, hostId: createdUser.id });
+      expect(storedParticipant?.userId).toBe(createdUser.id);
+
+      const login = await app.inject({
+        method: "POST",
+        url: "/v1/auth/login",
+        payload: { email, password: "temporary-password" },
+      });
+      expect(login.statusCode).toBe(401);
+
+      const activeUsers = await app.inject({
+        method: "GET",
+        url: "/internal/v1/admin/users?view=active&limit=100",
+        headers: adminHeaders,
+      });
+      expect(
+        activeUsers
+          .json()
+          .items.some((item: { id: string }) => item.id === createdUser.id),
+      ).toBe(false);
+      const deletedUsers = await app.inject({
+        method: "GET",
+        url: "/internal/v1/admin/users?view=deleted&limit=100",
+        headers: adminHeaders,
+      });
+      expect(deletedUsers.json().items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: createdUser.id,
+            displayName: "已注销用户",
+            deletedAt: expect.any(String),
+          }),
+        ]),
+      );
+
+      const repeated = await app.inject({
+        method: "DELETE",
+        url: `/internal/v1/admin/users/${createdUser.id}`,
+        headers: adminHeaders,
+      });
+      expect(repeated.statusCode).toBe(200);
+      const resetDeleted = await app.inject({
+        method: "POST",
+        url: `/internal/v1/admin/users/${createdUser.id}/password-reset`,
+        headers: adminHeaders,
+      });
+      expect(resetDeleted.statusCode).toBe(409);
+      const reRegistered = await app.inject({
+        method: "POST",
+        url: "/v1/auth/register",
+        payload: { email, password: "replacement-password" },
+      });
+      expect(reRegistered.statusCode).toBe(201);
+      const replacement = reRegistered.json() as { user: { id: string } };
+      replacementId = replacement.user.id;
+    } finally {
+      await database.db.delete(schema.rooms).where(eq(schema.rooms.id, roomId));
+      await database.db
+        .delete(schema.puzzles)
+        .where(eq(schema.puzzles.id, puzzleId));
+      await database.db
+        .delete(schema.playerSnapshots)
+        .where(eq(schema.playerSnapshots.id, snapshotId));
+      await database.db
+        .delete(schema.players)
+        .where(eq(schema.players.id, playerId));
+      if (createdUserId)
+        await database.db
+          .delete(schema.users)
+          .where(eq(schema.users.id, createdUserId));
+      if (replacementId)
+        await database.db
+          .delete(schema.users)
+          .where(eq(schema.users.id, replacementId));
       await app.close();
     }
   });

@@ -20,6 +20,13 @@ import {
 import { CsvImport } from "./csv-import";
 import { ConfirmDeleteUserButton } from "./confirm-delete-user";
 import { LOCALE_COOKIE, detectLocale, t, tWith } from "../lib/i18n";
+import {
+  ADMIN_COUNTRY_CODES,
+  ADMIN_COUNTRY_GROUPS,
+  ADMIN_PLAYER_ROLES,
+  ADMIN_REGIONS,
+  ADMIN_TEAMS,
+} from "../../lib/admin-player-options";
 
 export const dynamic = "force-dynamic";
 type PageProps = {
@@ -32,12 +39,15 @@ type PageProps = {
     rosterStatus?: string;
     page?: string;
     reviewStatus?: "pending_review" | "approved" | "rejected" | "all";
+    view?: "published" | "pending" | "disabled" | "all";
     section?: "players" | "users";
     userQ?: string;
     userPage?: string;
+    userView?: "active" | "deleted" | "all";
     createdUser?: string;
     resetUser?: string;
     deletedUser?: string;
+    userError?: string;
   }>;
 };
 
@@ -56,34 +66,64 @@ function NewPlayerForm({ locale }: { locale: "zh" | "en" }) {
         </label>
         <label>
           {t(locale, "admin.countryCode")}
-          <input name="countryCode" maxLength={2} placeholder="CN" required />
+          <select name="countryCode" defaultValue="CN" required>
+            {ADMIN_COUNTRY_CODES.map((code) => (
+              <option key={code}>{code}</option>
+            ))}
+          </select>
         </label>
         <label>
           {t(locale, "admin.countryGroup")}
-          <input name="countryGroup" placeholder="east_asia" required />
+          <select name="countryGroup" defaultValue="east_asia" required>
+            {ADMIN_COUNTRY_GROUPS.map((group) => (
+              <option key={group}>{group}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t(locale, "col.age")}
+          <input
+            name="age"
+            type="number"
+            min="13"
+            max="60"
+            defaultValue="20"
+            required
+          />
         </label>
         <label>
           {t(locale, "admin.regionLabel")}
           <select name="region" defaultValue="pacific">
-            <option value="americas">Americas</option>
-            <option value="emea">EMEA</option>
-            <option value="pacific">Pacific</option>
-            <option value="china">China</option>
+            {ADMIN_REGIONS.map((region) => (
+              <option key={region} value={region}>
+                {region.toUpperCase()}
+              </option>
+            ))}
           </select>
         </label>
-        <label>
-          {t(locale, "admin.roleLabel")}
-          <select name="primaryRole" defaultValue="duelist">
-            <option value="duelist">Duelist</option>
-            <option value="initiator">Initiator</option>
-            <option value="controller">Controller</option>
-            <option value="sentinel">Sentinel</option>
-            <option value="flex">Flex</option>
-          </select>
-        </label>
+        <fieldset className="admin-fieldset">
+          <legend>{t(locale, "admin.roleLabel")}</legend>
+          <div className="admin-checkbox-grid" role="group" aria-label="Roles">
+            {ADMIN_PLAYER_ROLES.map((role, index) => (
+              <label key={role}>
+                <input
+                  type="checkbox"
+                  name="roles"
+                  value={role}
+                  defaultChecked={index === 0}
+                />
+                {role}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <label>
           {t(locale, "admin.teamLabel")}
-          <input name="team" required />
+          <select name="team" defaultValue={ADMIN_TEAMS[0]} required>
+            {ADMIN_TEAMS.map((team) => (
+              <option key={team}>{team}</option>
+            ))}
+          </select>
         </label>
         <label>
           {t(locale, "admin.championsTitles")}
@@ -188,12 +228,13 @@ function UserManagement({
     page: number;
     totalPages: number;
   };
-  query: { q?: string };
+  query: { q?: string; view: "active" | "deleted" | "all" };
 }) {
   const pageUrl = (page: number) => {
     const params = new URLSearchParams({
       section: "users",
       userPage: String(page),
+      userView: query.view,
     });
     if (query.q) params.set("userQ", query.q);
     return `/admin?${params.toString()}`;
@@ -203,16 +244,37 @@ function UserManagement({
       <NewUserForm locale={locale} />
       <form method="get" className="admin-filters user-filters">
         <input type="hidden" name="section" value="users" />
+        <input type="hidden" name="userView" value={query.view} />
         <input
           name="userQ"
           defaultValue={query.q}
           placeholder={t(locale, "admin.email")}
         />
         <button type="submit">Filter</button>
-        <Link href="/admin?section=users" className="back-link">
+        <Link
+          href={`/admin?section=users&userView=${query.view}`}
+          className="back-link"
+        >
           Clear
         </Link>
       </form>
+      <nav className="admin-tabs" aria-label="User status views">
+        {(
+          [
+            ["active", "Active users"],
+            ["deleted", "Deleted users"],
+            ["all", "All users"],
+          ] as const
+        ).map(([view, label]) => (
+          <Link
+            key={view}
+            className={query.view === view ? "active" : ""}
+            href={`/admin?section=users&userView=${view}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
       <p className="admin-summary">{users.total} users</p>
       <section className="snapshot-list user-list">
         {users.items.map((user) => {
@@ -222,7 +284,8 @@ function UserManagement({
             <article className="snapshot user-row" key={user.id}>
               <div>
                 <h2>
-                  {user.displayName} <small>{user.role}</small>
+                  {user.displayName}{" "}
+                  <small>{user.deletedAt ? "deleted" : user.role}</small>
                 </h2>
                 <p>{user.email ?? "-"}</p>
                 <p>
@@ -239,19 +302,24 @@ function UserManagement({
                 </p>
               </div>
               <div className="review-actions">
-                <form action={resetUserPasswordAction}>
-                  <input type="hidden" name="userId" value={user.id} />
-                  <button className="secondary">
-                    {t(locale, "admin.resetPassword")}
-                  </button>
-                </form>
-                <form action={deleteUserAction}>
-                  <input type="hidden" name="userId" value={user.id} />
-                  <ConfirmDeleteUserButton
-                    label={t(locale, "admin.deleteUser")}
-                    message={t(locale, "admin.confirmDeleteUser")}
-                  />
-                </form>
+                {!user.deletedAt && (
+                  <form action={resetUserPasswordAction}>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <button className="secondary">
+                      {t(locale, "admin.resetPassword")}
+                    </button>
+                  </form>
+                )}
+                {!user.deletedAt && (
+                  <form action={deleteUserAction}>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <input type="hidden" name="userView" value={query.view} />
+                    <ConfirmDeleteUserButton
+                      label={t(locale, "admin.anonymizeUser")}
+                      message={t(locale, "admin.confirmAnonymizeUser")}
+                    />
+                  </form>
+                )}
               </div>
             </article>
           );
@@ -314,7 +382,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
   const userSection = params.section === "users";
   const snapshots = userSection
     ? null
-    : await getSnapshots(params.reviewStatus ?? "all", {
+    : await getSnapshots(params.view ?? "published", {
         q: params.q,
         team: params.team,
         region: params.region,
@@ -325,13 +393,15 @@ export default async function AdminPage({ searchParams }: PageProps) {
   const adminUsers = userSection
     ? await getAdminUsers({
         q: params.userQ,
+        view: params.userView ?? "active",
         page: Math.max(1, Number(params.userPage ?? "1") || 1),
         limit: 50,
       })
     : null;
   const pending =
-    snapshots?.items.filter((item) => item.reviewStatus === "pending_review")
-      .length ?? 0;
+    snapshots?.items.filter((item) =>
+      ["pending_review", "rejected"].includes(item.reviewStatus),
+    ).length ?? 0;
   const pageUrl = (page: number) => {
     const next = new URLSearchParams();
     for (const [key, value] of Object.entries(params))
@@ -339,6 +409,21 @@ export default async function AdminPage({ searchParams }: PageProps) {
     next.set("page", String(page));
     return `/admin?${next.toString()}`;
   };
+  const currentListParams = new URLSearchParams();
+  for (const key of [
+    "view",
+    "q",
+    "team",
+    "region",
+    "rosterStatus",
+    "page",
+  ] as const) {
+    const value = params[key];
+    if (value) currentListParams.set(key, value);
+  }
+  if (!currentListParams.has("view"))
+    currentListParams.set("view", "published");
+  const currentListUrl = `/admin?${currentListParams.toString()}`;
   return (
     <main className="admin-shell">
       <header className="admin-header">
@@ -383,12 +468,17 @@ export default async function AdminPage({ searchParams }: PageProps) {
             </p>
           )}
           {params.deletedUser && (
-            <p className="success-message">{t(locale, "admin.userDeleted")}</p>
+            <p className="success-message">
+              {t(locale, "admin.userAnonymized")}
+            </p>
+          )}
+          {params.userError && (
+            <p className="form-error">{t(locale, "admin.userActionFailed")}</p>
           )}
           <UserManagement
             locale={locale}
             users={adminUsers}
-            query={{ q: params.userQ }}
+            query={{ q: params.userQ, view: params.userView ?? "active" }}
           />
         </>
       ) : snapshots ? (
@@ -405,6 +495,28 @@ export default async function AdminPage({ searchParams }: PageProps) {
           )}
           <NewPlayerForm locale={locale} />
           <CsvImport />
+          <a className="button secondary" href="/api/admin/players/export">
+            Export all players CSV
+          </a>
+          <nav className="admin-tabs" aria-label="Player status views">
+            {(
+              [
+                ["published", "Published"],
+                ["pending", "Pending review"],
+                ["disabled", "Disabled"],
+              ] as const
+            ).map(([view, label]) => (
+              <Link
+                key={view}
+                className={
+                  (params.view ?? "published") === view ? "active" : ""
+                }
+                href={`/admin?${new URLSearchParams({ view }).toString()}`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <form method="get" className="admin-filters">
             <input name="q" defaultValue={params.q} placeholder="Player name" />
             <input name="team" defaultValue={params.team} placeholder="Team" />
@@ -426,15 +538,11 @@ export default async function AdminPage({ searchParams }: PageProps) {
               <option value="transferred">Transferred</option>
               <option value="retired">Retired</option>
             </select>
-            <select
-              name="reviewStatus"
-              defaultValue={params.reviewStatus ?? "all"}
-            >
-              <option value="all">All review states</option>
-              <option value="pending_review">Pending review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <input
+              type="hidden"
+              name="view"
+              value={params.view ?? "published"}
+            />
             <button type="submit">Filter</button>
             <Link href="/admin" className="back-link">
               Clear
@@ -448,10 +556,13 @@ export default async function AdminPage({ searchParams }: PageProps) {
                     <Link href={`/admin/players/${snapshot.playerId}`}>
                       {snapshot.canonicalName}
                     </Link>{" "}
-                    <small>{snapshot.reviewStatus}</small>
+                    <small>
+                      {snapshot.reviewStatus} · {snapshot.playerStatus}
+                    </small>
                   </h2>
                   <p>
                     {snapshot.region} · {snapshot.countryCode} ·{" "}
+                    {t(locale, "col.age")} {snapshot.age} ·{" "}
                     {snapshot.primaryRole} · {snapshot.currentOrLastTeam}
                   </p>
                   <p>
@@ -466,7 +577,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
                   </a>
                 </div>
                 <div className="review-actions">
-                  {snapshot.reviewStatus === "pending_review" && (
+                  {snapshot.reviewStatus !== "approved" && (
                     <>
                       <form action={review}>
                         <input
@@ -478,6 +589,11 @@ export default async function AdminPage({ searchParams }: PageProps) {
                           type="hidden"
                           name="reviewStatus"
                           value="approved"
+                        />
+                        <input
+                          type="hidden"
+                          name="returnTo"
+                          value={currentListUrl}
                         />
                         <button>{t(locale, "admin.approve")}</button>
                       </form>
@@ -492,6 +608,11 @@ export default async function AdminPage({ searchParams }: PageProps) {
                           name="reviewStatus"
                           value="rejected"
                         />
+                        <input
+                          type="hidden"
+                          name="returnTo"
+                          value={currentListUrl}
+                        />
                         <button className="danger">
                           {t(locale, "admin.reject")}
                         </button>
@@ -504,9 +625,24 @@ export default async function AdminPage({ searchParams }: PageProps) {
                       name="playerId"
                       value={snapshot.playerId}
                     />
-                    <input type="hidden" name="status" value="disabled" />
+                    <input
+                      type="hidden"
+                      name="status"
+                      value={
+                        snapshot.playerStatus === "active"
+                          ? "disabled"
+                          : "active"
+                      }
+                    />
+                    <input
+                      type="hidden"
+                      name="returnTo"
+                      value={currentListUrl}
+                    />
                     <button className="secondary">
-                      {t(locale, "admin.disable")}
+                      {snapshot.playerStatus === "active"
+                        ? t(locale, "admin.disable")
+                        : t(locale, "admin.enable")}
                     </button>
                   </form>
                 </div>

@@ -1,14 +1,21 @@
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { guesses, roomParticipants, roomRounds, rooms } from "../db/schema.js";
+import {
+  guesses,
+  roomParticipants,
+  roomRounds,
+  rooms,
+  users,
+} from "../db/schema.js";
 import { redis } from "../redis.js";
 import { invalidateLeaderboard } from "./leaderboard.js";
 import type { LiveRoom } from "./room-state.js";
 
 const roomKey = (code: string) => `valo:room:${code}`;
 const queueKey = (settings: string) => `valo:match:${settings}`;
+const DELETED_USER_DISPLAY_NAME = "已注销用户";
 
 function isRankedEligible(room: LiveRoom) {
   return (
@@ -162,7 +169,7 @@ function normalizeRoom(room: LiveRoom): LiveRoom {
 
 export async function loadRoom(code: string) {
   const value = await redis.get(roomKey(code));
-  if (value) return normalizeRoom(JSON.parse(value) as LiveRoom);
+  if (value) return sanitizeRoom(normalizeRoom(JSON.parse(value) as LiveRoom));
   const [persisted] = await db
     .select({ liveState: rooms.liveState })
     .from(rooms)
@@ -175,8 +182,27 @@ export async function loadRoom(code: string) {
     .limit(1);
   if (!persisted?.liveState || typeof persisted.liveState !== "object")
     return null;
-  const room = normalizeRoom(persisted.liveState as LiveRoom);
+  const room = await sanitizeRoom(
+    normalizeRoom(persisted.liveState as LiveRoom),
+  );
   await redis.set(roomKey(room.code), JSON.stringify(room), "EX", 60 * 60 * 6);
+  return room;
+}
+
+async function sanitizeRoom(room: LiveRoom) {
+  const ids = room.members.map((member) => member.userId);
+  if (ids.length === 0) return room;
+  const deleted = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(inArray(users.id, ids), isNotNull(users.deletedAt)));
+  if (deleted.length === 0) return room;
+  const deletedIds = new Set(deleted.map((user) => user.id));
+  room.members = room.members.map((member) =>
+    deletedIds.has(member.userId)
+      ? { ...member, displayName: DELETED_USER_DISPLAY_NAME }
+      : member,
+  );
   return room;
 }
 
@@ -236,7 +262,24 @@ export async function takeMatchOpponent(settings: string, userId: string) {
   for (const value of values) {
     const entry = JSON.parse(value) as QueueEntry;
     await redis.lrem(key, 1, value);
-    if (entry.userId !== userId) return entry;
+    if (entry.userId === userId) continue;
+
+    // Queue entries intentionally contain a display-name snapshot for the
+    // waiting client, but account privacy changes must take effect before a
+    // new room is created. Refresh the name from PostgreSQL so a user who
+    // was anonymized while waiting cannot leak their former nickname.
+    const [user] = await db
+      .select({ displayName: users.displayName, deletedAt: users.deletedAt })
+      .from(users)
+      .where(eq(users.id, entry.userId))
+      .limit(1);
+    if (!user) continue;
+    return {
+      ...entry,
+      displayName: user.deletedAt
+        ? DELETED_USER_DISPLAY_NAME
+        : user.displayName,
+    };
   }
   return null;
 }

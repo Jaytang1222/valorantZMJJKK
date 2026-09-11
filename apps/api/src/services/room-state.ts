@@ -16,7 +16,9 @@ export type PrivateGuess = {
   details?: {
     region: string;
     countryCode: string;
+    age?: number;
     primaryRole: string;
+    roles: string[];
     currentOrLastTeam: string;
     isActiveRoster: boolean;
     championsTitles: number;
